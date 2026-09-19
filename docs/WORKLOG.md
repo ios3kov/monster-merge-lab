@@ -99,9 +99,21 @@ This file is updated after each major production step.
   - offline smoke warms hashed Vite assets through active SW before offline reload.
 
 
-### Restored Experiment drop-limit resolution — IN PROGRESS
+### Restored Experiment drop-limit resolution — DONE
 - Confirmed restore bug: active Experiment snapshots always restored with `canDrop=true`, even when `runDrops` already reached the configured drop limit.
-- This could allow an extra illegal drop and skip the normal settle/failure resolution path.
-- Restore now disables DROP at the limit and schedules the same 1.5s settle resolution used during normal play.
-- Added browser regression using Experiment 12 at 14/14 drops.
-- Next: PR → parallel CI → Aggregate Gate → merge → deploy → live smoke.
+- Restore disables DROP at the limit and schedules the same 1.5s settle resolution used during normal play.
+- Browser regression covers Experiment 12 at 14/14 drops.
+- PR #25: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Post-merge main run #121: all five jobs ✓ Aggregate Gate ✓ Deploy ✓.
+- Production live smoke ✓.
+
+
+### Canonical telemetry and run metrics — IN PROGRESS
+- Normalizing internal telemetry to the original production vocabulary.
+- Canonical events: run_started, first_drop, first_merge, hold_used, power_used, overdrive_started, danger_started, rescued, experiment_started, experiment_completed, experiment_failed.
+- Low-level drop/merge/chain/order_complete/danger_end/overdrive_end remain available where useful.
+- Terminal events include run duration, first-decision time, drops, merges, HOLD/Power usage, Overdrive starts, danger starts and rescues.
+- Active run timing excludes background time.
+- Optional telemetry timing/counters persist across reload without breaking existing v1 snapshots.
+- No external analytics SDK, persistence service, network calls or PII.
+- Next: PR → parallel CI → Aggregate Gate → merge → deploy → final production gate.
