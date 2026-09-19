@@ -1608,14 +1608,22 @@ function App() {
       activeLayer = container;
     }
 
-    const onModalKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab') return;
-
-      const focusable = Array.from(
+    const getFocusable = () =>
+      Array.from(
         dialog.querySelectorAll<HTMLElement>(
           'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
         ),
       ).filter((element) => !element.hasAttribute('inert'));
+
+    const activeAtOpen = document.activeElement;
+    if (!activeAtOpen || !dialog.contains(activeAtOpen)) {
+      getFocusable()[0]?.focus();
+    }
+
+    const onModalKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+
+      const focusable = getFocusable();
 
       if (focusable.length === 0) {
         event.preventDefault();
@@ -1642,7 +1650,11 @@ function App() {
         element.removeAttribute('inert');
         element.removeAttribute('aria-hidden');
       }
-      previousFocus?.focus();
+
+      const remainingDialog =
+        shell.querySelector<HTMLElement>('.monster-modal[role="dialog"]') ??
+        shell.querySelector<HTMLElement>('.game-over[role="dialog"]');
+      if (!remainingDialog) previousFocus?.focus();
     };
   }, [
     showLab,
