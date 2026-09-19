@@ -1138,7 +1138,11 @@ function App() {
         drawMonster(ctx, body, time, 1, gazeX, gazeY, attention);
       }
 
-      if (!uiRef.current.gameOver) {
+      if (
+        !uiRef.current.gameOver &&
+        !uiRef.current.experimentComplete &&
+        !uiRef.current.experimentFailed
+      ) {
         let previewGazeX = aimXRef.current;
         let previewGazeY = guideY;
         let previewAttention = 0.3;
@@ -1212,7 +1216,9 @@ function App() {
       previous = time;
       accumulator += delta;
       while (accumulator >= 1 / 120) {
-        if (!uiRef.current.gameOver) stepWorld(worldRef.current, 1 / 120, time, onMerge, onImpact);
+        if (!uiRef.current.gameOver && !uiRef.current.experimentFailed) {
+          stepWorld(worldRef.current, 1 / 120, time, onMerge, onImpact);
+        }
         accumulator -= 1 / 120;
       }
 
@@ -1225,7 +1231,11 @@ function App() {
         sync();
       }
 
-      if (!uiRef.current.gameOver && !uiRef.current.experimentComplete) {
+      if (
+        !uiRef.current.gameOver &&
+        !uiRef.current.experimentComplete &&
+        !uiRef.current.experimentFailed
+      ) {
         const offender = worldRef.current.bodies.some((body) => {
           const speed = Math.hypot(body.vx, body.vy);
           return time - body.bornAt > 900 && body.y - body.r < DANGER_Y && speed < 70;
@@ -1247,6 +1257,7 @@ function App() {
           if (
             dangerStartedAt !== null &&
             time - dangerStartedAt >= 250 &&
+            isPileBelowDanger() &&
             !uiRef.current.experimentComplete &&
             !uiRef.current.experimentFailed
           ) {
