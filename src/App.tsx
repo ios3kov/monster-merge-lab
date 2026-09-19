@@ -13,7 +13,15 @@ import {
   readSoundEnabled,
   setSoundEnabled,
 } from './audio';
-import { drawSpawnTier, makeOrder, type Order } from './gameplay';
+import {
+  DANGER_GRACE_MS,
+  OVERDRIVE_DURATION_MS,
+  OVERDRIVE_MAX,
+  drawSpawnTier,
+  getOverdriveGain,
+  makeOrder,
+  type Order,
+} from './gameplay';
 import { haptic } from './haptics';
 import {
   DANGER_Y,
@@ -63,9 +71,6 @@ const ORDER_KEY = 'monster-merge-order-v3';
 const COACH_KEY = 'monster-merge-coach-v3';
 const POWER_KEY = 'monster-merge-power-v1';
 const POWER_COST = 200;
-const OVERDRIVE_MAX = 100;
-const OVERDRIVE_DURATION_MS = 9000;
-const DANGER_GRACE_MS = 3000;
 const REDUCED_MOTION =
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -526,7 +531,7 @@ function App() {
       uiRef.current.message = '';
       sync();
     }, 1100);
-  }, [sync]);
+  }, [flash, sync]);
 
   const updateAim = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -611,6 +616,11 @@ function App() {
   const hold = useCallback(() => {
     const state = uiRef.current;
     if (!state.canDrop || !state.canHold || state.gameOver) return;
+
+    if (state.holdTier === state.currentTier) {
+      flash('Same monster already held');
+      return;
+    }
 
     if (state.holdTier === null) {
       state.holdTier = state.currentTier;
@@ -735,7 +745,7 @@ function App() {
       if (!state.overdriveActive) {
         state.overdrive = Math.min(
           OVERDRIVE_MAX,
-          state.overdrive + 18 + Math.min(22, tier * 4) + (state.combo > 1 ? 8 : 0),
+          state.overdrive + getOverdriveGain(tier, state.combo),
         );
         if (state.overdrive >= OVERDRIVE_MAX) {
           state.overdrive = 0;
@@ -747,7 +757,7 @@ function App() {
         }
       } else {
         overdriveEndRef.current = Math.min(
-          overdriveEndRef.current + 320,
+          overdriveEndRef.current + 240,
           now + OVERDRIVE_DURATION_MS,
         );
       }
@@ -1164,7 +1174,15 @@ function App() {
 
         <button
           type="button"
-          className={'hold-board' + (!ui.canHold ? ' is-used' : '')}
+          className={
+            'hold-board' +
+            (!ui.canHold ? ' is-used' : '') +
+            (ui.canHold &&
+            ui.holdTier !== null &&
+            ui.holdTier !== ui.currentTier
+              ? ' is-swap-ready'
+              : '')
+          }
           onClick={hold}
           disabled={!ui.canDrop || !ui.canHold || ui.gameOver}
           aria-label={
