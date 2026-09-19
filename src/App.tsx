@@ -584,6 +584,64 @@ function App() {
 
   const sync = useCallback(() => setUi({ ...uiRef.current }), []);
 
+  const getRunMetrics = useCallback((): RunMetrics => {
+    const state = uiRef.current;
+    return {
+      score: state.score,
+      highestTier: state.runHighestTier,
+      bestCombo: state.bestCombo,
+      merges: state.merges,
+      ordersCompleted: state.ordersCompletedRun,
+      rescues: state.rescues,
+      pileBelowDanger: worldRef.current.bodies.every(
+        (body) => body.y - body.r >= DANGER_Y,
+      ),
+    };
+  }, []);
+
+  const failExperiment = useCallback((reason: string) => {
+    const state = uiRef.current;
+    if (
+      presetRef.current.mode !== 'experiments' ||
+      state.experimentComplete ||
+      state.experimentFailed ||
+      state.gameOver
+    ) {
+      return false;
+    }
+
+    state.experimentFailed = true;
+    state.experimentFailureReason = reason;
+    state.canDrop = false;
+    sync();
+    playSound('fail');
+    haptic('fail');
+    return true;
+  }, [sync]);
+
+  const completeExperimentIfReady = useCallback(() => {
+    const state = uiRef.current;
+    const activePreset = presetRef.current;
+    if (
+      activePreset.mode !== 'experiments' ||
+      !activePreset.goal ||
+      state.experimentComplete ||
+      state.experimentFailed ||
+      state.gameOver
+    ) {
+      return false;
+    }
+
+    if (!isGoalComplete(activePreset.goal, getRunMetrics())) return false;
+
+    state.experimentComplete = true;
+    state.canDrop = false;
+    sync();
+    playSound('order');
+    haptic('order');
+    return true;
+  }, [getRunMetrics, sync]);
+
   useEffect(() => {
     installAudioUnlock();
   }, []);
