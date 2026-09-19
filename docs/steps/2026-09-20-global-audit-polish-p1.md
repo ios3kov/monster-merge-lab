@@ -79,7 +79,9 @@ PR #33 run #147 failed in Audit at TypeScript before merge:
 - run #149 then exposed two E2E test-isolation issues:
   - the new coach copy contains “monsters”, so the old non-exact toolbar locator matched two buttons;
   - the readability viewport loop persisted Experiment mode into the next viewport, where Overdrive is intentionally absent.
-- fix: exact toolbar locator + clear persisted state before each readability viewport.
+- fix: exact toolbar locator + isolate persisted state for the readability viewport loop.
+- run #151 showed the first isolation attempt was still vulnerable to the app's pagehide persistence: clearing storage before reload allowed the outgoing page to immediately save the Experiment snapshot again.
+- final test-isolation fix: clear localStorage from an init script before app startup on every navigation, with no intermediate reload.
 - product behavior remains unchanged by these test corrections.
 
 Status: IN PROGRESS.
