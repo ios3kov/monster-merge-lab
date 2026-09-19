@@ -182,4 +182,17 @@ This file is updated after each major production step.
 - Code review: labels/classes, DROP disabled state, POWER limit/aria-label logic and callbacks preserved.
 - PR #31 run #139: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
 - No physics, timing, persistence, storage, telemetry or gameplay-rule changes.
-- Final documentation head must pass the same gate before merge.
+- Final PR head run #140: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- PR #31 merged as 8b735c7.
+- Post-merge main run #141: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓ Deploy ✓.
+- Production endpoint renders the expected game shell/HUD ✓.
+- Interactive live smoke remains waived by explicit user decision.
+
+### Terminal run overlay extraction — IN PROGRESS
+- Goal: reduce App.tsx terminal-state presentation without moving run control.
+- Scope: move Experiment Complete, Experiment Failed and Game Over dialog markup into src/run-overlays.tsx.
+- App.tsx keeps restart, next-Experiment selection/reset, Lab opening and all gameplay state/rules.
+- App.tsx reduced from 1957 to 1925 lines.
+- Existing E2E covers Experiment Complete/Next and Experiment Failed terminal flows.
+- No physics, timing, persistence, storage, telemetry or gameplay-rule changes.
+- Next: PR → full parallel CI → Aggregate Gate → code review → merge if green.
