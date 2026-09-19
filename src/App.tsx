@@ -69,8 +69,7 @@ const DANGER_GRACE_MS = 3000;
 const REDUCED_MOTION =
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const HYBRID_ATLAS_URL =
-  'https://gcdn.picsart.com/editing-temp/f69fe466-c03a-4502-b5c1-7c5dfce62c4c.webp';
+const HYBRID_ATLAS_URL = '/assets/monster-atlas-v1.webp';
 const HYBRID_TIER_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 7];
 const HYBRID_IRIS = [
   '#245ee8',
