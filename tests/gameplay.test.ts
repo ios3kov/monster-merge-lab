@@ -12,6 +12,7 @@ import {
   hasLongRun,
   makeOrder,
   makeSpawnBag,
+  shiftGameplayClocksForPause,
 } from '../src/gameplay.ts';
 
 function seeded(seed: number) {
@@ -112,4 +113,32 @@ test('shockwave scales with monster size but stays bounded', () => {
 test('rescue window is readable but still tense', () => {
   assert.ok(DANGER_GRACE_MS >= 2300);
   assert.ok(DANGER_GRACE_MS <= 2500);
+});
+
+
+test('background pause shifts active gameplay clocks without consuming them', () => {
+  assert.deepEqual(
+    shiftGameplayClocksForPause(5000, 1000, 8000, true),
+    {
+      dangerStartedAt: 6000,
+      overdriveEndsAt: 13000,
+    },
+  );
+});
+
+test('background pause leaves inactive clocks untouched and clamps bad durations', () => {
+  assert.deepEqual(
+    shiftGameplayClocksForPause(-50, null, 0, false),
+    {
+      dangerStartedAt: null,
+      overdriveEndsAt: 0,
+    },
+  );
+  assert.deepEqual(
+    shiftGameplayClocksForPause(Number.NaN, 1200, 0, false),
+    {
+      dangerStartedAt: 1200,
+      overdriveEndsAt: 0,
+    },
+  );
 });

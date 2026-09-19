@@ -22,6 +22,7 @@ import {
   getOverdriveExtensionMs,
   getOverdriveGain,
   makeOrder,
+  shiftGameplayClocksForPause,
   type Order,
 } from './gameplay';
 import {
@@ -1046,9 +1047,27 @@ function App() {
       () => [] as Body[],
     );
     let paused = document.hidden;
+    let hiddenAt = paused ? performance.now() : null;
     const onVisibility = () => {
-      paused = document.hidden;
-      previous = performance.now();
+      const now = performance.now();
+      if (document.hidden) {
+        paused = true;
+        if (hiddenAt === null) hiddenAt = now;
+      } else {
+        const pausedFor =
+          hiddenAt === null ? 0 : Math.max(0, now - hiddenAt);
+        const shifted = shiftGameplayClocksForPause(
+          pausedFor,
+          dangerRef.current,
+          overdriveEndRef.current,
+          uiRef.current.overdriveActive,
+        );
+        dangerRef.current = shifted.dangerStartedAt;
+        overdriveEndRef.current = shifted.overdriveEndsAt;
+        hiddenAt = null;
+        paused = false;
+      }
+      previous = now;
       accumulator = 0;
     };
     document.addEventListener('visibilitychange', onVisibility);

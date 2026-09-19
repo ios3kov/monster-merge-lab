@@ -83,6 +83,24 @@ export function getOverdriveExtensionMs(combo: number) {
   return 140 + Math.min(220, (combo - 1) * 60);
 }
 
+export function shiftGameplayClocksForPause(
+  pausedForMs: number,
+  dangerStartedAt: number | null,
+  overdriveEndsAt: number,
+  overdriveActive: boolean,
+) {
+  const shift =
+    Number.isFinite(pausedForMs) && pausedForMs > 0 ? pausedForMs : 0;
+  return {
+    dangerStartedAt:
+      dangerStartedAt === null ? null : dangerStartedAt + shift,
+    overdriveEndsAt:
+      overdriveActive && overdriveEndsAt > 0
+        ? overdriveEndsAt + shift
+        : overdriveEndsAt,
+  };
+}
+
 export function getMergeShockwave(tier: number, radius: number) {
   const normalizedTier = Math.max(0, tier);
   return {
