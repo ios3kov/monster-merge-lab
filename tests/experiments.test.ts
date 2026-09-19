@@ -20,6 +20,7 @@ test('getExperiment returns cloned mutable run data', () => {
 
   first.queue.shift();
   first.startBodies.push({ tier: 0, x: 120, y: 500 });
+  first.limits = { drops: 1 };
 
   assert.notDeepEqual(first.queue, second.queue);
   assert.notDeepEqual(first.startBodies, second.startBodies);
@@ -101,4 +102,38 @@ test('later Experiments use prepared starts and unlock tools progressively', () 
   assert.equal(getExperiment('exp-04').allowHold, true);
   assert.equal(getExperiment('exp-07').allowOverdrive, true);
   assert.equal(getExperiment('exp-09').allowPower, true);
+});
+
+
+test('designed Experiments exercise the real goal system and limits', () => {
+  assert.equal(getExperiment('exp-05').goal.kind, 'chain');
+  assert.equal(getExperiment('exp-06').goal.kind, 'survive-danger');
+  assert.equal(getExperiment('exp-07').goal.kind, 'reach-score');
+  assert.equal(getExperiment('exp-08').goal.kind, 'create-merges');
+  assert.equal(getExperiment('exp-09').goal.kind, 'pile-below-danger');
+  assert.deepEqual(getExperiment('exp-10').limits, { powerUses: 1 });
+  assert.deepEqual(getExperiment('exp-11').limits, { holdUses: 2 });
+  assert.deepEqual(getExperiment('exp-12').limits, {
+    drops: 14,
+    holdUses: 3,
+    powerUses: 1,
+  });
+});
+
+test('invalid goals and limits are rejected by catalog validation', () => {
+  const invalid: Experiment = {
+    ...getExperiment('exp-05'),
+    id: 'invalid-goal',
+    goal: {
+      kind: 'chain',
+      chain: 0,
+      label: 'Chain',
+      hint: 'Chain',
+      successLabel: 'DONE',
+    },
+    limits: { drops: -1 },
+  };
+  const errors = validateExperiment(invalid);
+  assert.ok(errors.some((error) => error.includes('goal chain')));
+  assert.ok(errors.some((error) => error.includes('limit drops')));
 });
