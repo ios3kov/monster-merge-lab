@@ -704,6 +704,10 @@ function App() {
     let previous = performance.now();
     let accumulator = 0;
     let lastBounce = -Infinity;
+    const tierBuckets = Array.from(
+      { length: MAX_TIER + 1 },
+      () => [] as Body[],
+    );
     let paused = document.hidden;
     const onVisibility = () => {
       paused = document.hidden;
@@ -847,10 +851,7 @@ function App() {
       ctx.setLineDash([]);
 
       const bodies = worldRef.current.bodies;
-      const tierBuckets = Array.from(
-        { length: MAX_TIER + 1 },
-        () => [] as Body[],
-      );
+      for (const bucket of tierBuckets) bucket.length = 0;
       for (const body of bodies) {
         tierBuckets[body.tier]?.push(body);
       }
