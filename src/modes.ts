@@ -83,7 +83,7 @@ export function getRunPreset(
       allowOverdrive: experiment.allowOverdrive,
       showOrders: experiment.goal.kind === 'complete-orders',
       goal: { ...experiment.goal },
-      limits: experiment.limits ? { ...experiment.limits } : undefined,
+      ...(experiment.limits ? { limits: { ...experiment.limits } } : {}),
       experimentId: experiment.id,
     };
   }
