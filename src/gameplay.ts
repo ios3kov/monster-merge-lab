@@ -71,6 +71,8 @@ export const OVERDRIVE_MAX = 100;
 export const OVERDRIVE_DURATION_MS = 7200;
 export const DANGER_GRACE_MS = 2400;
 export const DROP_COOLDOWN_MS = 380;
+export const COMBO_RESET_MS = 1250;
+export const DROP_LIMIT_SETTLE_MS = 1500;
 
 export function getOverdriveGain(tier: number, combo: number) {
   const tierBonus = Math.min(10, Math.max(0, tier) * 2);
@@ -99,6 +101,16 @@ export function shiftGameplayClocksForPause(
         ? overdriveEndsAt + shift
         : overdriveEndsAt,
   };
+}
+
+export function shiftGameplayTimestampForPause(
+  timestamp: number,
+  pausedForMs: number,
+) {
+  if (!Number.isFinite(timestamp)) return timestamp;
+  const shift =
+    Number.isFinite(pausedForMs) && pausedForMs > 0 ? pausedForMs : 0;
+  return timestamp + shift;
 }
 
 export function getMergeShockwave(tier: number, radius: number) {
