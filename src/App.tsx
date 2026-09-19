@@ -1085,6 +1085,7 @@ function App() {
 
         <div
           className="next-board"
+          role="group"
           aria-label={
             'Next monster tier ' +
             String(ui.nextTier + 1) +
