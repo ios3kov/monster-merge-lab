@@ -48,3 +48,9 @@ Pending:
 - post-merge CI
 - Cloudflare deploy
 - production live smoke
+
+
+## CI infrastructure note
+- The first code head passed the full PR pipeline.
+- After documentation-only commits, GitHub Actions produced pre-job failures before `checkout` with no steps/logs on repeated attempts.
+- This documentation commit intentionally triggers a fresh independent workflow run; merge remains blocked until that run reaches the actual test steps and passes.
