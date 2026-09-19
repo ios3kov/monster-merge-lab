@@ -76,8 +76,8 @@ This file is updated after each major production step.
 - Next successful main CI/deploy will carry PR #23 into production.
 
 
-### Parallel CI gates — IN PROGRESS
-- Replacing monolithic verify job with independent parallel gates:
+### Parallel CI gates — BLOCKED BY GITHUB ACTIONS STARTUP
+- Replaced monolithic verify job with independent parallel gates:
   - Chromium
   - WebKit
   - Offline/PWA
@@ -88,4 +88,7 @@ This file is updated after each major production step.
 - Performance owns the verified production artifact.
 - Aggregate Gate requires all five jobs to succeed before Deploy.
 - Deploy remains main-only and consumes the verified production-dist artifact.
-- Next: PR #24 → validate every parallel job → merge → aggregate-gated deploy.
+- PR #24 created all five jobs plus Aggregate Gate correctly.
+- Current blocker: every GitHub-hosted job is rejected before checkout with no executed steps/logs; check-runs show system annotations.
+- GitHub public status reports Actions operational, so this is not a test/YAML failure.
+- Next: resolve the account-level Actions startup restriction, rerun PR #24, then merge/deploy only after all five gates and Aggregate Gate are green.
