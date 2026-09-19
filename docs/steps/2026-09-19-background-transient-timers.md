@@ -33,14 +33,18 @@ That could make a paused run behave differently after returning to the app.
 No physics constants, score tuning, queue rules or difficulty values are changed.
 
 ## Verification
+PR #23:
+- typecheck ✓
+- lint ✓
+- unit ✓
+- physics/bundle budgets ✓
+- build/audit ✓
+- browser E2E ✓
+- responsive/accessibility ✓
+- visibility-pause regression ✓
+
 Pending:
-- typecheck
-- lint
-- unit
-- physics/bundle budgets
-- build/audit
-- browser E2E
-- responsive/accessibility
+- final-head CI after documentation update
 - post-merge CI
 - Cloudflare deploy
 - production live smoke
