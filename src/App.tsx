@@ -163,6 +163,7 @@ function drawRunTier(
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
   const worldRef = useRef<World>({ bodies: [] });
   const aimXRef = useRef(WIDTH / 2);
   const dropTimerRef = useRef<number | null>(null);
@@ -1550,6 +1551,17 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const rememberBackgroundFocus = (event: FocusEvent) => {
+      if (!(event.target instanceof HTMLElement)) return;
+      if (event.target.closest('[role="dialog"]')) return;
+      dialogReturnFocusRef.current = event.target;
+    };
+    document.addEventListener('focusin', rememberBackgroundFocus);
+    return () =>
+      document.removeEventListener('focusin', rememberBackgroundFocus);
+  }, []);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       setShowMonsters(false);
@@ -1576,10 +1588,7 @@ function App() {
     );
     if (!shell || !dialog) return;
 
-    const previousFocus =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
+    const previousFocus = dialogReturnFocusRef.current;
     const inertTargets: HTMLElement[] = [];
     let activeLayer: HTMLElement | null = dialog;
 
