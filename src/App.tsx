@@ -667,7 +667,22 @@ function App() {
 
   const drop = useCallback(() => {
     const state = uiRef.current;
-    if (!state.canDrop || state.gameOver) return;
+    const activePreset = presetRef.current;
+    if (
+      !state.canDrop ||
+      state.gameOver ||
+      state.experimentComplete ||
+      state.experimentFailed
+    ) {
+      return;
+    }
+    if (
+      activePreset.maxDrops !== undefined &&
+      state.drops >= activePreset.maxDrops
+    ) {
+      return;
+    }
+
     const tier = state.currentTier;
     const r = TIER_DEFS[tier]!.radius;
     const x = aimXRef.current;
@@ -683,7 +698,10 @@ function App() {
       return;
     }
 
-    worldRef.current.bodies.push(spawnBody(tier, x, 82, performance.now()));
+    const droppedAt = performance.now();
+    worldRef.current.bodies.push(spawnBody(tier, x, 82, droppedAt));
+    lastDropAtRef.current = droppedAt;
+    state.drops += 1;
     state.currentTier = state.nextTier;
     state.nextTier = state.afterNextTier;
     const spawnProgressTier =
@@ -706,8 +724,18 @@ function App() {
 
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     dropTimerRef.current = window.setTimeout(() => {
-      if (!uiRef.current.gameOver && !uiRef.current.experimentComplete) {
-        uiRef.current.canDrop = true;
+      const current = uiRef.current;
+      const currentPreset = presetRef.current;
+      const hasDropsRemaining =
+        currentPreset.maxDrops === undefined ||
+        current.drops < currentPreset.maxDrops;
+      if (
+        !current.gameOver &&
+        !current.experimentComplete &&
+        !current.experimentFailed &&
+        hasDropsRemaining
+      ) {
+        current.canDrop = true;
         sync();
       }
     }, DROP_COOLDOWN_MS);
@@ -740,6 +768,7 @@ function App() {
     burstsRef.current = [];
     spawnBagRef.current = [];
     dangerRef.current = null;
+    lastDropAtRef.current = -Infinity;
     lastMergeRef.current = -Infinity;
     overdriveEndRef.current = 0;
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
@@ -777,6 +806,15 @@ function App() {
     state.overdrive = 0;
     state.overdriveActive = false;
     state.experimentComplete = false;
+    state.experimentFailed = false;
+    state.experimentFailureReason = '';
+    state.runHighestTier = 0;
+    state.merges = 0;
+    state.ordersCompletedRun = 0;
+    state.rescues = 0;
+    state.drops = 0;
+    state.holdUses = 0;
+    state.powerUses = 0;
     aimXRef.current = WIDTH / 2;
     sync();
     playSound('restart');
@@ -794,12 +832,16 @@ function App() {
 
   const hold = useCallback(() => {
     const state = uiRef.current;
+    const activePreset = presetRef.current;
     if (
-      !presetRef.current.allowHold ||
+      !activePreset.allowHold ||
       !state.canDrop ||
       !state.canHold ||
       state.gameOver ||
-      state.experimentComplete
+      state.experimentComplete ||
+      state.experimentFailed ||
+      (activePreset.maxHoldUses !== undefined &&
+        state.holdUses >= activePreset.maxHoldUses)
     ) {
       return;
     }
@@ -828,6 +870,7 @@ function App() {
     }
 
     state.canHold = false;
+    state.holdUses += 1;
     sync();
     playSound('ui');
     haptic('drop');
@@ -852,11 +895,20 @@ function App() {
 
   const nudge = useCallback(() => {
     const state = uiRef.current;
-    if (!presetRef.current.allowPower) {
+    const activePreset = presetRef.current;
+    if (!activePreset.allowPower) {
       flash('Power unavailable in this mode');
       return;
     }
-    if (state.gameOver || state.experimentComplete) return;
+    if (
+      state.gameOver ||
+      state.experimentComplete ||
+      state.experimentFailed ||
+      (activePreset.maxPowerUses !== undefined &&
+        state.powerUses >= activePreset.maxPowerUses)
+    ) {
+      return;
+    }
     if (state.powerCharges <= 0) {
       setShowShop(true);
       flash('Get a Pulse in Shop');
@@ -867,6 +919,7 @@ function App() {
       return;
     }
     state.powerCharges -= 1;
+    state.powerUses += 1;
     storageSet(POWER_KEY, String(state.powerCharges));
     sync();
     for (const body of worldRef.current.bodies) {
