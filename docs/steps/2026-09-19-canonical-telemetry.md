@@ -24,6 +24,7 @@ Terminal events include:
 - time to first successful decision;
 - drops;
 - merges;
+- highest tier;
 - HOLD uses;
 - Power uses;
 - Overdrive starts;
