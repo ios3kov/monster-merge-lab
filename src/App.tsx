@@ -64,7 +64,8 @@ import {
   type Body,
   type World,
 } from './physics';
-import { MonsterArt, REDUCED_MOTION, drawMonster, drawTank } from './rendering';
+import { MonsterArt, drawMonster, drawTank } from './rendering';
+import { prefersReducedMotion } from './motion';
 import { LabModal, MonstersModal, ShopModal } from './game-modals';
 import { GameToolbar } from './game-toolbar';
 import { RunOverlays } from './run-overlays';
@@ -1372,7 +1373,7 @@ function App() {
             x: aimXRef.current,
             y: 77,
             r: def.radius,
-            angle: REDUCED_MOTION
+            angle: prefersReducedMotion()
               ? 0
               : Math.sin(time * 0.002) * 0.028,
             impact: 0,
