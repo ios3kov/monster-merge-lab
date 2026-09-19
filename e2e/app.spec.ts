@@ -314,6 +314,74 @@ test('active Experiment run restores its physics state after reload', async ({
   await expect(completionDialog).toBeVisible({ timeout: 4000 });
 });
 
+test('restored Experiment at drop limit resolves without an extra drop', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.addInitScript(() => {
+    const session = {
+      version: 1,
+      savedAt: Date.now(),
+      mode: 'experiments',
+      experimentId: 'exp-12',
+      ui: {
+        score: 0,
+        progress: 0,
+        orderNo: 1,
+        currentTier: 0,
+        nextTier: 1,
+        afterNextTier: 2,
+        holdTier: null,
+        canHold: true,
+        bestCombo: 0,
+        overdrive: 0,
+        overdriveActive: false,
+        runHighestTier: 3,
+        runMerges: 0,
+        runDrops: 14,
+        runHoldUses: 0,
+        runPowerUses: 0,
+        runOrdersCompleted: 0,
+        runRescues: 0,
+      },
+      bodies: [],
+      fixedQueue: [],
+      spawnBag: [],
+      aimX: 180,
+      dangerElapsedMs: null,
+      overdriveRemainingMs: 0,
+    };
+    localStorage.setItem(
+      'monster-merge-active-run-v1',
+      JSON.stringify(session),
+    );
+  });
+
+  await page.goto('/');
+
+  await expect(page.getByLabel('Experiment 12 objective')).toContainText(
+    'Create a Beast',
+  );
+  await expect(
+    page.getByRole('button', { name: 'Drop monster' }),
+  ).toBeDisabled();
+
+  const failedDialog = page
+    .getByRole('dialog')
+    .filter({ hasText: 'EXPERIMENT FAILED' });
+  await expect(failedDialog).toBeVisible({ timeout: 3500 });
+  await expect(failedDialog).toContainText('DROP LIMIT');
+
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        localStorage.getItem('monster-merge-active-run-v1'),
+      ),
+    )
+    .toBeNull();
+});
+
 test('Daily restores the same visible queue position after reload', async ({
   page,
 }, testInfo) => {

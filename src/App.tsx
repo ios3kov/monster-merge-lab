@@ -555,6 +555,7 @@ function App() {
   const messageTimerRef = useRef<number | null>(null);
   const limitTimerRef = useRef<number | null>(null);
   const limitResolveAtRef = useRef<number | null>(null);
+  const restoredDropLimitPendingRef = useRef(false);
   const dangerRef = useRef<number | null>(null);
   const lastMergeRef = useRef(-Infinity);
   const burstsRef = useRef<Burst[]>([]);
@@ -779,7 +780,12 @@ function App() {
     state.afterNextTier = session.ui.afterNextTier;
     state.holdTier = session.ui.holdTier;
     state.canHold = session.ui.canHold;
-    state.canDrop = true;
+    const restoredDropLimit = restoredPreset.limits?.drops;
+    const restoredAtDropLimit =
+      restoredDropLimit !== undefined &&
+      session.ui.runDrops >= restoredDropLimit;
+    state.canDrop = !restoredAtDropLimit;
+    restoredDropLimitPendingRef.current = restoredAtDropLimit;
     state.gameOver = false;
     state.combo = 0;
     state.bestCombo = session.ui.bestCombo;
@@ -919,6 +925,20 @@ function App() {
     }
   }, [completeExperimentIfGoalMet, sync]);
 
+  useEffect(() => {
+    if (!restoredDropLimitPendingRef.current) return;
+    restoredDropLimitPendingRef.current = false;
+    if (limitTimerRef.current !== null) {
+      window.clearTimeout(limitTimerRef.current);
+    }
+    limitResolveAtRef.current =
+      performance.now() + DROP_LIMIT_SETTLE_MS;
+    limitTimerRef.current = window.setTimeout(
+      resolveDropLimit,
+      DROP_LIMIT_SETTLE_MS,
+    );
+  }, [resolveDropLimit]);
+
   const finishDropCooldown = useCallback(() => {
     dropTimerRef.current = null;
     dropReadyAtRef.current = null;
@@ -1057,6 +1077,7 @@ function App() {
     dropReadyAtRef.current = null;
     comboResetAtRef.current = null;
     limitResolveAtRef.current = null;
+    restoredDropLimitPendingRef.current = false;
 
     const state = uiRef.current;
     state.score = 0;
