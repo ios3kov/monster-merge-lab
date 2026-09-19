@@ -40,10 +40,18 @@ This file is updated after each major production step.
 - Fixed Complete → Lab → Continue path.
 - CI green; deployed.
 
-### Background gameplay clocks — VERIFIED IN PR
+### Background gameplay clocks — DONE
 - Problem: physics paused in background, but Danger and Overdrive clocks kept consuming wall time.
 - Added pure clock-shift helper and unit tests.
-- Runtime now shifts active Danger/Overdrive deadlines by actual hidden duration on resume.
-- PR #21 opened.
-- PR CI: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
-- Next: merge → post-merge CI → Cloudflare deploy → live smoke.
+- Runtime shifts active Danger/Overdrive deadlines by actual hidden duration on resume.
+- PR #21 merged.
+- PR + post-merge CI: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
+- Cloudflare deploy ✓.
+- Production live smoke ✓.
+
+
+### Active run persistence — IN PROGRESS
+- Goal: recover the active run after mobile tab/process eviction or reload instead of silently starting over.
+- Preserve mode/run identity, physics bodies and critical run state without changing game balance.
+- Daily fairness must remain deterministic after restore.
+- Next: define serializable session schema → pure validation/restore helpers → runtime save/restore → browser reload E2E → CI/deploy/live smoke.
