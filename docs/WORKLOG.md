@@ -40,8 +40,10 @@ This file is updated after each major production step.
 - Fixed Complete → Lab → Continue path.
 - CI green; deployed.
 
-### Background gameplay clocks — IN PROGRESS
+### Background gameplay clocks — VERIFIED IN PR
 - Problem: physics paused in background, but Danger and Overdrive clocks kept consuming wall time.
 - Added pure clock-shift helper and unit tests.
 - Runtime now shifts active Danger/Overdrive deadlines by actual hidden duration on resume.
-- Next: PR → full CI → merge → deploy → live smoke.
+- PR #21 opened.
+- PR CI: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
+- Next: merge → post-merge CI → Cloudflare deploy → live smoke.
