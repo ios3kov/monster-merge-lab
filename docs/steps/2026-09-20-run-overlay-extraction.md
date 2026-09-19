@@ -57,4 +57,13 @@ Required before merge:
 - dependency audit;
 - Aggregate Gate.
 
+## CI correction
+
+PR #32 run #142 failed in Audit at TypeScript before merge:
+
+- root cause: `exactOptionalPropertyTypes` distinguished an optional/omitted prop from a prop explicitly passed as `undefined`;
+- affected props: `dailyKey`, `successLabel`, `onNextExperiment`;
+- fix: make those three passed props explicitly accept `undefined`;
+- no runtime behavior changed.
+
 Status: IN PROGRESS.
