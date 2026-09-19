@@ -138,4 +138,16 @@ This file is updated after each major production step.
 - Exact extraction review: renderer implementation matches the original source block 1:1 after exports/imports.
 - Hidden/bidirectional Unicode controls: none in changed files.
 - PR #28 run #130: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
-- Final documentation commit follows; merge remains gated on the final PR head.
+- Final PR head run #131: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- PR #28 merged as 6ec36f8.
+- Post-merge main run #132: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓ Deploy ✓.
+- Production endpoint renders the expected game shell/HUD ✓.
+- Interactive live smoke remains waived by explicit user decision.
+
+### Fixed-step game-loop controller — IN PROGRESS
+- Goal: separate RAF/fixed-step scheduling from React without moving gameplay rules.
+- New src/game-loop.ts owns requestAnimationFrame scheduling, 120 Hz fixed-step accumulation, 50 ms delta clamp, pause behavior and clock reset.
+- App.tsx keeps Danger/Overdrive rules, physics callbacks, rendering, persistence and telemetry behavior.
+- TDD coverage added for active stepping, long-gap clamping and pause/reset semantics.
+- App.tsx reduced from 2116 to 2104 lines in the initial controller extraction.
+- Next: open PR → full parallel CI → Aggregate Gate → review → merge if green.
