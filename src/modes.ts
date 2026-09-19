@@ -1,5 +1,6 @@
 import { getExperiment, type StartBody } from './experiments.ts';
 import type { ExperimentGoal, ExperimentLimits } from './goals.ts';
+import { drawSpawnTier } from './gameplay.ts';
 export type GameMode = 'endless' | 'experiments' | 'daily';
 
 export type RunPreset = {
@@ -65,6 +66,18 @@ export function createSeededRandom(seed: number) {
   };
 }
 
+export function makeDailyQueue(dailyKey: string, length = 96) {
+  const random = createSeededRandom(
+    hashSeed('monster-merge-lab:daily-queue:' + dailyKey),
+  );
+  const bag: number[] = [];
+  const queue: number[] = [];
+  for (let i = 0; i < length; i += 1) {
+    queue.push(drawSpawnTier(bag, 0, random));
+  }
+  return queue;
+}
+
 export function getRunPreset(
   mode: GameMode,
   date = new Date(),
@@ -94,9 +107,9 @@ export function getRunPreset(
       mode,
       title: 'Daily Experiment',
       subtitle: dailyKey,
-      fixedQueue: [],
+      fixedQueue: makeDailyQueue(dailyKey),
       startBodies: [],
-      seed: hashSeed('monster-merge-lab:' + dailyKey),
+      seed: hashSeed('monster-merge-lab:daily-tail:' + dailyKey),
       allowHold: true,
       allowPower: false,
       allowOverdrive: true,
