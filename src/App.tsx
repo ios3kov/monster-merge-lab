@@ -1302,51 +1302,85 @@ function App() {
               : '')
           }
           onClick={hold}
-          disabled={!ui.canDrop || !ui.canHold || ui.gameOver}
+          disabled={
+            !preset.allowHold ||
+            !ui.canDrop ||
+            !ui.canHold ||
+            ui.gameOver ||
+            ui.experimentComplete
+          }
           aria-label={
-            ui.holdTier === null
-              ? 'Hold current monster'
-              : 'Swap current monster with held monster'
+            !preset.allowHold
+              ? 'Hold unavailable in this mode'
+              : ui.holdTier === null
+                ? 'Hold current monster'
+                : 'Swap current monster with held monster'
           }
         >
-          <span>{ui.canHold ? 'HOLD' : 'USED'}</span>
+          <span>{!preset.allowHold ? 'LOCKED' : ui.canHold ? 'HOLD' : 'USED'}</span>
           {ui.holdTier === null ? <b>+</b> : <MonsterArt tier={ui.holdTier} size={42} />}
         </button>
 
         <div className="status-cluster">
           <div className="score-plaque">
-            <span>SCORE</span>
+            <span>{preset.mode === 'daily' ? 'DAILY SCORE' : 'SCORE'}</span>
             <strong>{ui.score}</strong>
             {ui.bestCombo > 1 && <small>BEST ×{ui.bestCombo}</small>}
           </div>
-          <div
-            className={'overdrive-panel' + (ui.overdriveActive ? ' is-active' : '')}
-            aria-label={
-              ui.overdriveActive
-                ? 'Lab Overdrive active, double score'
-                : 'Lab Overdrive ' + String(ui.overdrive) + ' percent'
-            }
-          >
-            <span>{ui.overdriveActive ? 'OVERDRIVE ×2' : 'OVERDRIVE'}</span>
-            <i>
-              <b style={{ width: (ui.overdriveActive ? 100 : ui.overdrive) + '%' }} />
-            </i>
-          </div>
+          {preset.allowOverdrive ? (
+            <div
+              className={'overdrive-panel' + (ui.overdriveActive ? ' is-active' : '')}
+              aria-label={
+                ui.overdriveActive
+                  ? 'Lab Overdrive active, double score'
+                  : 'Lab Overdrive ' + String(ui.overdrive) + ' percent'
+              }
+            >
+              <span>{ui.overdriveActive ? 'OVERDRIVE ×2' : 'OVERDRIVE'}</span>
+              <i>
+                <b style={{ width: (ui.overdriveActive ? 100 : ui.overdrive) + '%' }} />
+              </i>
+            </div>
+          ) : (
+            <div className="mode-status" aria-label={preset.title + ', ' + preset.subtitle}>
+              {preset.title} · {preset.subtitle}
+            </div>
+          )}
         </div>
 
-        <section className="orders-board" aria-label="Orders">
-          <h2>ORDERS</h2>
-          {orders.map((order, index) => (
-            <div className={'order-row ' + (index === 0 ? 'current' : '')} key={String(ui.orderNo) + '-' + String(index)}>
-              <MonsterArt tier={order.tier} size={34} />
-              <span>{index === 0 ? ui.progress : 0}/{order.count}</span>
-              <b>● +{order.reward}</b>
+        {preset.showOrders ? (
+          <section className="orders-board" aria-label="Orders">
+            <h2>ORDERS</h2>
+            {orders.map((order, index) => (
+              <div className={'order-row ' + (index === 0 ? 'current' : '')} key={String(ui.orderNo) + '-' + String(index)}>
+                <MonsterArt tier={order.tier} size={34} />
+                <span>{index === 0 ? ui.progress : 0}/{order.count}</span>
+                <b>● +{order.reward}</b>
+              </div>
+            ))}
+            <div className="order-track" aria-hidden="true">
+              <i style={{ width: String(Math.min(100, (ui.progress / ui.order.count) * 100)) + '%' }} />
             </div>
-          ))}
-          <div className="order-track" aria-hidden="true">
-            <i style={{ width: String(Math.min(100, (ui.progress / ui.order.count) * 100)) + '%' }} />
-          </div>
-        </section>
+          </section>
+        ) : (
+          <section className="orders-board mode-objective-board" aria-label={preset.title + ' objective'}>
+            <h2>{preset.mode === 'daily' ? 'DAILY' : 'GOAL'}</h2>
+            <div className="mode-objective">
+              <strong>
+                {preset.mode === 'daily'
+                  ? 'FAIR RUN'
+                  : preset.goal?.label ?? preset.subtitle}
+              </strong>
+              <span>
+                {preset.mode === 'daily'
+                  ? preset.dailyKey
+                  : ui.experimentComplete
+                    ? 'COMPLETE'
+                    : 'Merge two Sprouts'}
+              </span>
+            </div>
+          </section>
+        )}
 
         <div className="game-frame">
           <div className="canvas-wrap">
@@ -1383,10 +1417,23 @@ function App() {
             )}
             {ui.combo > 1 && <div className="combo-badge">CHAIN ×{ui.combo}</div>}
             {ui.message && <div className="toast" role="status">{ui.message}</div>}
-            {ui.gameOver && (
+            {ui.experimentComplete && (
+              <div className="game-over experiment-complete" role="dialog" aria-modal="true">
+                <div className="game-over-card">
+                  <span>EXPERIMENT COMPLETE</span>
+                  <h2>PEEP CREATED</h2>
+                  <p>Goal cleared in {ui.score} points</p>
+                  <div className="completion-actions">
+                    <button autoFocus onClick={restart}>Retry</button>
+                    <button onClick={() => setShowLab(true)}>Lab</button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {ui.gameOver && !ui.experimentComplete && (
               <div className="game-over" role="dialog" aria-modal="true">
                 <div className="game-over-card">
-                  <span>LAB OVERFLOW</span>
+                  <span>{preset.mode === 'daily' ? 'DAILY OVER' : 'LAB OVERFLOW'}</span>
                   <h2>{ui.score}</h2>
                   <p>Best {ui.bestScore}</p>
                   <button autoFocus onClick={restart}>Try again</button>
@@ -1426,7 +1473,12 @@ function App() {
             type="button"
             onClick={nudge}
             className="wood-button power-hit"
-            aria-label={'Power-up. ' + String(ui.powerCharges) + ' available'}
+            disabled={!preset.allowPower || ui.gameOver || ui.experimentComplete}
+            aria-label={
+              preset.allowPower
+                ? 'Power-up. ' + String(ui.powerCharges) + ' available'
+                : 'Power-up unavailable in this mode'
+            }
           >
             <RotateCcw size={22} />
             <span>POWER</span>
@@ -1438,7 +1490,7 @@ function App() {
             type="button"
             onClick={() => setShowLab(true)}
             className="wood-button lab-hit"
-            aria-label="Lab stats"
+            aria-label="Lab and game modes"
           >
             LAB
           </button>
@@ -1515,7 +1567,26 @@ function App() {
             <div className="monster-modal-card lab-card">
               <button autoFocus className="modal-close" onClick={() => setShowLab(false)} aria-label="Close">×</button>
               <h2 id="lab-title">LAB</h2>
+              <div className="mode-grid" role="group" aria-label="Game modes">
+                {MODE_OPTIONS.map((option) => {
+                  const active = option.id === preset.mode;
+                  return (
+                    <button
+                      type="button"
+                      className={'mode-card' + (active ? ' is-active' : '')}
+                      key={option.id}
+                      disabled={active}
+                      onClick={() => startMode(option.id)}
+                    >
+                      <strong>{option.title}</strong>
+                      <span>{option.description}</span>
+                      <b>{active ? 'ACTIVE' : 'START'}</b>
+                    </button>
+                  );
+                })}
+              </div>
               <dl className="lab-stats">
+                <div><dt>Current mode</dt><dd>{preset.title}</dd></div>
                 <div><dt>Best score</dt><dd>{ui.bestScore}</dd></div>
                 <div><dt>Orders completed</dt><dd>{Math.max(0, ui.orderNo - 1)}</dd></div>
                 <div><dt>Highest evolution</dt><dd>{TIER_DEFS[Math.min(ui.bestTier, MAX_TIER)]!.name}</dd></div>
