@@ -1594,7 +1594,7 @@ function App() {
     let activeLayer: HTMLElement | null = dialog;
 
     while (activeLayer && activeLayer !== shell) {
-      const container = activeLayer.parentElement;
+      const container: HTMLElement | null = activeLayer.parentElement;
       if (!container) break;
 
       for (const sibling of Array.from(container.children)) {
