@@ -170,6 +170,26 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .hold-board.is-used {
   opacity: .55;
 }
+.hold-board.is-swap-ready {
+  box-shadow:
+    0 6px 12px rgba(55,29,13,.26),
+    inset 0 1px rgba(255,255,255,.55),
+    0 0 0 2px rgba(255,232,126,.76);
+}
+.hold-board.is-swap-ready::after {
+  content: "SWAP";
+  position: absolute;
+  right: -7px;
+  bottom: -6px;
+  padding: 2px 5px;
+  border-radius: 99px;
+  color: #5b351d;
+  background: #ffe67f;
+  border: 1px solid #a66c38;
+  font-size: 6px;
+  font-weight: 1000;
+  letter-spacing: .05em;
+}
 
 .overdrive-panel {
   position: absolute;

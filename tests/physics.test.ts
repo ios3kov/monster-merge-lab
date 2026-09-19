@@ -38,3 +38,18 @@ test('a merge shockwave affects a nearby non-matching body', () => {
   assert.equal(Number.isFinite(neighbor.vx), true);
   assert.equal(Number.isFinite(neighbor.vy), true);
 });
+
+
+test('shockwave creates space without launching the pile upward', () => {
+  const a = spawnBody(1, 135, 310, 0);
+  const b = spawnBody(1, 174, 310, 0);
+  const upperNeighbor = spawnBody(3, 154, 245, 0);
+  const world = { bodies: [a, b, upperNeighbor] };
+
+  stepWorld(world, 1 / 120, 250, () => {}, () => {});
+
+  const merged = world.bodies.find((body) => body.tier === 2);
+  assert.ok(merged);
+  assert.ok(merged.vy > -35);
+  assert.ok(upperNeighbor.vy > -35);
+});

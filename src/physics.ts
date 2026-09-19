@@ -1,3 +1,5 @@
+import { getMergeShockwave } from './gameplay.ts';
+
 export const WIDTH = 360;
 export const HEIGHT = 560;
 export const LEFT_WALL = 32;
@@ -280,8 +282,7 @@ function broadPhase(bodies: Body[]) {
 }
 
 function applyMergeShockwave(bodies: Body[], merged: Body) {
-  const radius = merged.r * 2.45 + 28;
-  const baseImpulse = 38 + merged.tier * 7;
+  const tuning = getMergeShockwave(merged.tier, merged.r);
 
   for (const body of bodies) {
     if (body.id === merged.id) continue;
@@ -289,20 +290,28 @@ function applyMergeShockwave(bodies: Body[], merged: Body) {
     const dx = body.x - merged.x;
     const dy = body.y - merged.y;
     const distance = Math.hypot(dx, dy);
-    if (distance <= 0.001 || distance >= radius) continue;
+    if (distance <= 0.001 || distance >= tuning.radius) continue;
 
-    const falloff = 1 - distance / radius;
-    const impulse = baseImpulse * falloff;
+    const falloff = 1 - distance / tuning.radius;
+    const impulse = tuning.impulse * falloff;
     const nx = dx / distance;
     const ny = dy / distance;
+    const vertical = clamp(ny * impulse * 0.2, -6, 8);
 
-    body.vx += nx * impulse;
-    body.vy += ny * impulse - 10 * falloff;
-    body.omega += Math.sign(dx || 1) * falloff * 0.16;
-    body.impact = Math.max(body.impact, 0.18 + falloff * 0.26);
+    body.vx = clamp(body.vx + nx * impulse, -900, 900);
+    body.vy = clamp(
+      body.vy + vertical - tuning.upwardLift * falloff,
+      -900,
+      900,
+    );
+    body.omega += Math.sign(dx || 1) * falloff * tuning.spin;
+    body.impact = Math.max(
+      body.impact,
+      tuning.impactBase + falloff * tuning.impactGain,
+    );
   }
 
-  merged.vy -= Math.min(42, 10 + merged.tier * 4);
+  merged.vy -= tuning.mergedLift;
 }
 
 function findMerges(bodies: Body[], now: number) {

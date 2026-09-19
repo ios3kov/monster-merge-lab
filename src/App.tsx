@@ -13,7 +13,17 @@ import {
   readSoundEnabled,
   setSoundEnabled,
 } from './audio';
-import { drawSpawnTier, makeOrder, type Order } from './gameplay';
+import {
+  DANGER_GRACE_MS,
+  DROP_COOLDOWN_MS,
+  OVERDRIVE_DURATION_MS,
+  OVERDRIVE_MAX,
+  drawSpawnTier,
+  getOverdriveExtensionMs,
+  getOverdriveGain,
+  makeOrder,
+  type Order,
+} from './gameplay';
 import { haptic } from './haptics';
 import {
   DANGER_Y,
@@ -63,9 +73,6 @@ const ORDER_KEY = 'monster-merge-order-v3';
 const COACH_KEY = 'monster-merge-coach-v3';
 const POWER_KEY = 'monster-merge-power-v1';
 const POWER_COST = 200;
-const OVERDRIVE_MAX = 100;
-const OVERDRIVE_DURATION_MS = 9000;
-const DANGER_GRACE_MS = 3000;
 const REDUCED_MOTION =
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -575,7 +582,7 @@ function App() {
         uiRef.current.canDrop = true;
         sync();
       }
-    }, 430);
+    }, DROP_COOLDOWN_MS);
   }, [coach, flash, sync]);
 
   const restart = useCallback(() => {
@@ -612,6 +619,11 @@ function App() {
     const state = uiRef.current;
     if (!state.canDrop || !state.canHold || state.gameOver) return;
 
+    if (state.holdTier === state.currentTier) {
+      flash('Same monster already held');
+      return;
+    }
+
     if (state.holdTier === null) {
       state.holdTier = state.currentTier;
       state.currentTier = state.nextTier;
@@ -627,7 +639,7 @@ function App() {
     sync();
     playSound('ui');
     haptic('drop');
-  }, [sync]);
+  }, [flash, sync]);
 
   const buyPower = useCallback(() => {
     const state = uiRef.current;
@@ -735,7 +747,7 @@ function App() {
       if (!state.overdriveActive) {
         state.overdrive = Math.min(
           OVERDRIVE_MAX,
-          state.overdrive + 18 + Math.min(22, tier * 4) + (state.combo > 1 ? 8 : 0),
+          state.overdrive + getOverdriveGain(tier, state.combo),
         );
         if (state.overdrive >= OVERDRIVE_MAX) {
           state.overdrive = 0;
@@ -746,10 +758,13 @@ function App() {
           haptic('order');
         }
       } else {
-        overdriveEndRef.current = Math.min(
-          overdriveEndRef.current + 320,
-          now + OVERDRIVE_DURATION_MS,
-        );
+        const extension = getOverdriveExtensionMs(state.combo);
+        if (extension > 0) {
+          overdriveEndRef.current = Math.min(
+            overdriveEndRef.current + extension,
+            now + OVERDRIVE_DURATION_MS,
+          );
+        }
       }
       state.bestTier = Math.max(state.bestTier, tier);
       state.bestScore = Math.max(state.bestScore, state.score);
@@ -1164,7 +1179,15 @@ function App() {
 
         <button
           type="button"
-          className={'hold-board' + (!ui.canHold ? ' is-used' : '')}
+          className={
+            'hold-board' +
+            (!ui.canHold ? ' is-used' : '') +
+            (ui.canHold &&
+            ui.holdTier !== null &&
+            ui.holdTier !== ui.currentTier
+              ? ' is-swap-ready'
+              : '')
+          }
           onClick={hold}
           disabled={!ui.canDrop || !ui.canHold || ui.gameOver}
           aria-label={
@@ -1173,7 +1196,7 @@ function App() {
               : 'Swap current monster with held monster'
           }
         >
-          <span>HOLD</span>
+          <span>{ui.canHold ? 'HOLD' : 'USED'}</span>
           {ui.holdTier === null ? <b>+</b> : <MonsterArt tier={ui.holdTier} size={42} />}
         </button>
 
