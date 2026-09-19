@@ -167,4 +167,17 @@ This file is updated after each major production step.
 - Code review: labels, disabled states, callbacks, backdrop close and autofocus behavior preserved.
 - PR #30 run #136: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
 - No physics, timing, persistence, storage, telemetry or gameplay-rule changes.
-- Final documentation head must pass the same gate before merge.
+- Final PR head run #137: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- PR #30 merged as c4e5753.
+- Post-merge main run #138: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓ Deploy ✓.
+- Production endpoint renders the expected game shell/HUD ✓.
+- Interactive live smoke remains waived by explicit user decision.
+
+### Game toolbar extraction — IN PROGRESS
+- Goal: reduce App.tsx presentation responsibility further without changing controls.
+- Scope: move SHOP, MONSTERS, DROP, POWER and LAB toolbar markup into src/game-toolbar.tsx.
+- App.tsx keeps all callbacks, gameplay state and power/drop rules.
+- App.tsx reduced from 2004 to 1957 lines.
+- Existing E2E covers all five primary controls and Power availability by mode.
+- No physics, timing, persistence, storage, telemetry or gameplay-rule changes.
+- Next: PR → full parallel CI → Aggregate Gate → code review → merge if green.
