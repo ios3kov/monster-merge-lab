@@ -665,6 +665,7 @@ function App() {
       timeToFirstDecisionMs: firstDecisionElapsedRef.current,
       drops: state.runDrops,
       merges: state.runMerges,
+      highestTier: state.runHighestTier,
       holdUses: state.runHoldUses,
       powerUses: state.runPowerUses,
       overdriveStarts: runOverdriveStartsRef.current,
