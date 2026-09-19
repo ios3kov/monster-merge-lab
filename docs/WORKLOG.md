@@ -144,10 +144,12 @@ This file is updated after each major production step.
 - Production endpoint renders the expected game shell/HUD ✓.
 - Interactive live smoke remains waived by explicit user decision.
 
-### Fixed-step game-loop controller — IN PROGRESS
+### Fixed-step game-loop controller — DONE
 - Goal: separate RAF/fixed-step scheduling from React without moving gameplay rules.
 - New src/game-loop.ts owns requestAnimationFrame scheduling, 120 Hz fixed-step accumulation, 50 ms delta clamp, pause behavior and clock reset.
 - App.tsx keeps Danger/Overdrive rules, physics callbacks, rendering, persistence and telemetry behavior.
-- TDD coverage added for active stepping, long-gap clamping and pause/reset semantics.
-- App.tsx reduced from 2116 to 2104 lines in the initial controller extraction.
-- Next: open PR → full parallel CI → Aggregate Gate → review → merge if green.
+- Unit coverage verifies active stepping, long-gap clamping, pause/reset semantics and frame cancellation.
+- App.tsx reduced from 2116 to 2104 lines.
+- PR #29 run #133: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- No gameplay/storage/session/telemetry schema changes.
+- Final documentation commit follows; merge remains gated on the final PR head.
