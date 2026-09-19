@@ -1285,7 +1285,7 @@ function App() {
       document.removeEventListener('visibilitychange', onVisibility);
       cancelAnimationFrame(frame);
     };
-  }, [completeExperimentIfGoalMet, flash, sync]);
+  }, [completeExperimentIfGoalMet, flash, isPileBelowDanger, sync]);
 
   useEffect(() => () => {
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
