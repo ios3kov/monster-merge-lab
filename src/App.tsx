@@ -14,8 +14,10 @@ import {
   setSoundEnabled,
 } from './audio';
 import {
+  COMBO_RESET_MS,
   DANGER_GRACE_MS,
   DROP_COOLDOWN_MS,
+  DROP_LIMIT_SETTLE_MS,
   OVERDRIVE_DURATION_MS,
   OVERDRIVE_MAX,
   drawSpawnTier,
@@ -23,6 +25,7 @@ import {
   getOverdriveGain,
   makeOrder,
   shiftGameplayClocksForPause,
+  shiftGameplayTimestampForPause,
   type Order,
 } from './gameplay';
 import {
@@ -546,9 +549,12 @@ function App() {
   const worldRef = useRef<World>({ bodies: [] });
   const aimXRef = useRef(WIDTH / 2);
   const dropTimerRef = useRef<number | null>(null);
+  const dropReadyAtRef = useRef<number | null>(null);
   const comboTimerRef = useRef<number | null>(null);
+  const comboResetAtRef = useRef<number | null>(null);
   const messageTimerRef = useRef<number | null>(null);
   const limitTimerRef = useRef<number | null>(null);
+  const limitResolveAtRef = useRef<number | null>(null);
   const dangerRef = useRef<number | null>(null);
   const lastMergeRef = useRef(-Infinity);
   const burstsRef = useRef<Burst[]>([]);
@@ -870,8 +876,77 @@ function App() {
       window.clearTimeout(limitTimerRef.current);
       limitTimerRef.current = null;
     }
+    limitResolveAtRef.current = null;
     return true;
   }, [isPileBelowDanger]);
+
+  const resetCombo = useCallback(() => {
+    comboTimerRef.current = null;
+    comboResetAtRef.current = null;
+    if (uiRef.current.combo !== 0) {
+      uiRef.current.combo = 0;
+      sync();
+    }
+  }, [sync]);
+
+  const resolveDropLimit = useCallback(() => {
+    limitTimerRef.current = null;
+    limitResolveAtRef.current = null;
+    if (completeExperimentIfGoalMet()) {
+      sync();
+      playSound('order');
+      haptic('order');
+      return;
+    }
+    const finalState = uiRef.current;
+    if (
+      !finalState.experimentComplete &&
+      !finalState.experimentFailed &&
+      !finalState.gameOver
+    ) {
+      finalState.experimentFailed = true;
+      finalState.canDrop = false;
+      storageRemove(ACTIVE_RUN_KEY);
+      emitTelemetry({
+        name: 'experiment_failed',
+        ...getTelemetryContext(presetRef.current),
+        score: finalState.score,
+        reason: 'drop_limit',
+      });
+      sync();
+      playSound('fail');
+      haptic('fail');
+    }
+  }, [completeExperimentIfGoalMet, sync]);
+
+  const finishDropCooldown = useCallback(() => {
+    dropTimerRef.current = null;
+    dropReadyAtRef.current = null;
+    const current = uiRef.current;
+    if (
+      current.gameOver ||
+      current.experimentComplete ||
+      current.experimentFailed
+    ) {
+      return;
+    }
+    const maxDrops = presetRef.current.limits?.drops;
+    if (maxDrops !== undefined && current.runDrops >= maxDrops) {
+      current.canDrop = false;
+      if (limitTimerRef.current !== null) {
+        window.clearTimeout(limitTimerRef.current);
+      }
+      limitResolveAtRef.current =
+        performance.now() + DROP_LIMIT_SETTLE_MS;
+      limitTimerRef.current = window.setTimeout(
+        resolveDropLimit,
+        DROP_LIMIT_SETTLE_MS,
+      );
+    } else {
+      current.canDrop = true;
+      sync();
+    }
+  }, [resolveDropLimit, sync]);
 
   const updateAim = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -933,43 +1008,15 @@ function App() {
     playSound('drop');
     haptic('drop');
 
-    if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
-    dropTimerRef.current = window.setTimeout(() => {
-      const current = uiRef.current;
-      if (current.gameOver || current.experimentComplete || current.experimentFailed) return;
-      const maxDrops = presetRef.current.limits?.drops;
-      if (maxDrops !== undefined && current.runDrops >= maxDrops) {
-        current.canDrop = false;
-        if (limitTimerRef.current !== null) window.clearTimeout(limitTimerRef.current);
-        limitTimerRef.current = window.setTimeout(() => {
-          if (completeExperimentIfGoalMet()) {
-            sync();
-            playSound('order');
-            haptic('order');
-            return;
-          }
-          const finalState = uiRef.current;
-          if (!finalState.experimentComplete && !finalState.gameOver) {
-            finalState.experimentFailed = true;
-            finalState.canDrop = false;
-            storageRemove(ACTIVE_RUN_KEY);
-            emitTelemetry({
-              name: 'experiment_failed',
-              ...getTelemetryContext(presetRef.current),
-              score: finalState.score,
-              reason: 'drop_limit',
-            });
-            sync();
-            playSound('fail');
-            haptic('fail');
-          }
-        }, 1500);
-      } else {
-        current.canDrop = true;
-        sync();
-      }
-    }, DROP_COOLDOWN_MS);
-  }, [coach, completeExperimentIfGoalMet, flash, sync]);
+    if (dropTimerRef.current !== null) {
+      window.clearTimeout(dropTimerRef.current);
+    }
+    dropReadyAtRef.current = performance.now() + DROP_COOLDOWN_MS;
+    dropTimerRef.current = window.setTimeout(
+      finishDropCooldown,
+      DROP_COOLDOWN_MS,
+    );
+  }, [coach, finishDropCooldown, flash, sync]);
 
   const resetRun = useCallback((mode: GameMode, experimentId?: string) => {
     storageRemove(ACTIVE_RUN_KEY);
@@ -1004,7 +1051,12 @@ function App() {
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     if (comboTimerRef.current !== null) window.clearTimeout(comboTimerRef.current);
     if (limitTimerRef.current !== null) window.clearTimeout(limitTimerRef.current);
+    dropTimerRef.current = null;
+    comboTimerRef.current = null;
     limitTimerRef.current = null;
+    dropReadyAtRef.current = null;
+    comboResetAtRef.current = null;
+    limitResolveAtRef.current = null;
 
     const state = uiRef.current;
     state.score = 0;
@@ -1238,11 +1290,40 @@ function App() {
     );
     let paused = document.hidden;
     let hiddenAt = paused ? performance.now() : null;
+
+    const rearmTimer = (
+      deadlineRef: { current: number | null },
+      timerRef: { current: number | null },
+      callback: () => void,
+      now: number,
+      pausedFor: number,
+    ) => {
+      if (deadlineRef.current === null) return;
+      deadlineRef.current = shiftGameplayTimestampForPause(
+        deadlineRef.current,
+        pausedFor,
+      );
+      const remaining = Math.max(0, deadlineRef.current - now);
+      timerRef.current = window.setTimeout(callback, remaining);
+    };
+
     const onVisibility = () => {
       const now = performance.now();
       if (document.hidden) {
         paused = true;
         if (hiddenAt === null) hiddenAt = now;
+        if (dropTimerRef.current !== null) {
+          window.clearTimeout(dropTimerRef.current);
+          dropTimerRef.current = null;
+        }
+        if (comboTimerRef.current !== null) {
+          window.clearTimeout(comboTimerRef.current);
+          comboTimerRef.current = null;
+        }
+        if (limitTimerRef.current !== null) {
+          window.clearTimeout(limitTimerRef.current);
+          limitTimerRef.current = null;
+        }
       } else {
         const pausedFor =
           hiddenAt === null ? 0 : Math.max(0, now - hiddenAt);
@@ -1254,6 +1335,43 @@ function App() {
         );
         dangerRef.current = shifted.dangerStartedAt;
         overdriveEndRef.current = shifted.overdriveEndsAt;
+        lastMergeRef.current = shiftGameplayTimestampForPause(
+          lastMergeRef.current,
+          pausedFor,
+        );
+        for (const body of worldRef.current.bodies) {
+          body.bornAt = shiftGameplayTimestampForPause(
+            body.bornAt,
+            pausedFor,
+          );
+        }
+        for (const burst of burstsRef.current) {
+          burst.start = shiftGameplayTimestampForPause(
+            burst.start,
+            pausedFor,
+          );
+        }
+        rearmTimer(
+          dropReadyAtRef,
+          dropTimerRef,
+          finishDropCooldown,
+          now,
+          pausedFor,
+        );
+        rearmTimer(
+          comboResetAtRef,
+          comboTimerRef,
+          resetCombo,
+          now,
+          pausedFor,
+        );
+        rearmTimer(
+          limitResolveAtRef,
+          limitTimerRef,
+          resolveDropLimit,
+          now,
+          pausedFor,
+        );
         hiddenAt = null;
         paused = false;
       }
@@ -1337,11 +1455,14 @@ function App() {
       burstsRef.current.push({ x, y, tier, start: now });
       if (burstsRef.current.length > 14) burstsRef.current.shift();
 
-      if (comboTimerRef.current !== null) window.clearTimeout(comboTimerRef.current);
-      comboTimerRef.current = window.setTimeout(() => {
-        uiRef.current.combo = 0;
-        sync();
-      }, 1250);
+      if (comboTimerRef.current !== null) {
+        window.clearTimeout(comboTimerRef.current);
+      }
+      comboResetAtRef.current = now + COMBO_RESET_MS;
+      comboTimerRef.current = window.setTimeout(
+        resetCombo,
+        COMBO_RESET_MS,
+      );
 
       let completedOrder = false;
       if (activePreset.showOrders && tier === state.order.tier) {
@@ -1665,13 +1786,24 @@ function App() {
       document.removeEventListener('visibilitychange', onVisibility);
       cancelAnimationFrame(frame);
     };
-  }, [completeExperimentIfGoalMet, flash, isPileBelowDanger, sync]);
+  }, [
+    completeExperimentIfGoalMet,
+    finishDropCooldown,
+    flash,
+    isPileBelowDanger,
+    resetCombo,
+    resolveDropLimit,
+    sync,
+  ]);
 
   useEffect(() => () => {
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     if (comboTimerRef.current !== null) window.clearTimeout(comboTimerRef.current);
     if (messageTimerRef.current !== null) window.clearTimeout(messageTimerRef.current);
     if (limitTimerRef.current !== null) window.clearTimeout(limitTimerRef.current);
+    dropReadyAtRef.current = null;
+    comboResetAtRef.current = null;
+    limitResolveAtRef.current = null;
     overdriveEndRef.current = 0;
   }, []);
 
