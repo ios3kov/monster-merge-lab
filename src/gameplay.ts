@@ -65,3 +65,14 @@ export function drawSpawnTier(
   if (bag.length === 0) bag.push(...makeSpawnBag(bestTier, random));
   return bag.shift() ?? 0;
 }
+
+
+export const OVERDRIVE_MAX = 100;
+export const OVERDRIVE_DURATION_MS = 7500;
+export const DANGER_GRACE_MS = 2200;
+
+export function getOverdriveGain(tier: number, combo: number) {
+  const tierBonus = Math.min(10, Math.max(0, tier) * 2);
+  const chainBonus = Math.min(3, Math.max(0, combo - 1)) * 4;
+  return 10 + tierBonus + chainBonus;
+}
