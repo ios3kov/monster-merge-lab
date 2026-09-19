@@ -5,6 +5,7 @@ import {
   getRunPreset,
   getUtcDayKey,
   makeDailyQueue,
+  usesPersistentMetaProgress,
 } from '../src/modes.ts';
 
 test('Endless keeps the current full toolset and empty start queue', () => {
@@ -82,4 +83,23 @@ test('Daily disables consumable power so score cannot be bought', () => {
   assert.equal(daily.allowPower, false);
   assert.equal(daily.showOrders, false);
   assert.equal(daily.fixedQueue.length > 0, true);
+});
+
+
+test('only Endless can mutate persistent meta progression', () => {
+  assert.equal(usesPersistentMetaProgress('endless'), true);
+  assert.equal(usesPersistentMetaProgress('experiments'), false);
+  assert.equal(usesPersistentMetaProgress('daily'), false);
+});
+
+test('consecutive UTC days always rotate the visible Daily opener', () => {
+  const start = new Date('2026-09-01T00:00:00Z');
+  let previous = makeDailyQueue(getUtcDayKey(start)).slice(0, 8);
+
+  for (let offset = 1; offset <= 30; offset += 1) {
+    const date = new Date(start.getTime() + offset * 86_400_000);
+    const next = makeDailyQueue(getUtcDayKey(date)).slice(0, 8);
+    assert.notDeepEqual(previous, next);
+    previous = next;
+  }
 });
