@@ -15,9 +15,11 @@ import {
 } from './audio';
 import {
   DANGER_GRACE_MS,
+  DROP_COOLDOWN_MS,
   OVERDRIVE_DURATION_MS,
   OVERDRIVE_MAX,
   drawSpawnTier,
+  getOverdriveExtensionMs,
   getOverdriveGain,
   makeOrder,
   type Order,
@@ -580,7 +582,7 @@ function App() {
         uiRef.current.canDrop = true;
         sync();
       }
-    }, 430);
+    }, DROP_COOLDOWN_MS);
   }, [coach, flash, sync]);
 
   const restart = useCallback(() => {
@@ -756,10 +758,13 @@ function App() {
           haptic('order');
         }
       } else {
-        overdriveEndRef.current = Math.min(
-          overdriveEndRef.current + 240,
-          now + OVERDRIVE_DURATION_MS,
-        );
+        const extension = getOverdriveExtensionMs(state.combo);
+        if (extension > 0) {
+          overdriveEndRef.current = Math.min(
+            overdriveEndRef.current + extension,
+            now + OVERDRIVE_DURATION_MS,
+          );
+        }
       }
       state.bestTier = Math.max(state.bestTier, tier);
       state.bestScore = Math.max(state.bestScore, state.score);
@@ -1191,7 +1196,7 @@ function App() {
               : 'Swap current monster with held monster'
           }
         >
-          <span>HOLD</span>
+          <span>{ui.canHold ? 'HOLD' : 'USED'}</span>
           {ui.holdTier === null ? <b>+</b> : <MonsterArt tier={ui.holdTier} size={42} />}
         </button>
 
