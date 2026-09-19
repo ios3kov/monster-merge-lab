@@ -874,7 +874,7 @@ function App() {
     sync();
     playSound('ui');
     haptic('drop');
-  }, [completeExperimentIfReady, failExperiment, flash, sync]);
+  }, [flash, sync]);
 
   const buyPower = useCallback(() => {
     const state = uiRef.current;
@@ -1313,7 +1313,7 @@ function App() {
       document.removeEventListener('visibilitychange', onVisibility);
       cancelAnimationFrame(frame);
     };
-  }, [flash, sync]);
+  }, [completeExperimentIfReady, failExperiment, flash, sync]);
 
   useEffect(() => () => {
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
