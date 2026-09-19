@@ -370,10 +370,10 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .game-frame {
   position: absolute;
   z-index: 12;
-  left: 18.5%;
-  top: 20.2%;
-  width: 63%;
-  height: 55%;
+  left: 12.8%;
+  top: 18.5%;
+  width: 74.4%;
+  height: 64.9%;
   min-height: 0;
 }
 .canvas-wrap {
