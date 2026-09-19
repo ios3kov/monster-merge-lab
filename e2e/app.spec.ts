@@ -219,6 +219,13 @@ test('Experiment progress persists and resumes after reload', async ({
     .filter({ hasText: 'EXPERIMENT COMPLETE' });
   await expect(completionDialog).toBeVisible({ timeout: 4000 });
 
+  await completionDialog.getByRole('button', { name: 'Lab' }).click();
+  const completedExperimentCard = page.getByRole('button', {
+    name: /^Experiments\b/,
+  });
+  await expect(completedExperimentCard).toBeEnabled();
+  await expect(completedExperimentCard).toContainText('CONTINUE');
+
   await page.reload();
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
 
