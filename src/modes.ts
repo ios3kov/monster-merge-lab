@@ -1,3 +1,4 @@
+import { getExperiment, type StartBody } from './experiments.ts';
 export type GameMode = 'endless' | 'experiments' | 'daily';
 
 export type Goal =
@@ -5,6 +6,8 @@ export type Goal =
       kind: 'create-tier';
       tier: number;
       label: string;
+      hint: string;
+      successLabel: string;
     };
 
 export type RunPreset = {
@@ -12,6 +15,7 @@ export type RunPreset = {
   title: string;
   subtitle: string;
   fixedQueue: number[];
+  startBodies: StartBody[];
   seed?: number;
   allowHold: boolean;
   allowPower: boolean;
@@ -19,9 +23,8 @@ export type RunPreset = {
   showOrders: boolean;
   goal?: Goal;
   dailyKey?: string;
+  experimentId?: string;
 };
-
-const FIRST_EXPERIMENT_QUEUE = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0];
 
 export const MODE_OPTIONS: ReadonlyArray<{
   id: GameMode;
@@ -74,20 +77,19 @@ export function getRunPreset(
   date = new Date(),
 ): RunPreset {
   if (mode === 'experiments') {
+    const experiment = getExperiment();
     return {
       mode,
-      title: 'Experiment 1',
-      subtitle: 'Create a Peep',
-      fixedQueue: [...FIRST_EXPERIMENT_QUEUE],
-      allowHold: false,
-      allowPower: false,
-      allowOverdrive: false,
+      title: experiment.title,
+      subtitle: experiment.subtitle,
+      fixedQueue: [...experiment.queue],
+      startBodies: experiment.startBodies.map((body) => ({ ...body })),
+      allowHold: experiment.allowHold,
+      allowPower: experiment.allowPower,
+      allowOverdrive: experiment.allowOverdrive,
       showOrders: false,
-      goal: {
-        kind: 'create-tier',
-        tier: 1,
-        label: 'Create a Peep',
-      },
+      goal: { ...experiment.goal },
+      experimentId: experiment.id,
     };
   }
 
@@ -98,6 +100,7 @@ export function getRunPreset(
       title: 'Daily Experiment',
       subtitle: dailyKey,
       fixedQueue: [],
+      startBodies: [],
       seed: hashSeed('monster-merge-lab:' + dailyKey),
       allowHold: true,
       allowPower: false,
@@ -112,6 +115,7 @@ export function getRunPreset(
     title: 'Endless Lab',
     subtitle: 'High score',
     fixedQueue: [],
+    startBodies: [],
     allowHold: true,
     allowPower: true,
     allowOverdrive: true,
