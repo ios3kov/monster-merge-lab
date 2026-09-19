@@ -83,5 +83,8 @@ PR #33 run #147 failed in Audit at TypeScript before merge:
 - run #151 showed the first isolation attempt was still vulnerable to the app's pagehide persistence: clearing storage before reload allowed the outgoing page to immediately save the Experiment snapshot again.
 - final test-isolation fix: clear localStorage from an init script before app startup on every navigation, with no intermediate reload.
 - product behavior remains unchanged by these test corrections.
+- manual code review then found a real layered-dialog edge case: closing LAB opened over Experiment Complete could restore focus to a background control while the terminal dialog was still active.
+- fix: only restore background focus when no dialog remains, and actively focus the first control when a still-open dialog regains the top layer.
+- added E2E coverage for LAB-over-completion open/close focus behavior.
 
 Status: IN PROGRESS.
