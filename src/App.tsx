@@ -531,7 +531,7 @@ function App() {
       uiRef.current.message = '';
       sync();
     }, 1100);
-  }, [flash, sync]);
+  }, [sync]);
 
   const updateAim = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -637,7 +637,7 @@ function App() {
     sync();
     playSound('ui');
     haptic('drop');
-  }, [sync]);
+  }, [flash, sync]);
 
   const buyPower = useCallback(() => {
     const state = uiRef.current;
