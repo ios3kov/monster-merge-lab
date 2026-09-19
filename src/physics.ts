@@ -1,5 +1,3 @@
-import { getMergeShockwave } from './gameplay';
-
 export const WIDTH = 360;
 export const HEIGHT = 560;
 export const LEFT_WALL = 32;
