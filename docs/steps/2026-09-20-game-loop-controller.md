@@ -24,7 +24,7 @@ New `src/game-loop.ts` owns:
 - canvas rendering calls;
 - visibility pause clock shifting.
 
-## TDD coverage
+## Unit coverage
 
 `tests/game-loop.test.ts` verifies:
 
@@ -62,4 +62,19 @@ Required before merge:
 - dependency audit
 - Aggregate Gate
 
-Status: IN PROGRESS.
+## Verification result
+
+- TypeScript ✓
+- ESLint ✓
+- unit tests ✓
+- Chromium E2E/accessibility ✓
+- WebKit E2E/accessibility ✓
+- Offline/PWA ✓
+- Performance ✓
+- dependency audit ✓
+- Aggregate Gate ✓
+
+PR #29 CI run #133 passed on the implementation head.
+The final documentation-only commit must pass the same gate before merge.
+
+Status: DONE.
