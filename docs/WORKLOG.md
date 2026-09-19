@@ -231,4 +231,6 @@ This file is updated after each major production step.
   - Performance CI now runs idle + crowded browser profiles without duplicate browser-job execution.
 - Measured crowded Chromium: 16.54 ms avg / 16.70 ms p95 / 16.80 ms max.
 - Initial crowded WebKit observation: 20.23 ms avg / 30 ms p95 / 218 ms max; tracked as P2 watch because sustained metrics remain healthy.
-- Gate: full parallel CI → Aggregate Gate → code review → merge → main Deploy.
+- Final-head Chromium readability guard caught one remaining 7 px landscape reward; test stayed strict and UI was raised to 8 px.
+- Related landscape objective hint was raised to the same 8 px floor.
+- Gate: rerun full parallel CI → Aggregate Gate → merge → main Deploy.
