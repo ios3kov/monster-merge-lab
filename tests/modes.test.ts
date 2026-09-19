@@ -4,6 +4,7 @@ import {
   createSeededRandom,
   getRunPreset,
   getUtcDayKey,
+  makeDailyQueue,
 } from '../src/modes.ts';
 
 test('Endless keeps the current full toolset and empty start queue', () => {
@@ -44,6 +45,8 @@ test('Daily uses a stable UTC key and deterministic seed', () => {
   const b = getRunPreset('daily', new Date('2026-09-20T12:00:00Z'));
   assert.equal(a.dailyKey, '2026-09-20');
   assert.equal(a.seed, b.seed);
+  assert.deepEqual(a.fixedQueue, b.fixedQueue);
+  assert.equal(a.fixedQueue.length, 96);
   assert.equal(a.allowPower, false);
   assert.equal(a.showOrders, false);
   assert.deepEqual(a.startBodies, []);
@@ -55,4 +58,28 @@ test('seeded random repeats the same sequence', () => {
   const first = Array.from({ length: 8 }, () => a());
   const second = Array.from({ length: 8 }, () => b());
   assert.deepEqual(first, second);
+});
+
+
+test('Daily queue is explicit, fair-bag based and changes with the UTC day', () => {
+  const first = makeDailyQueue('2026-09-20');
+  const same = makeDailyQueue('2026-09-20');
+  const next = makeDailyQueue('2026-09-21');
+
+  assert.deepEqual(first, same);
+  assert.notDeepEqual(first, next);
+  assert.equal(first.length, 96);
+
+  let run = 1;
+  for (let i = 1; i < first.length; i += 1) {
+    run = first[i] === first[i - 1] ? run + 1 : 1;
+    assert.ok(run <= 3, 'Daily queue should not contain runs longer than 3');
+  }
+});
+
+test('Daily disables consumable power so score cannot be bought', () => {
+  const daily = getRunPreset('daily', new Date('2026-09-20T12:00:00Z'));
+  assert.equal(daily.allowPower, false);
+  assert.equal(daily.showOrders, false);
+  assert.equal(daily.fixedQueue.length > 0, true);
 });

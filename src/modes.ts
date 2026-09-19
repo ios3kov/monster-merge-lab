@@ -1,5 +1,6 @@
 import { getExperiment, type StartBody } from './experiments.ts';
 import type { ExperimentGoal, ExperimentLimits } from './goals.ts';
+import { hasLongRun, makeSpawnBag } from './gameplay.ts';
 export type GameMode = 'endless' | 'experiments' | 'daily';
 
 export type RunPreset = {
@@ -65,6 +66,40 @@ export function createSeededRandom(seed: number) {
   };
 }
 
+const DAILY_OPENING_BAGS: readonly (readonly number[])[] = [
+  [0, 0, 1, 0, 0, 0, 1, 0],
+  [0, 1, 0, 0, 0, 1, 0, 0],
+  [0, 0, 0, 1, 0, 0, 1, 0],
+];
+
+export function makeDailyQueue(dailyKey: string, length = 96) {
+  if (length <= 0) return [];
+
+  const random = createSeededRandom(
+    hashSeed('monster-merge-lab:daily-queue:' + dailyKey),
+  );
+  const opening =
+    DAILY_OPENING_BAGS[hashSeed(dailyKey) % DAILY_OPENING_BAGS.length]!;
+  const queue = [...opening].slice(0, length);
+
+  while (queue.length < length) {
+    let bag: number[] | null = null;
+    for (let attempt = 0; attempt < 64; attempt += 1) {
+      const candidate = makeSpawnBag(0, random);
+      if (!hasLongRun([...queue.slice(-3), ...candidate], 3)) {
+        bag = candidate;
+        break;
+      }
+    }
+    if (!bag) {
+      throw new Error('Unable to create fair Daily queue');
+    }
+    queue.push(...bag);
+  }
+
+  return queue.slice(0, length);
+}
+
 export function getRunPreset(
   mode: GameMode,
   date = new Date(),
@@ -94,9 +129,9 @@ export function getRunPreset(
       mode,
       title: 'Daily Experiment',
       subtitle: dailyKey,
-      fixedQueue: [],
+      fixedQueue: makeDailyQueue(dailyKey),
       startBodies: [],
-      seed: hashSeed('monster-merge-lab:' + dailyKey),
+      seed: hashSeed('monster-merge-lab:daily-tail:' + dailyKey),
       allowHold: true,
       allowPower: false,
       allowOverdrive: true,
