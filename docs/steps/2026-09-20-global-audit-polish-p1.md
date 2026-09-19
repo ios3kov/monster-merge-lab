@@ -86,5 +86,7 @@ PR #33 run #147 failed in Audit at TypeScript before merge:
 - manual code review then found a real layered-dialog edge case: closing LAB opened over Experiment Complete could restore focus to a background control while the terminal dialog was still active.
 - fix: only restore background focus when no dialog remains, and actively focus the first control when a still-open dialog regains the top layer.
 - added E2E coverage for LAB-over-completion open/close focus behavior.
+- run #155 showed the readability measurement could execute after navigation before React had rendered the repeated HUD; product E2E itself passed.
+- fix: explicitly wait for tank/Overdrive/Orders and Experiment objective DOM before reading computed font sizes; the 7 px minimum threshold is unchanged.
 
 Status: IN PROGRESS.
