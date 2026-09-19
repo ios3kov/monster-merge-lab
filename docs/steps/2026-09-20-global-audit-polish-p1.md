@@ -68,4 +68,12 @@ The PR must not materially regress these values.
 - post-merge Deploy
 - automated production interaction smoke
 
+## CI correction
+
+PR #33 run #147 failed in Audit at TypeScript before merge:
+
+- root cause: local DOM traversal variable `parent` triggered TS7022 inference ambiguity;
+- fix: renamed it to `container`;
+- no behavior or UX semantics changed.
+
 Status: IN PROGRESS.
