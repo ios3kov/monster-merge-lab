@@ -1,4 +1,4 @@
-import { getMergeShockwave } from './gameplay';
+import { getMergeShockwave } from './gameplay.ts';
 
 export const WIDTH = 360;
 export const HEIGHT = 560;
