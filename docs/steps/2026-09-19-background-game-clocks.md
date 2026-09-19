@@ -19,13 +19,16 @@ When the document became hidden, physics paused but Danger and Overdrive still u
 Physics constants and game balance are unchanged.
 
 ## Verification
+PR #21:
+- typecheck ✓
+- lint ✓
+- unit ✓
+- physics/bundle budgets ✓
+- build/audit ✓
+- browser E2E ✓
+- responsive/accessibility ✓
+
 Pending:
-- typecheck
-- lint
-- unit
-- physics/bundle budgets
-- build/audit
-- browser E2E
-- responsive/accessibility
-- post-merge Cloudflare deploy
+- post-merge CI
+- Cloudflare deploy
 - live smoke
