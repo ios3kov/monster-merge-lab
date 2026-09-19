@@ -1445,21 +1445,21 @@ function App() {
                   <div className="completion-actions">
                     <button autoFocus onClick={restart}>Retry</button>
                     {preset.mode === 'experiments' &&
-                    preset.experimentId &&
-                    getNextExperimentId(preset.experimentId) ? (
-                      <button
-                        onClick={() =>
-                          resetRun(
-                            'experiments',
-                            getNextExperimentId(preset.experimentId!)!,
-                          )
-                        }
-                      >
-                        Next Experiment
-                      </button>
-                    ) : (
-                      <button onClick={() => setShowLab(true)}>Lab</button>
-                    )}
+                      preset.experimentId &&
+                      getNextExperimentId(preset.experimentId) && (
+                        <button
+                          aria-label="Next Experiment"
+                          onClick={() =>
+                            resetRun(
+                              'experiments',
+                              getNextExperimentId(preset.experimentId!)!,
+                            )
+                          }
+                        >
+                          Next
+                        </button>
+                      )}
+                    <button onClick={() => setShowLab(true)}>Lab</button>
                   </div>
                 </div>
               </div>
