@@ -54,7 +54,9 @@ export const EXPERIMENTS: readonly Experiment[] = [
 ];
 
 export function getExperiment(id = EXPERIMENTS[0]!.id): Experiment {
-  const experiment = EXPERIMENTS.find((item) => item.id === id) ?? EXPERIMENTS[0]!;
+  const experiment = EXPERIMENTS.find((item) => item.id === id);
+  if (!experiment) throw new Error(`Unknown Experiment: ${id}`);
+
   return {
     ...experiment,
     startBodies: experiment.startBodies.map((body) => ({ ...body })),
@@ -102,6 +104,13 @@ export function validateExperiment(experiment: Experiment) {
       const distance = Math.hypot(a.x - b.x, a.y - b.y);
       if (distance < radiusA + radiusB - 0.5) {
         errors.push(`startBodies[${i}] overlaps startBodies[${j}]`);
+      } else if (
+        a.tier === b.tier &&
+        distance <= radiusA + radiusB + 1.6
+      ) {
+        errors.push(
+          `startBodies[${i}] and startBodies[${j}] would auto-merge on load`,
+        );
       }
     }
   }
