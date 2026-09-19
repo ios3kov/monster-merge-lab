@@ -1837,7 +1837,7 @@ function App() {
             />
             {coach && !ui.gameOver && !ui.experimentFailed && (
               <button className="coach" onClick={() => { storageSet(COACH_KEY, 'done'); setCoach(false); }}>
-                Drag to aim · release to drop
+                Drag to aim · release to drop · match twins to merge
               </button>
             )}
             {ui.combo > 1 && <div className="combo-badge">CHAIN ×{ui.combo}</div>}
