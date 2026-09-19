@@ -218,6 +218,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     allowHold: true,
     allowPower: true,
     allowOverdrive: true,
+    limits: { powerUses: 1 },
   },
   {
     id: 'exp-10',
@@ -264,7 +265,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     allowHold: true,
     allowPower: true,
     allowOverdrive: true,
-    limits: { holdUses: 2 },
+    limits: { holdUses: 2, powerUses: 1 },
   },
   {
     id: 'exp-12',
@@ -363,6 +364,12 @@ export function validateExperiment(experiment: Experiment) {
 
   errors.push(...validateGoal(experiment.goal));
   errors.push(...validateLimits(experiment.limits));
+  if (experiment.allowPower && experiment.limits?.powerUses === undefined) {
+    errors.push('power-enabled Experiments require a powerUses limit');
+  }
+  if (!experiment.allowPower && experiment.limits?.powerUses !== undefined) {
+    errors.push('powerUses limit requires Power to be enabled');
+  }
   if (experiment.goal.kind === 'create-tier' && experiment.goal.tier > MAX_TIER) {
     errors.push('goal tier must exist in the tier catalog');
   }
