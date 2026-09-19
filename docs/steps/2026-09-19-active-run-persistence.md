@@ -52,9 +52,9 @@ After the exact-optional fix:
 - Daily visible queue position survives reload ✓
 - corrupt snapshot is discarded and fresh Endless loads ✓
 
-Pending:
-- final-head CI after documentation commit
-- merge
-- post-merge CI
-- Cloudflare deploy
-- production live smoke
+Completed:
+- final-head CI after documentation commit ✓
+- merged as PR #22 ✓
+- post-merge CI ✓
+- Cloudflare deploy ✓
+- production live smoke ✓
