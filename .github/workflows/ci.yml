@@ -78,3 +78,37 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 018d8fa99d7e951d6c5751dd456ba7e1
+
+      - name: Smoke live production
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://monster-merge-lab.os3kov.workers.dev/"
+          body="/tmp/monster-merge-index.html"
+          headers="/tmp/monster-merge-headers.txt"
+
+          success=0
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsS --connect-timeout 10 --max-time 30               -D "$headers" -o "$body" "$url" &&
+              grep -q "Monster Merge Lab" "$body"; then
+              success=1
+              break
+            fi
+            sleep 5
+          done
+          test "$success" -eq 1
+
+          tr -d '\r' < "$headers" > "$headers.clean"
+          grep -qi '^content-security-policy:' "$headers.clean"
+          grep -qi '^x-content-type-options: *nosniff' "$headers.clean"
+          grep -qi '^referrer-policy: *no-referrer' "$headers.clean"
+          grep -qi '^x-frame-options: *DENY' "$headers.clean"
+          grep -qi '^permissions-policy:' "$headers.clean"
+
+          asset_path="$(
+            grep -oE '/assets/[^" ]+\.js' "$body" | head -n 1
+          )"
+          test -n "$asset_path"
+          curl -fsS --connect-timeout 10 --max-time 30             -D /tmp/monster-merge-asset-headers.txt             -o /dev/null             "https://monster-merge-lab.os3kov.workers.dev${asset_path}"
+          tr -d '\r' < /tmp/monster-merge-asset-headers.txt             > /tmp/monster-merge-asset-headers.clean
+          grep -qi '^cache-control:.*immutable'             /tmp/monster-merge-asset-headers.clean
