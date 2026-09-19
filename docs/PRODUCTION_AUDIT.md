@@ -163,13 +163,19 @@ Deployment is main-only and occurs only after the five parallel gates and
 Aggregate Gate are green. Live production smoke is performed after production
 changes.
 
-## Remaining non-blocking architectural debt
+## Architecture after extraction phase
 
-`App.tsx` still owns rendering, UI and game-loop orchestration and is larger
-than ideal. If a future feature-heavy phase begins, extract the canvas renderer
-and game-loop controller before adding substantial new systems.
+The previously identified renderer/game-loop debt has been addressed:
 
-This is maintainability debt, not a current release blocker.
+- canvas/monster rendering lives in `src/rendering.tsx`;
+- fixed-step RAF scheduling lives in `src/game-loop.ts`;
+- large game modals live in `src/game-modals.tsx`;
+- the primary gameplay toolbar lives in `src/game-toolbar.tsx`;
+- terminal run overlays live in `src/run-overlays.tsx`.
+
+`App.tsx` remains the intentional state/gameplay orchestrator. Further
+extraction is deferred until a concrete feature or defect creates a clear
+boundary; refactoring solely to reduce file length is not a release goal.
 
 ## Production sign-off criteria
 

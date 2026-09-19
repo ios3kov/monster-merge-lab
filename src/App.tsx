@@ -67,6 +67,7 @@ import {
 import { MonsterArt, REDUCED_MOTION, drawMonster, drawTank } from './rendering';
 import { LabModal, MonstersModal, ShopModal } from './game-modals';
 import { GameToolbar } from './game-toolbar';
+import { RunOverlays } from './run-overlays';
 import { storageGet, storageRemove, storageSet } from './storage';
 import {
   emitTelemetry,
@@ -1841,63 +1842,30 @@ function App() {
             )}
             {ui.combo > 1 && <div className="combo-badge">CHAIN ×{ui.combo}</div>}
             {ui.message && <div className="toast" role="status">{ui.message}</div>}
-            {ui.experimentComplete && (
-              <div className="game-over experiment-complete" role="dialog" aria-modal="true">
-                <div className="game-over-card">
-                  <span>EXPERIMENT COMPLETE</span>
-                  <h2>{preset.goal?.successLabel ?? 'GOAL COMPLETE'}</h2>
-                  <p>Goal cleared in {ui.score} points</p>
-                  <div className="completion-actions">
-                    <button autoFocus onClick={restart}>Retry</button>
-                    {preset.mode === 'experiments' &&
-                      preset.experimentId &&
-                      getNextExperimentId(preset.experimentId) && (
-                        <button
-                          aria-label="Next Experiment"
-                          onClick={() =>
-                            resetRun(
-                              'experiments',
-                              getNextExperimentId(preset.experimentId!)!,
-                            )
-                          }
-                        >
-                          Next
-                        </button>
-                      )}
-                    <button onClick={() => setShowLab(true)}>Lab</button>
-                  </div>
-                </div>
-              </div>
-            )}
-            {ui.experimentFailed && !ui.experimentComplete && (
-              <div className="game-over" role="dialog" aria-modal="true">
-                <div className="game-over-card">
-                  <span>EXPERIMENT FAILED</span>
-                  <h2>DROP LIMIT</h2>
-                  <p>Retry and solve it within the allowed drops.</p>
-                  <div className="completion-actions">
-                    <button autoFocus onClick={restart}>Retry</button>
-                    <button onClick={() => setShowLab(true)}>Lab</button>
-                  </div>
-                </div>
-              </div>
-            )}
-            {ui.gameOver && !ui.experimentComplete && !ui.experimentFailed && (
-              <div className="game-over" role="dialog" aria-modal="true">
-                <div className="game-over-card">
-                  <span>{preset.mode === 'daily' ? 'DAILY OVER' : 'LAB OVERFLOW'}</span>
-                  <h2>{ui.score}</h2>
-                  <p>
-                    {preset.mode === 'endless'
-                      ? 'Best ' + String(ui.bestScore)
-                      : preset.mode === 'daily'
-                        ? preset.dailyKey
-                        : preset.title}
-                  </p>
-                  <button autoFocus onClick={restart}>Try again</button>
-                </div>
-              </div>
-            )}
+            <RunOverlays
+              mode={preset.mode}
+              score={ui.score}
+              bestScore={ui.bestScore}
+              presetTitle={preset.title}
+              dailyKey={preset.dailyKey}
+              successLabel={preset.goal?.successLabel}
+              experimentComplete={ui.experimentComplete}
+              experimentFailed={ui.experimentFailed}
+              gameOver={ui.gameOver}
+              onRetry={restart}
+              onNextExperiment={
+                preset.mode === 'experiments' &&
+                preset.experimentId &&
+                getNextExperimentId(preset.experimentId)
+                  ? () =>
+                      resetRun(
+                        'experiments',
+                        getNextExperimentId(preset.experimentId!)!,
+                      )
+                  : undefined
+              }
+              onLab={() => setShowLab(true)}
+            />
           </div>
         </div>
 

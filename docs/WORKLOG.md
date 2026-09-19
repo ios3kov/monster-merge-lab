@@ -182,4 +182,30 @@ This file is updated after each major production step.
 - Code review: labels/classes, DROP disabled state, POWER limit/aria-label logic and callbacks preserved.
 - PR #31 run #139: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
 - No physics, timing, persistence, storage, telemetry or gameplay-rule changes.
+- Final PR head run #140: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- PR #31 merged as 8b735c7.
+- Post-merge main run #141: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓ Deploy ✓.
+- Production endpoint renders the expected game shell/HUD ✓.
+- Interactive live smoke remains waived by explicit user decision.
+
+### Terminal run overlay extraction — DONE
+- Goal: reduce App.tsx terminal-state presentation without moving run control.
+- Scope: moved Experiment Complete, Experiment Failed and Game Over dialog markup into src/run-overlays.tsx.
+- App.tsx keeps restart, next-Experiment selection/reset, Lab opening and all gameplay state/rules.
+- App.tsx reduced from 1957 to 1925 lines.
+- Existing E2E covers Experiment Complete/Next and Experiment Failed terminal flows.
+- No physics, timing, persistence, storage, telemetry or gameplay-rule changes.
+- PR #32 run #142 Audit caught an `exactOptionalPropertyTypes` prop-contract mismatch before merge; runtime/browser jobs were not the source.
+- Fix: props that App always passes now explicitly accept `undefined` rather than being optional/omittable.
+- PR #32 corrected-head run #143: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Code review: terminal visibility rules, copy, Retry/Next/Lab callbacks and game-over score/best/daily/title presentation preserved.
 - Final documentation head must pass the same gate before merge.
+
+### Architecture extraction phase — STOP CRITERION
+- Renderer extracted to src/rendering.tsx.
+- Fixed-step RAF scheduler extracted to src/game-loop.ts.
+- Large modals extracted to src/game-modals.tsx.
+- Gameplay toolbar extracted to src/game-toolbar.tsx.
+- Terminal run overlays extracted to src/run-overlays.tsx.
+- App.tsx reduced from 2506 to 1925 lines while retaining intentional state/gameplay orchestration.
+- Stop after PR #32 post-merge verification unless a concrete feature or defect exposes a new architecture boundary.
