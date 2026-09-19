@@ -66,4 +66,19 @@ PR #32 run #142 failed in Audit at TypeScript before merge:
 - fix: make those three passed props explicitly accept `undefined`;
 - no runtime behavior changed.
 
-Status: IN PROGRESS.
+## Verification result
+
+- corrected-head PR run #143: TypeScript ✓
+- ESLint ✓
+- unit tests ✓
+- Chromium E2E/accessibility ✓
+- WebKit E2E/accessibility ✓
+- Offline/PWA ✓
+- Performance ✓
+- dependency audit ✓
+- Aggregate Gate ✓
+- terminal visibility/callback semantics reviewed ✓
+
+The final documentation-only head must pass the same gate before merge.
+
+Status: DONE.
