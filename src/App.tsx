@@ -630,8 +630,8 @@ function App() {
     }, DROP_COOLDOWN_MS);
   }, [coach, flash, sync]);
 
-  const resetRun = useCallback((mode: GameMode) => {
-    const nextPreset = getRunPreset(mode);
+  const resetRun = useCallback((mode: GameMode, experimentId?: string) => {
+    const nextPreset = getRunPreset(mode, new Date(), experimentId);
     presetRef.current = nextPreset;
     setPreset(nextPreset);
     fixedQueueRef.current = [...nextPreset.fixedQueue];
@@ -640,7 +640,20 @@ function App() {
         ? Math.random
         : createSeededRandom(nextPreset.seed);
 
-    worldRef.current.bodies = [];
+    const preparedAt = performance.now() - 2000;
+    worldRef.current.bodies = nextPreset.startBodies.map((startBody, index) => {
+      const body = spawnBody(
+        startBody.tier,
+        startBody.x,
+        startBody.y,
+        preparedAt - index,
+      );
+      body.vx = 0;
+      body.vy = 0;
+      body.omega = 0;
+      body.angle = startBody.angle ?? 0;
+      return body;
+    });
     burstsRef.current = [];
     spawnBagRef.current = [];
     dangerRef.current = null;
@@ -688,7 +701,7 @@ function App() {
   }, [sync]);
 
   const restart = useCallback(() => {
-    resetRun(presetRef.current.mode);
+    resetRun(presetRef.current.mode, presetRef.current.experimentId);
   }, [resetRun]);
 
   const startMode = useCallback((mode: GameMode) => {
@@ -1381,7 +1394,7 @@ function App() {
                   ? preset.dailyKey
                   : ui.experimentComplete
                     ? 'COMPLETE'
-                    : 'Merge two Sprouts'}
+                    : preset.goal?.hint ?? preset.subtitle}
               </span>
             </div>
           </section>
@@ -1426,7 +1439,7 @@ function App() {
               <div className="game-over experiment-complete" role="dialog" aria-modal="true">
                 <div className="game-over-card">
                   <span>EXPERIMENT COMPLETE</span>
-                  <h2>PEEP CREATED</h2>
+                  <h2>{preset.goal?.successLabel ?? 'GOAL COMPLETE'}</h2>
                   <p>Goal cleared in {ui.score} points</p>
                   <div className="completion-actions">
                     <button autoFocus onClick={restart}>Retry</button>
