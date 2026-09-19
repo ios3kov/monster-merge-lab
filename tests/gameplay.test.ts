@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  COMBO_RESET_MS,
   DANGER_GRACE_MS,
   DROP_COOLDOWN_MS,
+  DROP_LIMIT_SETTLE_MS,
   OVERDRIVE_DURATION_MS,
   OVERDRIVE_MAX,
   drawSpawnTier,
@@ -13,6 +15,7 @@ import {
   makeOrder,
   makeSpawnBag,
   shiftGameplayClocksForPause,
+  shiftGameplayTimestampForPause,
 } from '../src/gameplay.ts';
 
 function seeded(seed: number) {
@@ -141,4 +144,19 @@ test('background pause leaves inactive clocks untouched and clamps bad durations
       overdriveEndsAt: 0,
     },
   );
+});
+
+
+test('background pause keeps transient gameplay timestamps frozen', () => {
+  assert.equal(shiftGameplayTimestampForPause(1200, 5000), 6200);
+  assert.equal(
+    shiftGameplayTimestampForPause(Number.NEGATIVE_INFINITY, 5000),
+    Number.NEGATIVE_INFINITY,
+  );
+  assert.equal(shiftGameplayTimestampForPause(1200, -10), 1200);
+});
+
+test('transient gameplay timers stay intentionally short', () => {
+  assert.equal(COMBO_RESET_MS, 1250);
+  assert.equal(DROP_LIMIT_SETTLE_MS, 1500);
 });

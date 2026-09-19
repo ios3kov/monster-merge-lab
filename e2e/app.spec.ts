@@ -66,6 +66,39 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   expect(errors).toEqual([]);
 });
 
+test('background pause freezes active gameplay timers', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+  const dropButton = page.getByRole('button', { name: 'Drop monster' });
+  await dropButton.click();
+  await expect(dropButton).toBeDisabled();
+
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      value: true,
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+
+  await page.waitForTimeout(550);
+
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      value: false,
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+
+  await expect(dropButton).toBeDisabled();
+  await page.waitForTimeout(450);
+  await expect(dropButton).toBeEnabled();
+});
+
 test('meta shop and saved Order stats stay isolated from non-Endless modes', async ({
   page,
 }, testInfo) => {
