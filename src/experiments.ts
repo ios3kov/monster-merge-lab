@@ -5,20 +5,18 @@ import {
   RIGHT_WALL,
   TIER_DEFS,
 } from './physics.ts';
+import {
+  validateGoal,
+  validateLimits,
+  type ExperimentGoal,
+  type ExperimentLimits,
+} from './goals.ts';
 
 export type StartBody = {
   tier: number;
   x: number;
   y: number;
   angle?: number;
-};
-
-export type ExperimentGoal = {
-  kind: 'create-tier';
-  tier: number;
-  label: string;
-  hint: string;
-  successLabel: string;
 };
 
 export type Experiment = {
@@ -31,6 +29,7 @@ export type Experiment = {
   allowHold: boolean;
   allowPower: boolean;
   allowOverdrive: boolean;
+  limits?: ExperimentLimits;
 };
 
 export const EXPERIMENTS: readonly Experiment[] = [
@@ -119,11 +118,11 @@ export const EXPERIMENTS: readonly Experiment[] = [
     ],
     queue: [0, 0, 1, 0, 1, 0, 0, 1, 0, 1],
     goal: {
-      kind: 'create-tier',
-      tier: 3,
-      label: 'Create a Bloop',
-      hint: 'Set up merges that feed the next merge',
-      successLabel: 'BLOOP CREATED',
+      kind: 'chain',
+      chain: 2,
+      label: 'Make a ×2 chain',
+      hint: 'Trigger the next merge before the chain expires',
+      successLabel: 'CHAIN COMPLETE',
     },
     allowHold: true,
     allowPower: false,
@@ -143,11 +142,11 @@ export const EXPERIMENTS: readonly Experiment[] = [
     ],
     queue: [1, 0, 1, 0, 2, 0, 1, 0, 1, 2],
     goal: {
-      kind: 'create-tier',
-      tier: 3,
-      label: 'Create a Bloop',
-      hint: 'The tank is crowded: make space before stacking higher',
-      successLabel: 'BLOOP CREATED',
+      kind: 'survive-danger',
+      rescues: 1,
+      label: 'Escape danger once',
+      hint: 'Let the pile reach danger, then clear the line before time runs out',
+      successLabel: 'RESCUE COMPLETE',
     },
     allowHold: true,
     allowPower: false,
@@ -165,11 +164,11 @@ export const EXPERIMENTS: readonly Experiment[] = [
     ],
     queue: [0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1],
     goal: {
-      kind: 'create-tier',
-      tier: 3,
-      label: 'Create a Bloop',
-      hint: 'Keep merging to charge and exploit Overdrive',
-      successLabel: 'BLOOP CREATED',
+      kind: 'reach-score',
+      score: 420,
+      label: 'Reach 420 points',
+      hint: 'Keep the merge rhythm high enough to exploit Overdrive',
+      successLabel: 'TARGET REACHED',
     },
     allowHold: true,
     allowPower: false,
@@ -186,11 +185,11 @@ export const EXPERIMENTS: readonly Experiment[] = [
     ],
     queue: [1, 0, 2, 0, 1, 0, 2, 1, 0, 1, 0, 2],
     goal: {
-      kind: 'create-tier',
-      tier: 3,
-      label: 'Create a Bloop',
+      kind: 'create-merges',
+      count: 5,
+      label: 'Create 5 merges',
       hint: 'Choose which side to develop first',
-      successLabel: 'BLOOP CREATED',
+      successLabel: 'MERGES COMPLETE',
     },
     allowHold: true,
     allowPower: false,
@@ -210,11 +209,11 @@ export const EXPERIMENTS: readonly Experiment[] = [
     ],
     queue: [1, 2, 0, 1, 0, 2, 0, 1, 1, 0, 2, 0],
     goal: {
-      kind: 'create-tier',
-      tier: 4,
-      label: 'Create a Munch',
-      hint: 'Consolidate the lower tiers before the pile rises',
-      successLabel: 'MUNCH CREATED',
+      kind: 'pile-below-danger',
+      minDrops: 6,
+      label: 'Keep the pile safe',
+      hint: 'Make 6 drops, then finish with everything below the danger line',
+      successLabel: 'PILE STABILIZED',
     },
     allowHold: true,
     allowPower: true,
@@ -242,6 +241,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     allowHold: true,
     allowPower: true,
     allowOverdrive: true,
+    limits: { powerUses: 1 },
   },
   {
     id: 'exp-11',
@@ -255,15 +255,16 @@ export const EXPERIMENTS: readonly Experiment[] = [
     ],
     queue: [2, 1, 2, 0, 1, 2, 0, 2, 1, 0, 2, 1],
     goal: {
-      kind: 'create-tier',
-      tier: 4,
-      label: 'Create a Munch',
-      hint: 'Balance both sides so one route stays open',
-      successLabel: 'MUNCH CREATED',
+      kind: 'create-merges',
+      count: 6,
+      label: 'Create 6 merges',
+      hint: 'Balance both sides and use HOLD deliberately',
+      successLabel: 'MERGES COMPLETE',
     },
     allowHold: true,
     allowPower: true,
     allowOverdrive: true,
+    limits: { holdUses: 2 },
   },
   {
     id: 'exp-12',
@@ -287,6 +288,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     allowHold: true,
     allowPower: true,
     allowOverdrive: true,
+    limits: { drops: 14, holdUses: 3, powerUses: 1 },
   },
 ];
 
@@ -299,6 +301,7 @@ export function getExperiment(id = EXPERIMENTS[0]!.id): Experiment {
     startBodies: experiment.startBodies.map((body) => ({ ...body })),
     queue: [...experiment.queue],
     goal: { ...experiment.goal },
+    limits: experiment.limits ? { ...experiment.limits } : undefined,
   };
 }
 
@@ -358,12 +361,10 @@ export function validateExperiment(experiment: Experiment) {
     }
   }
 
-  if (
-    !Number.isInteger(experiment.goal.tier) ||
-    experiment.goal.tier < 1 ||
-    experiment.goal.tier > MAX_TIER
-  ) {
-    errors.push('goal tier must be a mergeable tier');
+  errors.push(...validateGoal(experiment.goal));
+  errors.push(...validateLimits(experiment.limits));
+  if (experiment.goal.kind === 'create-tier' && experiment.goal.tier > MAX_TIER) {
+    errors.push('goal tier must exist in the tier catalog');
   }
 
   return errors;
