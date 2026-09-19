@@ -25,6 +25,11 @@ import {
   type Order,
 } from './gameplay';
 import { getNextExperimentId } from './experiments';
+import {
+  goalProgressText,
+  isGoalComplete,
+  type RunGoalContext,
+} from './goals';
 import { haptic } from './haptics';
 import {
   MODE_OPTIONS,
@@ -73,7 +78,28 @@ type Ui = {
   overdrive: number;
   overdriveActive: boolean;
   experimentComplete: boolean;
+  experimentFailed: boolean;
+  runHighestTier: number;
+  runMerges: number;
+  runDrops: number;
+  runHoldUses: number;
+  runPowerUses: number;
+  runOrdersCompleted: number;
+  runRescues: number;
 };
+
+function getRunGoalContext(state: Ui, pileBelowDanger: boolean): RunGoalContext {
+  return {
+    score: state.score,
+    bestCombo: state.bestCombo,
+    highestTier: state.runHighestTier,
+    merges: state.runMerges,
+    drops: state.runDrops,
+    ordersCompleted: state.runOrdersCompleted,
+    rescues: state.runRescues,
+    pileBelowDanger,
+  };
+}
 
 const COINS_KEY = 'monster-merge-coins-v3';
 const BEST_SCORE_KEY = 'monster-merge-best-score-v3';
@@ -495,6 +521,7 @@ function App() {
   const dropTimerRef = useRef<number | null>(null);
   const comboTimerRef = useRef<number | null>(null);
   const messageTimerRef = useRef<number | null>(null);
+  const limitTimerRef = useRef<number | null>(null);
   const dangerRef = useRef<number | null>(null);
   const lastMergeRef = useRef(-Infinity);
   const burstsRef = useRef<Burst[]>([]);
@@ -553,6 +580,14 @@ function App() {
       overdrive: 0,
       overdriveActive: false,
       experimentComplete: false,
+      experimentFailed: false,
+      runHighestTier: 0,
+      runMerges: 0,
+      runDrops: 0,
+      runHoldUses: 0,
+      runPowerUses: 0,
+      runOrdersCompleted: 0,
+      runRescues: 0,
     };
   });
   const uiRef = useRef(ui);
@@ -574,6 +609,31 @@ function App() {
     }, 1100);
   }, [sync]);
 
+  const isPileBelowDanger = useCallback(
+    () => worldRef.current.bodies.every((body) => body.y - body.r >= DANGER_Y),
+    [],
+  );
+
+  const completeExperimentIfGoalMet = useCallback(() => {
+    const state = uiRef.current;
+    if (state.experimentComplete || state.experimentFailed) return false;
+    if (
+      !isGoalComplete(
+        presetRef.current.goal,
+        getRunGoalContext(state, isPileBelowDanger()),
+      )
+    ) {
+      return false;
+    }
+    state.experimentComplete = true;
+    state.canDrop = false;
+    if (limitTimerRef.current !== null) {
+      window.clearTimeout(limitTimerRef.current);
+      limitTimerRef.current = null;
+    }
+    return true;
+  }, [isPileBelowDanger]);
+
   const updateAim = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -585,7 +645,12 @@ function App() {
 
   const drop = useCallback(() => {
     const state = uiRef.current;
-    if (!state.canDrop || state.gameOver) return;
+    if (!state.canDrop || state.gameOver || state.experimentFailed) return;
+    const dropLimit = presetRef.current.limits?.drops;
+    if (dropLimit !== undefined && state.runDrops >= dropLimit) {
+      flash('Drop limit reached');
+      return;
+    }
     const tier = state.currentTier;
     const r = TIER_DEFS[tier]!.radius;
     const x = aimXRef.current;
@@ -602,6 +667,7 @@ function App() {
     }
 
     worldRef.current.bodies.push(spawnBody(tier, x, 82, performance.now()));
+    state.runDrops += 1;
     state.currentTier = state.nextTier;
     state.nextTier = state.afterNextTier;
     const spawnProgressTier =
@@ -624,12 +690,34 @@ function App() {
 
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     dropTimerRef.current = window.setTimeout(() => {
-      if (!uiRef.current.gameOver && !uiRef.current.experimentComplete) {
-        uiRef.current.canDrop = true;
+      const current = uiRef.current;
+      if (current.gameOver || current.experimentComplete || current.experimentFailed) return;
+      const maxDrops = presetRef.current.limits?.drops;
+      if (maxDrops !== undefined && current.runDrops >= maxDrops) {
+        current.canDrop = false;
+        if (limitTimerRef.current !== null) window.clearTimeout(limitTimerRef.current);
+        limitTimerRef.current = window.setTimeout(() => {
+          if (completeExperimentIfGoalMet()) {
+            sync();
+            playSound('order');
+            haptic('order');
+            return;
+          }
+          const finalState = uiRef.current;
+          if (!finalState.experimentComplete && !finalState.gameOver) {
+            finalState.experimentFailed = true;
+            finalState.canDrop = false;
+            sync();
+            playSound('fail');
+            haptic('fail');
+          }
+        }, 1500);
+      } else {
+        current.canDrop = true;
         sync();
       }
     }, DROP_COOLDOWN_MS);
-  }, [coach, flash, sync]);
+  }, [coach, completeExperimentIfGoalMet, flash, sync]);
 
   const resetRun = useCallback((mode: GameMode, experimentId?: string) => {
     const nextPreset = getRunPreset(mode, new Date(), experimentId);
@@ -662,6 +750,8 @@ function App() {
     overdriveEndRef.current = 0;
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     if (comboTimerRef.current !== null) window.clearTimeout(comboTimerRef.current);
+    if (limitTimerRef.current !== null) window.clearTimeout(limitTimerRef.current);
+    limitTimerRef.current = null;
 
     const state = uiRef.current;
     state.score = 0;
@@ -695,6 +785,14 @@ function App() {
     state.overdrive = 0;
     state.overdriveActive = false;
     state.experimentComplete = false;
+    state.experimentFailed = false;
+    state.runHighestTier = 0;
+    state.runMerges = 0;
+    state.runDrops = 0;
+    state.runHoldUses = 0;
+    state.runPowerUses = 0;
+    state.runOrdersCompleted = 0;
+    state.runRescues = 0;
     aimXRef.current = WIDTH / 2;
     sync();
     playSound('restart');
@@ -717,8 +815,14 @@ function App() {
       !state.canDrop ||
       !state.canHold ||
       state.gameOver ||
-      state.experimentComplete
+      state.experimentComplete ||
+      state.experimentFailed
     ) {
+      return;
+    }
+    const holdLimit = presetRef.current.limits?.holdUses;
+    if (holdLimit !== undefined && state.runHoldUses >= holdLimit) {
+      flash('HOLD limit reached');
       return;
     }
 
@@ -746,6 +850,7 @@ function App() {
     }
 
     state.canHold = false;
+    state.runHoldUses += 1;
     sync();
     playSound('ui');
     haptic('drop');
@@ -774,7 +879,12 @@ function App() {
       flash('Power unavailable in this mode');
       return;
     }
-    if (state.gameOver || state.experimentComplete) return;
+    if (state.gameOver || state.experimentComplete || state.experimentFailed) return;
+    const powerLimit = presetRef.current.limits?.powerUses;
+    if (powerLimit !== undefined && state.runPowerUses >= powerLimit) {
+      flash('Pulse limit reached');
+      return;
+    }
     if (state.powerCharges <= 0) {
       setShowShop(true);
       flash('Get a Pulse in Shop');
@@ -785,6 +895,7 @@ function App() {
       return;
     }
     state.powerCharges -= 1;
+    state.runPowerUses += 1;
     storageSet(POWER_KEY, String(state.powerCharges));
     sync();
     for (const body of worldRef.current.bodies) {
@@ -849,6 +960,8 @@ function App() {
         ? Math.min(9, Math.max(1, state.combo) + 1)
         : 1;
       state.bestCombo = Math.max(state.bestCombo, state.combo);
+      state.runMerges += 1;
+      state.runHighestTier = Math.max(state.runHighestTier, tier);
       lastMergeRef.current = now;
       const scoreMultiplier = state.overdriveActive ? 2 : 1;
       state.score += Math.round(
@@ -897,17 +1010,7 @@ function App() {
         sync();
       }, 1250);
 
-      const goal = activePreset.goal;
-      const completedExperiment =
-        goal?.kind === 'create-tier' &&
-        tier >= goal.tier &&
-        !state.experimentComplete;
-
-      if (completedExperiment) {
-        state.experimentComplete = true;
-        state.canDrop = false;
-      }
-
+      let completedOrder = false;
       if (activePreset.showOrders && tier === state.order.tier) {
         state.progress += 1;
         if (state.progress >= state.order.count) {
@@ -916,19 +1019,21 @@ function App() {
           state.orderNo += 1;
           state.order = makeOrder(state.orderNo);
           state.progress = 0;
+          state.runOrdersCompleted += 1;
+          completedOrder = true;
           storageSet(COINS_KEY, String(state.coins));
           storageSet(ORDER_KEY, String(state.orderNo));
           flash('Order complete +' + String(reward));
           playSound('order');
           haptic('order');
-        } else {
-          playSound('merge');
-          haptic('merge');
         }
-      } else if (completedExperiment) {
+      }
+
+      const completedExperiment = completeExperimentIfGoalMet();
+      if (completedExperiment) {
         playSound('order');
         haptic('order');
-      } else {
+      } else if (!completedOrder) {
         playSound('merge');
         haptic('merge');
       }
@@ -1137,7 +1242,26 @@ function App() {
             haptic('fail');
           }
         } else {
+          const dangerStartedAt = dangerRef.current;
           dangerRef.current = null;
+          if (
+            dangerStartedAt !== null &&
+            time - dangerStartedAt >= 250 &&
+            !uiRef.current.experimentComplete &&
+            !uiRef.current.experimentFailed
+          ) {
+            uiRef.current.runRescues += 1;
+            const completedExperiment = completeExperimentIfGoalMet();
+            sync();
+            if (completedExperiment) {
+              playSound('order');
+              haptic('order');
+            }
+          } else if (completeExperimentIfGoalMet()) {
+            sync();
+            playSound('order');
+            haptic('order');
+          }
         }
       }
 
@@ -1150,12 +1274,13 @@ function App() {
       document.removeEventListener('visibilitychange', onVisibility);
       cancelAnimationFrame(frame);
     };
-  }, [flash, sync]);
+  }, [completeExperimentIfGoalMet, flash, sync]);
 
   useEffect(() => () => {
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     if (comboTimerRef.current !== null) window.clearTimeout(comboTimerRef.current);
     if (messageTimerRef.current !== null) window.clearTimeout(messageTimerRef.current);
+    if (limitTimerRef.current !== null) window.clearTimeout(limitTimerRef.current);
     overdriveEndRef.current = 0;
   }, []);
 
@@ -1277,6 +1402,10 @@ function App() {
   };
 
   const orders = [ui.order, makeOrder(ui.orderNo + 1), makeOrder(ui.orderNo + 2)];
+  const objectiveProgress = goalProgressText(
+    preset.goal,
+    getRunGoalContext(ui, isPileBelowDanger()),
+  );
 
   return (
     <main className="app-shell">
@@ -1326,7 +1455,10 @@ function App() {
             !ui.canDrop ||
             !ui.canHold ||
             ui.gameOver ||
-            ui.experimentComplete
+            ui.experimentComplete ||
+            ui.experimentFailed ||
+            (preset.limits?.holdUses !== undefined &&
+              ui.runHoldUses >= preset.limits.holdUses)
           }
           aria-label={
             !preset.allowHold
@@ -1395,7 +1527,9 @@ function App() {
                   ? preset.dailyKey
                   : ui.experimentComplete
                     ? 'COMPLETE'
-                    : preset.goal?.hint ?? preset.subtitle}
+                    : preset.goal
+                      ? preset.goal.hint + (objectiveProgress ? ' · ' + objectiveProgress : '')
+                      : preset.subtitle}
               </span>
             </div>
           </section>
@@ -1429,7 +1563,7 @@ function App() {
                 }
               }}
             />
-            {coach && !ui.gameOver && (
+            {coach && !ui.gameOver && !ui.experimentFailed && (
               <button className="coach" onClick={() => { storageSet(COACH_KEY, 'done'); setCoach(false); }}>
                 Drag to aim · release to drop
               </button>
@@ -1464,7 +1598,20 @@ function App() {
                 </div>
               </div>
             )}
-            {ui.gameOver && !ui.experimentComplete && (
+            {ui.experimentFailed && !ui.experimentComplete && (
+              <div className="game-over" role="dialog" aria-modal="true">
+                <div className="game-over-card">
+                  <span>EXPERIMENT FAILED</span>
+                  <h2>DROP LIMIT</h2>
+                  <p>Retry and solve it within the allowed drops.</p>
+                  <div className="completion-actions">
+                    <button autoFocus onClick={restart}>Retry</button>
+                    <button onClick={() => setShowLab(true)}>Lab</button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {ui.gameOver && !ui.experimentComplete && !ui.experimentFailed && (
               <div className="game-over" role="dialog" aria-modal="true">
                 <div className="game-over-card">
                   <span>{preset.mode === 'daily' ? 'DAILY OVER' : 'LAB OVERFLOW'}</span>
@@ -1498,7 +1645,7 @@ function App() {
             type="button"
             onClick={drop}
             className="concept-drop-button drop-hit"
-            disabled={!ui.canDrop || ui.gameOver}
+            disabled={!ui.canDrop || ui.gameOver || ui.experimentFailed}
             aria-label="Drop monster"
           >
             DROP
@@ -1507,7 +1654,14 @@ function App() {
             type="button"
             onClick={nudge}
             className="wood-button power-hit"
-            disabled={!preset.allowPower || ui.gameOver || ui.experimentComplete}
+            disabled={
+              !preset.allowPower ||
+              ui.gameOver ||
+              ui.experimentComplete ||
+              ui.experimentFailed ||
+              (preset.limits?.powerUses !== undefined &&
+                ui.runPowerUses >= preset.limits.powerUses)
+            }
             aria-label={
               preset.allowPower
                 ? 'Power-up. ' + String(ui.powerCharges) + ' available'
