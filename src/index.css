@@ -221,10 +221,10 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .overdrive-panel > span {
   color: #fff9df;
   text-shadow: 0 1px 3px rgba(66,34,16,.75);
-  font-size: 6px;
+  font-size: 7px;
   line-height: 1;
   font-weight: 1000;
-  letter-spacing: .06em;
+  letter-spacing: .05em;
   white-space: nowrap;
 }
 .overdrive-panel > i {
@@ -508,10 +508,10 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 .score-plaque span,
 .score-plaque small {
-  font-size: 6px;
+  font-size: 7px;
   line-height: 1;
   font-weight: 900;
-  letter-spacing: .06em;
+  letter-spacing: .05em;
 }
 .score-plaque strong {
   font-size: 14px;
@@ -721,6 +721,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     left: -1%;
     right: -1%;
     height: 44px;
+    gap: 0;
   }
 }
 @media (max-width: 390px) {
