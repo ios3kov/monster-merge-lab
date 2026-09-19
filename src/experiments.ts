@@ -301,7 +301,7 @@ export function getExperiment(id = EXPERIMENTS[0]!.id): Experiment {
     startBodies: experiment.startBodies.map((body) => ({ ...body })),
     queue: [...experiment.queue],
     goal: { ...experiment.goal },
-    limits: experiment.limits ? { ...experiment.limits } : undefined,
+    ...(experiment.limits ? { limits: { ...experiment.limits } } : {}),
   };
 }
 
