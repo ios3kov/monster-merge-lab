@@ -11,7 +11,7 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await page.goto('/');
   await expect(page.getByLabel(/Monster tank/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Shop' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Monsters' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Monsters', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Drop monster' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Lab and game modes' })).toBeVisible();
 
@@ -31,7 +31,7 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await expect(page.getByRole('dialog', { name: 'SHOP' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Shop' })).toBeFocused();
 
-  await page.getByRole('button', { name: 'Monsters' }).click();
+  await page.getByRole('button', { name: 'Monsters', exact: true }).click();
   await expect(
     page.getByRole('dialog', { name: 'MONSTER EVOLUTION' }),
   ).toBeVisible();
@@ -596,6 +596,8 @@ test('critical HUD copy stays legible across target viewports', async ({
   for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto('/');
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
 
     const initialSizes = await page.evaluate(() => {
       const selectors = [
