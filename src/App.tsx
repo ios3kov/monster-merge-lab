@@ -714,7 +714,12 @@ function App() {
       state.holdTier = state.currentTier;
       state.currentTier = state.nextTier;
       state.nextTier = state.afterNextTier;
-      state.afterNextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+      state.afterNextTier = drawRunTier(
+        fixedQueueRef.current,
+        spawnBagRef.current,
+        state.bestTier,
+        randomRef.current,
+      );
     } else {
       const held = state.holdTier;
       state.holdTier = state.currentTier;
@@ -834,7 +839,8 @@ function App() {
           scoreMultiplier,
       );
 
-      if (!state.overdriveActive) {
+      const activePreset = presetRef.current;
+      if (activePreset.allowOverdrive && !state.overdriveActive) {
         state.overdrive = Math.min(
           OVERDRIVE_MAX,
           state.overdrive + getOverdriveGain(tier, state.combo),
@@ -847,7 +853,7 @@ function App() {
           playSound('order');
           haptic('order');
         }
-      } else {
+      } else if (activePreset.allowOverdrive && state.overdriveActive) {
         const extension = getOverdriveExtensionMs(state.combo);
         if (extension > 0) {
           overdriveEndRef.current = Math.min(
@@ -855,6 +861,9 @@ function App() {
             now + OVERDRIVE_DURATION_MS,
           );
         }
+      } else {
+        state.overdrive = 0;
+        state.overdriveActive = false;
       }
       state.bestTier = Math.max(state.bestTier, tier);
       state.bestScore = Math.max(state.bestScore, state.score);
@@ -869,7 +878,18 @@ function App() {
         sync();
       }, 1250);
 
-      if (tier === state.order.tier) {
+      const goal = activePreset.goal;
+      const completedExperiment =
+        goal?.kind === 'create-tier' &&
+        tier >= goal.tier &&
+        !state.experimentComplete;
+
+      if (completedExperiment) {
+        state.experimentComplete = true;
+        state.canDrop = false;
+      }
+
+      if (activePreset.showOrders && tier === state.order.tier) {
         state.progress += 1;
         if (state.progress >= state.order.count) {
           const reward = state.order.reward;
@@ -886,6 +906,9 @@ function App() {
           playSound('merge');
           haptic('merge');
         }
+      } else if (completedExperiment) {
+        playSound('order');
+        haptic('order');
       } else {
         playSound('merge');
         haptic('merge');
@@ -1078,7 +1101,7 @@ function App() {
         sync();
       }
 
-      if (!uiRef.current.gameOver) {
+      if (!uiRef.current.gameOver && !uiRef.current.experimentComplete) {
         const offender = worldRef.current.bodies.some((body) => {
           const speed = Math.hypot(body.vx, body.vy);
           return time - body.bornAt > 900 && body.y - body.r < DANGER_Y && speed < 70;
