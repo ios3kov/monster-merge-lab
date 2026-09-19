@@ -26,6 +26,13 @@ import {
 } from './gameplay';
 import { haptic } from './haptics';
 import {
+  MODE_OPTIONS,
+  createSeededRandom,
+  getRunPreset,
+  type GameMode,
+  type RunPreset,
+} from './modes';
+import {
   DANGER_Y,
   FLOOR_Y,
   HEIGHT,
@@ -64,6 +71,7 @@ type Ui = {
   powerCharges: number;
   overdrive: number;
   overdriveActive: boolean;
+  experimentComplete: boolean;
 };
 
 const COINS_KEY = 'monster-merge-coins-v3';
@@ -469,6 +477,16 @@ function drawMonster(
   ctx.restore();
 }
 
+function drawRunTier(
+  fixedQueue: number[],
+  bag: number[],
+  bestTier: number,
+  random: () => number,
+) {
+  if (fixedQueue.length > 0) return fixedQueue.shift() ?? 0;
+  return drawSpawnTier(bag, bestTier, random);
+}
+
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const worldRef = useRef<World>({ bodies: [] });
@@ -480,6 +498,9 @@ function App() {
   const lastMergeRef = useRef(-Infinity);
   const burstsRef = useRef<Burst[]>([]);
   const spawnBagRef = useRef<number[]>([]);
+  const fixedQueueRef = useRef<number[]>([]);
+  const randomRef = useRef<() => number>(Math.random);
+  const presetRef = useRef<RunPreset>(getRunPreset('endless'));
   const overdriveEndRef = useRef(0);
 
   const initialOrderNo = Math.max(1, readInt(ORDER_KEY, 1));
@@ -488,10 +509,26 @@ function App() {
   const [showMonsters, setShowMonsters] = useState(false);
   const [showShop, setShowShop] = useState(false);
   const [showLab, setShowLab] = useState(false);
+  const [preset, setPreset] = useState<RunPreset>(() => presetRef.current);
   const [ui, setUi] = useState<Ui>(() => {
-    const currentTier = drawSpawnTier(spawnBagRef.current, initialBestTier);
-    const nextTier = drawSpawnTier(spawnBagRef.current, initialBestTier);
-    const afterNextTier = drawSpawnTier(spawnBagRef.current, initialBestTier);
+    const currentTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      initialBestTier,
+      randomRef.current,
+    );
+    const nextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      initialBestTier,
+      randomRef.current,
+    );
+    const afterNextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      initialBestTier,
+      randomRef.current,
+    );
     return {
       score: 0,
       coins: readInt(COINS_KEY, 0),
@@ -514,6 +551,7 @@ function App() {
       powerCharges: readInt(POWER_KEY, 1),
       overdrive: 0,
       overdriveActive: false,
+      experimentComplete: false,
     };
   });
   const uiRef = useRef(ui);
