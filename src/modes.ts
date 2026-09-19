@@ -75,9 +75,10 @@ export function createSeededRandom(seed: number) {
 export function getRunPreset(
   mode: GameMode,
   date = new Date(),
+  experimentId?: string,
 ): RunPreset {
   if (mode === 'experiments') {
-    const experiment = getExperiment();
+    const experiment = getExperiment(experimentId);
     return {
       mode,
       title: experiment.title,
