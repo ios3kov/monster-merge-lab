@@ -50,13 +50,23 @@ This file is updated after each major production step.
 - Production live smoke ✓.
 
 
-### Active run persistence — VERIFIED IN PR
+### Active run persistence — DONE
 - Recover active run after mobile tab/process eviction or reload.
 - Versioned/validated snapshot preserves mode, physics bodies, queue/HOLD, run counters, Danger and Overdrive.
 - Body IDs are recreated safely; relative body age is restored.
 - Daily seeded RNG state is serialized so deterministic continuation is preserved.
 - Stale/corrupt/wrong-day snapshots fall back safely.
 - Terminal states clear the snapshot.
-- PR #22 verification: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
+- PR #22 + post-merge CI ✓.
+- Cloudflare deploy ✓.
+- Production live smoke ✓.
 - Reload E2E: Experiment body restore ✓ Daily queue continuity ✓ corrupt snapshot fallback ✓.
-- Next: final-head CI → merge → post-merge CI → Cloudflare deploy → live smoke.
+
+
+### Background transient gameplay timers — IN PROGRESS
+- Confirmed remaining pause bug after PR #21: drop cooldown, chain reset, drop-limit settle and body age could keep advancing while the document was hidden.
+- Added explicit deadlines for drop cooldown, combo reset and drop-limit settle.
+- Hidden state clears active timers without consuming their remaining game time.
+- Resume shifts/re-arms deadlines, body bornAt, chain timestamp and merge-burst timestamps.
+- Added unit coverage plus browser visibility-pause regression.
+- Next: PR → CI → merge → post-merge deploy → live smoke.
