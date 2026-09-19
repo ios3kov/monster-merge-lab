@@ -1,8 +1,24 @@
+import {
+  DANGER_GRACE_MS,
+  OVERDRIVE_DURATION_MS,
+} from './gameplay.ts';
 import type { GameMode } from './modes.ts';
-import { MAX_TIER, spawnBody, type Body } from './physics.ts';
+import {
+  HEIGHT,
+  MAX_TIER,
+  WIDTH,
+  spawnBody,
+  type Body,
+} from './physics.ts';
 
 export const ACTIVE_RUN_SESSION_VERSION = 1;
 export const ACTIVE_RUN_SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+export const ACTIVE_RUN_SESSION_MAX_BYTES = 256 * 1024;
+
+const MAX_LINEAR_SPEED = 20_000;
+const MAX_ANGULAR_SPEED = 2_000;
+const MAX_ABS_ANGLE = 10_000_000;
+const MAX_RANDOM_STATE = 0xffff_ffff;
 
 export type SavedRunBody = {
   tier: number;
@@ -59,7 +75,11 @@ function finite(value: unknown): value is number {
 }
 
 function nonNegativeInteger(value: unknown): value is number {
-  return finite(value) && Number.isInteger(value) && value >= 0;
+  return finite(value) && Number.isSafeInteger(value) && value >= 0;
+}
+
+function boundedFinite(value: unknown, min: number, max: number): value is number {
+  return finite(value) && value >= min && value <= max;
 }
 
 function validTier(value: unknown): value is number {
@@ -111,12 +131,12 @@ function validSavedBody(value: unknown): value is SavedRunBody {
   const body = value as Partial<SavedRunBody>;
   return (
     validTier(body.tier) &&
-    finite(body.x) &&
-    finite(body.y) &&
-    finite(body.vx) &&
-    finite(body.vy) &&
-    finite(body.angle) &&
-    finite(body.omega) &&
+    boundedFinite(body.x, -WIDTH, WIDTH * 2) &&
+    boundedFinite(body.y, -HEIGHT * 2, HEIGHT * 3) &&
+    boundedFinite(body.vx, -MAX_LINEAR_SPEED, MAX_LINEAR_SPEED) &&
+    boundedFinite(body.vy, -MAX_LINEAR_SPEED, MAX_LINEAR_SPEED) &&
+    boundedFinite(body.angle, -MAX_ABS_ANGLE, MAX_ABS_ANGLE) &&
+    boundedFinite(body.omega, -MAX_ANGULAR_SPEED, MAX_ANGULAR_SPEED) &&
     finite(body.impact) &&
     body.impact >= 0 &&
     body.impact <= 1 &&
@@ -168,7 +188,7 @@ export function decodeActiveRunSession(
   raw: string | null,
   now = Date.now(),
 ): ActiveRunSession | null {
-  if (!raw) return null;
+  if (!raw || raw.length > ACTIVE_RUN_SESSION_MAX_BYTES) return null;
 
   try {
     const value = JSON.parse(raw) as Partial<ActiveRunSession>;
@@ -186,16 +206,24 @@ export function decodeActiveRunSession(
       !value.bodies.every(validSavedBody) ||
       !validTierArray(value.fixedQueue, 256) ||
       !validTierArray(value.spawnBag, 32) ||
-      !finite(value.aimX) ||
+      !boundedFinite(value.aimX, 0, WIDTH) ||
       !(
         value.dangerElapsedMs === null ||
-        (finite(value.dangerElapsedMs) && value.dangerElapsedMs >= 0)
+        boundedFinite(
+          value.dangerElapsedMs,
+          0,
+          DANGER_GRACE_MS + 250,
+        )
       ) ||
-      !finite(value.overdriveRemainingMs) ||
-      value.overdriveRemainingMs < 0 ||
+      !boundedFinite(
+        value.overdriveRemainingMs,
+        0,
+        OVERDRIVE_DURATION_MS,
+      ) ||
       !(
         value.randomState === undefined ||
-        nonNegativeInteger(value.randomState)
+        (nonNegativeInteger(value.randomState) &&
+          value.randomState <= MAX_RANDOM_STATE)
       )
     ) {
       return null;
