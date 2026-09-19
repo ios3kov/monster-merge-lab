@@ -63,10 +63,11 @@ This file is updated after each major production step.
 - Reload E2E: Experiment body restore ✓ Daily queue continuity ✓ corrupt snapshot fallback ✓.
 
 
-### Background transient gameplay timers — IN PROGRESS
+### Background transient gameplay timers — VERIFIED IN PR
 - Confirmed remaining pause bug after PR #21: drop cooldown, chain reset, drop-limit settle and body age could keep advancing while the document was hidden.
 - Added explicit deadlines for drop cooldown, combo reset and drop-limit settle.
 - Hidden state clears active timers without consuming their remaining game time.
 - Resume shifts/re-arms deadlines, body bornAt, chain timestamp and merge-burst timestamps.
 - Added unit coverage plus browser visibility-pause regression.
-- Next: PR → CI → merge → post-merge deploy → live smoke.
+- PR #23 CI: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
+- Next: final-head CI → merge → post-merge CI → Cloudflare deploy → live smoke.
