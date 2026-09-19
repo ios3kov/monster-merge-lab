@@ -53,6 +53,7 @@ import {
   type World,
 } from './physics';
 import { storageGet, storageSet } from './storage';
+import { emitTelemetry, type TelemetryContext } from './telemetry';
 
 type Burst = { x: number; y: number; tier: number; start: number };
 type Ui = {
@@ -98,6 +99,14 @@ function getRunGoalContext(state: Ui, pileBelowDanger: boolean): RunGoalContext 
     ordersCompleted: state.runOrdersCompleted,
     rescues: state.runRescues,
     pileBelowDanger,
+  };
+}
+
+function getTelemetryContext(preset: RunPreset): TelemetryContext {
+  return {
+    mode: preset.mode,
+    ...(preset.experimentId ? { experimentId: preset.experimentId } : {}),
+    ...(preset.dailyKey ? { dailyKey: preset.dailyKey } : {}),
   };
 }
 
@@ -599,6 +608,12 @@ function App() {
     installAudioUnlock();
   }, []);
 
+  useEffect(() => {
+    const context = getTelemetryContext(presetRef.current);
+    emitTelemetry({ name: 'session_start', ...context });
+    emitTelemetry({ name: 'run_start', ...context });
+  }, []);
+
   const flash = useCallback((message: string) => {
     uiRef.current.message = message;
     sync();
@@ -627,6 +642,12 @@ function App() {
     }
     state.experimentComplete = true;
     state.canDrop = false;
+    emitTelemetry({
+      name: 'experiment_complete',
+      ...getTelemetryContext(presetRef.current),
+      score: state.score,
+      goalKind: presetRef.current.goal?.kind ?? 'unknown',
+    });
     if (limitTimerRef.current !== null) {
       window.clearTimeout(limitTimerRef.current);
       limitTimerRef.current = null;
@@ -668,6 +689,12 @@ function App() {
 
     worldRef.current.bodies.push(spawnBody(tier, x, 82, performance.now()));
     state.runDrops += 1;
+    emitTelemetry({
+      name: 'drop',
+      ...getTelemetryContext(presetRef.current),
+      tier,
+      drops: state.runDrops,
+    });
     state.currentTier = state.nextTier;
     state.nextTier = state.afterNextTier;
     const spawnProgressTier =
@@ -707,6 +734,12 @@ function App() {
           if (!finalState.experimentComplete && !finalState.gameOver) {
             finalState.experimentFailed = true;
             finalState.canDrop = false;
+            emitTelemetry({
+              name: 'experiment_failed',
+              ...getTelemetryContext(presetRef.current),
+              score: finalState.score,
+              reason: 'drop_limit',
+            });
             sync();
             playSound('fail');
             haptic('fail');
@@ -795,6 +828,10 @@ function App() {
     state.runRescues = 0;
     aimXRef.current = WIDTH / 2;
     sync();
+    emitTelemetry({
+      name: 'run_start',
+      ...getTelemetryContext(nextPreset),
+    });
     playSound('restart');
     haptic('restart');
   }, [sync]);
@@ -851,6 +888,11 @@ function App() {
 
     state.canHold = false;
     state.runHoldUses += 1;
+    emitTelemetry({
+      name: 'hold',
+      ...getTelemetryContext(presetRef.current),
+      uses: state.runHoldUses,
+    });
     sync();
     playSound('ui');
     haptic('drop');
@@ -896,6 +938,11 @@ function App() {
     }
     state.powerCharges -= 1;
     state.runPowerUses += 1;
+    emitTelemetry({
+      name: 'power_use',
+      ...getTelemetryContext(presetRef.current),
+      uses: state.runPowerUses,
+    });
     storageSet(POWER_KEY, String(state.powerCharges));
     sync();
     for (const body of worldRef.current.bodies) {
@@ -972,6 +1019,23 @@ function App() {
       );
 
       const activePreset = presetRef.current;
+      const telemetryContext = getTelemetryContext(activePreset);
+      emitTelemetry({
+        name: 'merge',
+        ...telemetryContext,
+        tier,
+        combo: state.combo,
+        merges: state.runMerges,
+        score: state.score,
+      });
+      if (state.combo > 1) {
+        emitTelemetry({
+          name: 'chain',
+          ...telemetryContext,
+          combo: state.combo,
+          score: state.score,
+        });
+      }
       if (activePreset.allowOverdrive && !state.overdriveActive) {
         state.overdrive = Math.min(
           OVERDRIVE_MAX,
@@ -981,6 +1045,11 @@ function App() {
           state.overdrive = 0;
           state.overdriveActive = true;
           overdriveEndRef.current = now + OVERDRIVE_DURATION_MS;
+          emitTelemetry({
+            name: 'overdrive_start',
+            ...telemetryContext,
+            score: state.score,
+          });
           flash('LAB OVERDRIVE ×2');
           playSound('order');
           haptic('order');
@@ -1021,6 +1090,12 @@ function App() {
           state.progress = 0;
           state.runOrdersCompleted += 1;
           completedOrder = true;
+          emitTelemetry({
+            name: 'order_complete',
+            ...telemetryContext,
+            orderNo: state.orderNo - 1,
+            reward,
+          });
           storageSet(COINS_KEY, String(state.coins));
           storageSet(ORDER_KEY, String(state.orderNo));
           flash('Order complete +' + String(reward));
@@ -1228,6 +1303,11 @@ function App() {
       ) {
         uiRef.current.overdriveActive = false;
         uiRef.current.overdrive = 0;
+        emitTelemetry({
+          name: 'overdrive_end',
+          ...getTelemetryContext(presetRef.current),
+          score: uiRef.current.score,
+        });
         sync();
       }
 
@@ -1241,12 +1321,25 @@ function App() {
           return time - body.bornAt > 900 && body.y - body.r < DANGER_Y && speed < 70;
         });
         if (offender) {
-          if (dangerRef.current === null) dangerRef.current = time;
+          if (dangerRef.current === null) {
+            dangerRef.current = time;
+            emitTelemetry({
+              name: 'danger_start',
+              ...getTelemetryContext(presetRef.current),
+              score: uiRef.current.score,
+            });
+          }
           if (time - dangerRef.current > DANGER_GRACE_MS) {
             uiRef.current.gameOver = true;
             uiRef.current.canDrop = false;
             uiRef.current.bestScore = Math.max(uiRef.current.bestScore, uiRef.current.score);
             storageSet(BEST_SCORE_KEY, String(uiRef.current.bestScore));
+            emitTelemetry({
+              name: 'game_over',
+              ...getTelemetryContext(presetRef.current),
+              score: uiRef.current.score,
+              highestTier: uiRef.current.runHighestTier,
+            });
             sync();
             playSound('fail');
             haptic('fail');
@@ -1254,6 +1347,16 @@ function App() {
         } else {
           const dangerStartedAt = dangerRef.current;
           dangerRef.current = null;
+          if (dangerStartedAt !== null) {
+            emitTelemetry({
+              name: 'danger_end',
+              ...getTelemetryContext(presetRef.current),
+              rescued:
+                time - dangerStartedAt >= 250 &&
+                isPileBelowDanger(),
+              score: uiRef.current.score,
+            });
+          }
           if (
             dangerStartedAt !== null &&
             time - dangerStartedAt >= 250 &&
