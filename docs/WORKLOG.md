@@ -225,7 +225,10 @@ This file is updated after each major production step.
 - Remediation implemented on branch:
   - landscape typography floor raised;
   - visible disabled control treatment;
-  - concise merge rule added to coach;
+  - concise full core-loop coach: aim/drop → match twins → avoid overflow;
+  - portrait + landscape HUD text floor raised with regression coverage;
   - deterministic 48-body crowded-board browser profile;
-  - Performance CI now runs idle + crowded browser profiles.
+  - Performance CI now runs idle + crowded browser profiles without duplicate browser-job execution.
+- Measured crowded Chromium: 16.54 ms avg / 16.70 ms p95 / 16.80 ms max.
+- Initial crowded WebKit observation: 20.23 ms avg / 30 ms p95 / 218 ms max; tracked as P2 watch because sustained metrics remain healthy.
 - Gate: full parallel CI → Aggregate Gate → code review → merge → main Deploy.
