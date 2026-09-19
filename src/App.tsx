@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import {
@@ -12,6 +13,7 @@ import {
   readSoundEnabled,
   setSoundEnabled,
 } from './audio';
+import { drawSpawnTier, makeOrder, type Order } from './gameplay';
 import { haptic } from './haptics';
 import {
   DANGER_Y,
@@ -29,7 +31,6 @@ import {
 } from './physics';
 import { storageGet, storageSet } from './storage';
 
-type Order = { tier: number; count: number; reward: number };
 type Burst = { x: number; y: number; tier: number; start: number };
 type Ui = {
   score: number;
@@ -65,6 +66,9 @@ const POWER_COST = 200;
 const OVERDRIVE_MAX = 100;
 const OVERDRIVE_DURATION_MS = 9000;
 const DANGER_GRACE_MS = 3000;
+const REDUCED_MOTION =
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const HYBRID_ATLAS_URL =
   'https://gcdn.picsart.com/editing-temp/f69fe466-c03a-4502-b5c1-7c5dfce62c4c.webp';
 const HYBRID_TIER_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 7];
@@ -96,53 +100,6 @@ function faceMode(tier: number): FaceMode {
 function readInt(key: string, fallback = 0) {
   const value = Number(storageGet(key));
   return Number.isFinite(value) && value >= 0 ? Math.floor(value) : fallback;
-}
-
-function makeOrder(orderNo: number): Order {
-  const seq = [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7];
-  const tier = seq[Math.min(seq.length - 1, Math.max(0, orderNo - 1))] ?? 1;
-  const count = orderNo <= 3 ? 1 : orderNo <= 8 ? 2 : 3;
-  return { tier, count, reward: (tier + 1) * count * 60 };
-}
-
-function shuffle<T>(items: T[]) {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j]!, result[i]!];
-  }
-  return result;
-}
-
-function hasLongRun(items: number[], maxRun = 3) {
-  let run = 1;
-  for (let i = 1; i < items.length; i += 1) {
-    run = items[i] === items[i - 1] ? run + 1 : 1;
-    if (run > maxRun) return true;
-  }
-  return false;
-}
-
-function makeSpawnBag(bestTier: number) {
-  const base =
-    bestTier >= 6
-      ? [0, 0, 0, 0, 0, 1, 1, 2]
-      : bestTier >= 3
-        ? [0, 0, 0, 0, 0, 0, 1, 1]
-        : [0, 0, 0, 0, 0, 0, 0, 0];
-
-  if (new Set(base).size === 1) return base;
-
-  let candidate = shuffle(base);
-  for (let attempt = 0; attempt < 12 && hasLongRun(candidate); attempt += 1) {
-    candidate = shuffle(base);
-  }
-  return candidate;
-}
-
-function drawSpawnTier(bag: number[], bestTier: number) {
-  if (bag.length === 0) bag.push(...makeSpawnBag(bestTier));
-  return bag.shift() ?? 0;
 }
 
 function atlasIndex(tier: number) {
@@ -183,14 +140,12 @@ function MonsterArt({ tier, size = 42 }: { tier: number; size?: number }) {
   );
 }
 
-function drawTank(ctx: CanvasRenderingContext2D) {
+function drawTank(
+  ctx: CanvasRenderingContext2D,
+  glass: CanvasGradient,
+) {
   ctx.clearRect(0, 0, WIDTH, HEIGHT);
   const top = 116;
-  const glass = ctx.createLinearGradient(LEFT_WALL, 0, RIGHT_WALL, 0);
-  glass.addColorStop(0, 'rgba(255,255,255,.16)');
-  glass.addColorStop(0.14, 'rgba(255,255,255,.025)');
-  glass.addColorStop(0.82, 'rgba(255,255,255,.02)');
-  glass.addColorStop(1, 'rgba(255,255,255,.13)');
   ctx.fillStyle = glass;
   ctx.fillRect(LEFT_WALL, top, RIGHT_WALL - LEFT_WALL, FLOOR_Y - top);
 }
@@ -252,32 +207,32 @@ function drawClosedEye(
 function drawRuntimeFace(
   ctx: CanvasRenderingContext2D,
   body: Pick<Body, 'id' | 'tier' | 'x' | 'y'> & {
-    gazeX?: number;
-    gazeY?: number;
-    attention?: number;
     pressure?: number;
     impact?: number;
   },
   radius: number,
   time: number,
+  gazeTargetX = body.x,
+  gazeTargetY = body.y,
+  attention = 0,
 ) {
   const tier = Math.min(MAX_TIER, body.tier);
   const mode = faceMode(tier);
   const pressure = Math.min(1, body.pressure ?? 0);
   const impact = Math.min(1, body.impact ?? 0);
-  const attention = Math.min(1, body.attention ?? 0);
+  const attentionLevel = Math.min(1, attention);
   const nervous = pressure > 0.42;
   const blink =
     !nervous &&
     ((time * 0.001 + body.id * 0.83) % (3.15 + (Math.abs(body.id) % 4) * 0.22)) <
       0.13;
 
-  const targetX = (body.gazeX ?? body.x) - body.x;
-  const targetY = (body.gazeY ?? body.y) - body.y;
+  const targetX = gazeTargetX - body.x;
+  const targetY = gazeTargetY - body.y;
   const targetLength = Math.max(1, Math.hypot(targetX, targetY));
-  const gazeScaleX = radius * (0.055 + attention * 0.025);
-  const gazeScaleY = radius * (0.04 + attention * 0.018);
-  const idleWeight = Math.max(0, 1 - attention);
+  const gazeScaleX = radius * (0.055 + attentionLevel * 0.025);
+  const gazeScaleY = radius * (0.04 + attentionLevel * 0.018);
+  const idleWeight = Math.max(0, 1 - attentionLevel);
   const idleGazeX =
     Math.sin(time * 0.00135 + body.id * 1.31) * radius * 0.027 * idleWeight;
   const idleGazeY =
@@ -398,7 +353,7 @@ function drawRuntimeFace(
 
   ctx.fillStyle = '#5c2031';
   ctx.beginPath();
-  if (attention > 0.72 || impact > 0.52) {
+  if (attentionLevel > 0.72 || impact > 0.52) {
     ctx.ellipse(
       0,
       radius * 0.25,
@@ -451,25 +406,29 @@ function drawRuntimeFace(
 function drawMonster(
   ctx: CanvasRenderingContext2D,
   body: Pick<Body, 'id' | 'tier' | 'x' | 'y' | 'r' | 'angle' | 'impact' | 'pressure'> &
-    Partial<Pick<Body, 'vx' | 'vy'>> & {
-      gazeX?: number;
-      gazeY?: number;
-      attention?: number;
-    },
+    Partial<Pick<Body, 'vx' | 'vy'>>,
   time: number,
   alpha = 1,
+  gazeX = body.x,
+  gazeY = body.y,
+  attention = 0,
 ) {
   const index = atlasIndex(body.tier);
   const { column, row } = atlasPosition(index);
   const speed = Math.hypot(body.vx ?? 0, body.vy ?? 0);
-  const idle = speed < 70 ? Math.sin(time * 0.0021 + body.id * 1.19) : 0;
+  const idle =
+    !REDUCED_MOTION && speed < 70
+      ? Math.sin(time * 0.0021 + body.id * 1.19)
+      : 0;
   const pressure = Math.min(1, body.pressure ?? 0);
   const impact = Math.min(1, body.impact ?? 0);
-  const squash = impact * 0.075 + pressure * 0.035;
-  const breathe = idle * 0.018 * (1 - pressure);
-  const nervous = pressure > 0.46
-    ? Math.sin(time * 0.025 + body.id) * 0.018
-    : 0;
+  const motionScale = REDUCED_MOTION ? 0.6 : 1;
+  const squash = (impact * 0.075 + pressure * 0.035) * motionScale;
+  const breathe = idle * 0.018 * (1 - pressure) * motionScale;
+  const nervous =
+    !REDUCED_MOTION && pressure > 0.46
+      ? Math.sin(time * 0.025 + body.id) * 0.018
+      : 0;
   const radius = body.r * (body.tier >= 5 ? 1.08 : 1.12);
   const size = radius * 2.46;
 
@@ -500,7 +459,7 @@ function drawMonster(
     ctx.fill();
   }
 
-  drawRuntimeFace(ctx, body, radius, time);
+  drawRuntimeFace(ctx, body, radius, time, gazeX, gazeY, attention);
   ctx.restore();
 }
 
@@ -718,10 +677,29 @@ function App() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+    const memory =
+      (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
+    const lowEndDevice =
+      memory <= 4 || (navigator.hardwareConcurrency || 8) <= 4;
+    const maxDpr = lowEndDevice ? 1.6 : 2;
+    const dpr = Math.min(
+      maxDpr,
+      Math.max(1, window.devicePixelRatio || 1),
+    );
     canvas.width = Math.round(WIDTH * dpr);
     canvas.height = Math.round(HEIGHT * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const glassGradient = ctx.createLinearGradient(
+      LEFT_WALL,
+      0,
+      RIGHT_WALL,
+      0,
+    );
+    glassGradient.addColorStop(0, 'rgba(255,255,255,.16)');
+    glassGradient.addColorStop(0.14, 'rgba(255,255,255,.025)');
+    glassGradient.addColorStop(0.82, 'rgba(255,255,255,.02)');
+    glassGradient.addColorStop(1, 'rgba(255,255,255,.13)');
 
     let frame = 0;
     let previous = performance.now();
@@ -816,7 +794,7 @@ function App() {
     };
 
     const draw = (time: number) => {
-      drawTank(ctx);
+      drawTank(ctx, glassGradient);
 
       const danger =
         dangerRef.current === null
@@ -870,6 +848,14 @@ function App() {
       ctx.setLineDash([]);
 
       const bodies = worldRef.current.bodies;
+      const tierBuckets = Array.from(
+        { length: MAX_TIER + 1 },
+        () => [] as Body[],
+      );
+      for (const body of bodies) {
+        tierBuckets[body.tier]?.push(body);
+      }
+
       for (const body of bodies) {
         let gazeX = aimXRef.current;
         let gazeY = 77;
@@ -883,8 +869,8 @@ function App() {
         }
 
         let nearest = Infinity;
-        for (const other of bodies) {
-          if (other.id === body.id || other.tier !== body.tier) continue;
+        for (const other of tierBuckets[body.tier] ?? []) {
+          if (other.id === body.id) continue;
           const dx = other.x - body.x;
           const dy = other.y - body.y;
           const distance = Math.hypot(dx, dy);
@@ -897,7 +883,7 @@ function App() {
           }
         }
 
-        drawMonster(ctx, { ...body, gazeX, gazeY, attention }, time);
+        drawMonster(ctx, body, time, 1, gazeX, gazeY, attention);
       }
 
       if (!uiRef.current.gameOver) {
@@ -916,23 +902,40 @@ function App() {
             previewAttention = 0.72;
           }
         }
-        drawMonster(ctx, {
-          id: -100 - tier,
-          tier,
-          x: aimXRef.current,
-          y: 77,
-          r: def.radius,
-          angle: Math.sin(time * 0.002) * 0.028,
-          impact: 0,
-          pressure: 0,
-          gazeX: previewGazeX,
-          gazeY: previewGazeY,
-          attention: previewAttention,
-        }, time, uiRef.current.canDrop ? 1 : 0.5);
+        drawMonster(
+          ctx,
+          {
+            id: -100 - tier,
+            tier,
+            x: aimXRef.current,
+            y: 77,
+            r: def.radius,
+            angle: REDUCED_MOTION
+              ? 0
+              : Math.sin(time * 0.002) * 0.028,
+            impact: 0,
+            pressure: 0,
+          },
+          time,
+          uiRef.current.canDrop ? 1 : 0.5,
+          previewGazeX,
+          previewGazeY,
+          previewAttention,
+        );
       }
 
-      burstsRef.current = burstsRef.current.filter((burst) => time - burst.start < 560);
-      for (const burst of burstsRef.current) {
+      const bursts = burstsRef.current;
+      let writeIndex = 0;
+      for (let readIndex = 0; readIndex < bursts.length; readIndex += 1) {
+        const burst = bursts[readIndex]!;
+        if (time - burst.start < 560) {
+          bursts[writeIndex] = burst;
+          writeIndex += 1;
+        }
+      }
+      bursts.length = writeIndex;
+
+      for (const burst of bursts) {
         const age = (time - burst.start) / 520;
         if (age < 0 || age > 1) continue;
         const color = TIER_DEFS[burst.tier]!.accent;
@@ -1019,6 +1022,43 @@ function App() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  const handleCanvasKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
+      const state = uiRef.current;
+      const radius = TIER_DEFS[state.currentTier]!.radius;
+      const minX = LEFT_WALL + radius + 2;
+      const maxX = RIGHT_WALL - radius - 2;
+
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        const delta = event.key === 'ArrowLeft' ? -14 : 14;
+        aimXRef.current = Math.max(
+          minX,
+          Math.min(maxX, aimXRef.current + delta),
+        );
+        return;
+      }
+
+      if (event.key === 'Home' || event.key === 'End') {
+        event.preventDefault();
+        aimXRef.current = event.key === 'Home' ? minX : maxX;
+        return;
+      }
+
+      if (event.key === ' ' || event.key === 'Enter') {
+        event.preventDefault();
+        drop();
+        return;
+      }
+
+      if (event.key.toLowerCase() === 'h') {
+        event.preventDefault();
+        hold();
+      }
+    },
+    [drop, hold],
+  );
 
   const toggleSound = () => {
     const next = !uiRef.current.sound;
@@ -1108,7 +1148,9 @@ function App() {
             <canvas
               ref={canvasRef}
               className="physics-canvas"
-              aria-label="Monster tank. Drag horizontally and release to drop."
+              tabIndex={0}
+              aria-label="Monster tank. Drag horizontally and release to drop. Keyboard: left and right arrows aim, Space or Enter drops, H holds."
+              onKeyDown={handleCanvasKeyDown}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 updateAim(event);
@@ -1142,7 +1184,7 @@ function App() {
                   <span>LAB OVERFLOW</span>
                   <h2>{ui.score}</h2>
                   <p>Best {ui.bestScore}</p>
-                  <button onClick={restart}>Try again</button>
+                  <button autoFocus onClick={restart}>Try again</button>
                 </div>
               </div>
             )}
@@ -1204,7 +1246,15 @@ function App() {
         </div>
 
         {showMonsters && (
-          <div className="monster-modal" role="dialog" aria-modal="true" aria-labelledby="evolution-title">
+          <div
+            className="monster-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="evolution-title"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) setShowMonsters(false);
+            }}
+          >
             <div className="monster-modal-card">
               <button autoFocus className="modal-close" onClick={() => setShowMonsters(false)} aria-label="Close">×</button>
               <h2 id="evolution-title">MONSTER EVOLUTION</h2>
@@ -1221,7 +1271,15 @@ function App() {
         )}
 
         {showShop && (
-          <div className="monster-modal" role="dialog" aria-modal="true" aria-labelledby="shop-title">
+          <div
+            className="monster-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="shop-title"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) setShowShop(false);
+            }}
+          >
             <div className="monster-modal-card shop-card">
               <button autoFocus className="modal-close" onClick={() => setShowShop(false)} aria-label="Close">×</button>
               <h2 id="shop-title">SHOP</h2>
@@ -1246,7 +1304,15 @@ function App() {
         )}
 
         {showLab && (
-          <div className="monster-modal" role="dialog" aria-modal="true" aria-labelledby="lab-title">
+          <div
+            className="monster-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lab-title"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) setShowLab(false);
+            }}
+          >
             <div className="monster-modal-card lab-card">
               <button autoFocus className="modal-close" onClick={() => setShowLab(false)} aria-label="Close">×</button>
               <h2 id="lab-title">LAB</h2>
