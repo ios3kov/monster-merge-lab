@@ -18,13 +18,13 @@ export function RunOverlays({
   score: number;
   bestScore: number;
   presetTitle: string;
-  dailyKey?: string;
-  successLabel?: string;
+  dailyKey: string | undefined;
+  successLabel: string | undefined;
   experimentComplete: boolean;
   experimentFailed: boolean;
   gameOver: boolean;
   onRetry: () => void;
-  onNextExperiment?: () => void;
+  onNextExperiment: (() => void) | undefined;
   onLab: () => void;
 }) {
   return (
