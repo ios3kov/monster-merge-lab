@@ -63,7 +63,7 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   expect(errors).toEqual([]);
 });
 
-test('enlarged tank stays inside the scene and clear of the toolbar', async ({
+test('enlarged tank and HUD stay clear across target viewports', async ({
   page,
 }, testInfo) => {
   test.skip(!testInfo.project.name.includes('desktop'));
@@ -83,54 +83,43 @@ test('enlarged tank stays inside the scene and clear of the toolbar', async ({
       const shell = document.querySelector<HTMLElement>('.game-shell');
       const frame = document.querySelector<HTMLElement>('.game-frame');
       const toolbar = document.querySelector<HTMLElement>('.concept-toolbar');
+      const rectOf = (element: HTMLElement) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          left: rect.left,
+          top: rect.top,
+          right: rect.right,
+          bottom: rect.bottom,
+          width: rect.width,
+          height: rect.height,
+        };
+      };
+
       const hud = [
+        '.status-cluster',
+        '.concept-top-actions',
         '.next-board',
         '.hold-board',
         '.orders-board',
-        '.overdrive-panel',
-        '.score-plaque',
       ]
         .map((selector) => document.querySelector<HTMLElement>(selector))
         .filter((element): element is HTMLElement => element !== null)
-        .map((element) => {
-          const rect = element.getBoundingClientRect();
-          return {
-            left: rect.left,
-            top: rect.top,
-            right: rect.right,
-            bottom: rect.bottom,
-            width: rect.width,
-            height: rect.height,
-          };
-        });
+        .map(rectOf);
+
+      const touchTargets = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          '.hold-board, .concept-toolbar button, .icon-button',
+        ),
+      ).map(rectOf);
 
       if (!shell || !frame || !toolbar) return null;
 
-      const shellRect = shell.getBoundingClientRect();
-      const frameRect = frame.getBoundingClientRect();
-      const toolbarRect = toolbar.getBoundingClientRect();
-
       return {
-        shell: {
-          left: shellRect.left,
-          top: shellRect.top,
-          right: shellRect.right,
-          bottom: shellRect.bottom,
-          width: shellRect.width,
-          height: shellRect.height,
-        },
-        frame: {
-          left: frameRect.left,
-          top: frameRect.top,
-          right: frameRect.right,
-          bottom: frameRect.bottom,
-          width: frameRect.width,
-          height: frameRect.height,
-        },
-        toolbar: {
-          top: toolbarRect.top,
-        },
+        shell: rectOf(shell),
+        frame: rectOf(frame),
+        toolbar: rectOf(toolbar),
         hud,
+        touchTargets,
         scrollWidth: document.documentElement.scrollWidth,
         scrollHeight: document.documentElement.scrollHeight,
         viewportWidth: window.innerWidth,
@@ -166,18 +155,26 @@ test('enlarged tank stays inside the scene and clear of the toolbar', async ({
     for (const rect of geometry.hud) {
       expect(rect.width, viewport.name + ' HUD width').toBeGreaterThan(0);
       expect(rect.height, viewport.name + ' HUD height').toBeGreaterThan(0);
-      expect(rect.left, viewport.name + ' HUD left').toBeGreaterThanOrEqual(
-        geometry.shell.left - 2,
+      expect(rect.left, viewport.name + ' HUD viewport left').toBeGreaterThanOrEqual(-2);
+      expect(rect.right, viewport.name + ' HUD viewport right').toBeLessThanOrEqual(
+        geometry.viewportWidth + 2,
       );
-      expect(rect.right, viewport.name + ' HUD right').toBeLessThanOrEqual(
-        geometry.shell.right + 2,
+      expect(rect.top, viewport.name + ' HUD viewport top').toBeGreaterThanOrEqual(-2);
+      expect(rect.bottom, viewport.name + ' HUD viewport bottom').toBeLessThanOrEqual(
+        geometry.viewportHeight + 2,
       );
-      expect(rect.top, viewport.name + ' HUD top').toBeGreaterThanOrEqual(
-        geometry.shell.top - 2,
-      );
-      expect(rect.bottom, viewport.name + ' HUD bottom').toBeLessThanOrEqual(
-        geometry.shell.bottom + 2,
-      );
+
+      const overlapsTank =
+        rect.left < geometry.frame.right - 1 &&
+        rect.right > geometry.frame.left + 1 &&
+        rect.top < geometry.frame.bottom - 1 &&
+        rect.bottom > geometry.frame.top + 1;
+      expect(overlapsTank, viewport.name + ' HUD must not overlap tank').toBe(false);
+    }
+
+    for (const rect of geometry.touchTargets) {
+      expect(rect.width, viewport.name + ' touch target width').toBeGreaterThanOrEqual(44);
+      expect(rect.height, viewport.name + ' touch target height').toBeGreaterThanOrEqual(44);
     }
 
     expect(geometry.scrollWidth, viewport.name + ' horizontal overflow').toBeLessThanOrEqual(
