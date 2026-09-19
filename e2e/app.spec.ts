@@ -29,6 +29,7 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await expect(page.getByRole('button', { name: 'Close' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'SHOP' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Shop' })).toBeFocused();
 
   await page.getByRole('button', { name: 'Monsters' }).click();
   await expect(
@@ -232,6 +233,11 @@ test('mode hub starts functional Experiment and Daily runs', async ({
     .getByRole('dialog')
     .filter({ hasText: 'EXPERIMENT COMPLETE' });
   await expect(completionDialog).toBeVisible({ timeout: 4000 });
+  await expect(
+    completionDialog.getByRole('button', { name: 'Retry' }),
+  ).toBeFocused();
+  await expect(page.locator('.concept-toolbar')).toHaveAttribute('inert', '');
+  await expect(page.getByLabel(/Monster tank/)).toHaveAttribute('inert', '');
 
   await expect(
     completionDialog.getByRole('button', { name: 'Next Experiment' }),
@@ -242,6 +248,7 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await expect(page.getByLabel('Experiment 2 objective')).toContainText(
     'Create a Puff',
   );
+  await expect(page.locator('.concept-toolbar')).not.toHaveAttribute('inert', '');
 
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Daily Experiment/ }).click();
@@ -570,6 +577,71 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
     expect(geometry.scrollHeight, viewport.name + ' vertical overflow').toBeLessThanOrEqual(
       geometry.viewportHeight + 1,
     );
+  }
+});
+
+
+test('critical HUD copy stays legible across target viewports', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  const viewports = [
+    { name: 'small-phone', width: 320, height: 568 },
+    { name: 'regular-phone', width: 390, height: 844 },
+    { name: 'pro-max', width: 430, height: 932 },
+    { name: 'landscape', width: 844, height: 390 },
+  ];
+
+  for (const viewport of viewports) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto('/');
+
+    const initialSizes = await page.evaluate(() => {
+      const selectors = [
+        '.score-plaque span',
+        '.overdrive-panel > span',
+        '.orders-board h2',
+        '.order-row.current span',
+        '.order-row.current b',
+        '.coach',
+      ];
+      return selectors.map((selector) => {
+        const element = document.querySelector<HTMLElement>(selector);
+        return {
+          selector,
+          size: element ? Number.parseFloat(getComputedStyle(element).fontSize) : 0,
+        };
+      });
+    });
+
+    for (const item of initialSizes) {
+      expect(
+        item.size,
+        viewport.name + ' ' + item.selector + ' font size',
+      ).toBeGreaterThanOrEqual(7);
+    }
+
+    await page.getByRole('button', { name: 'Lab and game modes' }).click();
+    await page.getByRole('button', { name: /^Experiments\b/ }).click();
+
+    const objectiveSizes = await page.evaluate(() => {
+      const selectors = ['.mode-objective strong', '.mode-objective span'];
+      return selectors.map((selector) => {
+        const element = document.querySelector<HTMLElement>(selector);
+        return {
+          selector,
+          size: element ? Number.parseFloat(getComputedStyle(element).fontSize) : 0,
+        };
+      });
+    });
+
+    for (const item of objectiveSizes) {
+      expect(
+        item.size,
+        viewport.name + ' ' + item.selector + ' font size',
+      ).toBeGreaterThanOrEqual(7);
+    }
   }
 });
 
