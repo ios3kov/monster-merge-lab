@@ -13,7 +13,7 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await expect(page.getByRole('button', { name: 'Shop' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Monsters' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Drop monster' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Lab stats' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Lab and game modes' })).toBeVisible();
 
   const overflow = await page.evaluate(() => ({
     width: document.documentElement.scrollWidth,
@@ -36,8 +36,11 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   ).toBeVisible();
   await page.keyboard.press('Escape');
 
-  await page.getByRole('button', { name: 'Lab stats' }).click();
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await expect(page.getByRole('dialog', { name: 'LAB' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Endless Lab/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Experiments/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Daily Experiment/ })).toBeVisible();
   await page.keyboard.press('Escape');
 
   if (testInfo.project.name.includes('desktop')) {
@@ -61,6 +64,47 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
     page.getByRole('button', { name: /Hold current monster|Swap current/ }),
   ).toBeEnabled();
   expect(errors).toEqual([]);
+});
+
+test('mode hub starts functional Experiment and Daily runs', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
+  await page.getByRole('button', { name: /Experiments/ }).click();
+
+  await expect(
+    page.getByRole('button', { name: 'Hold unavailable in this mode' }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole('button', { name: 'Power-up unavailable in this mode' }),
+  ).toBeDisabled();
+  await expect(page.getByLabel('Experiment 1 objective')).toContainText(
+    'Create a Peep',
+  );
+
+  const dropButton = page.getByRole('button', { name: 'Drop monster' });
+  await dropButton.click();
+  await page.waitForTimeout(500);
+  await dropButton.click();
+  await expect(
+    page.getByRole('dialog').filter({ hasText: 'EXPERIMENT COMPLETE' }),
+  ).toBeVisible({ timeout: 4000 });
+
+  await page.getByRole('button', { name: 'Lab' }).click();
+  await page.getByRole('button', { name: /Daily Experiment/ }).click();
+
+  await expect(
+    page.getByRole('button', { name: 'Power-up unavailable in this mode' }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole('button', { name: /Hold current monster/ }),
+  ).toBeEnabled();
+  await expect(page.getByLabel('Daily Experiment objective')).toContainText(
+    'FAIR RUN',
+  );
 });
 
 test('enlarged tank and HUD stay clear across target viewports', async ({
