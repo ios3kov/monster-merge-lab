@@ -76,7 +76,7 @@ This file is updated after each major production step.
 - Next successful main CI/deploy will carry PR #23 into production.
 
 
-### Parallel CI gates — VERIFIED IN PR
+### Parallel CI gates — DONE
 - Replaced monolithic verify job with independent parallel gates:
   - Chromium
   - WebKit
@@ -89,10 +89,19 @@ This file is updated after each major production step.
 - Aggregate Gate requires all five jobs to succeed before Deploy.
 - Deploy remains main-only and consumes the verified production-dist artifact.
 - Making the repository public restored GitHub-hosted runners.
-- PR #24 run #116: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- PR #24 final PR run: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Post-merge main run #119: all five parallel jobs ✓ Aggregate Gate ✓ Deploy ✓.
+- Production live smoke ✓.
 - Fixes made during validation:
   - Vite import-meta type definitions;
   - non-fatal service-worker registration;
   - service-worker syntax check in Audit;
   - offline smoke warms hashed Vite assets through active SW before offline reload.
-- Next: final docs-only CI → merge → main aggregate-gated deploy → production live smoke.
+
+
+### Restored Experiment drop-limit resolution — IN PROGRESS
+- Confirmed restore bug: active Experiment snapshots always restored with `canDrop=true`, even when `runDrops` already reached the configured drop limit.
+- This could allow an extra illegal drop and skip the normal settle/failure resolution path.
+- Restore now disables DROP at the limit and schedules the same 1.5s settle resolution used during normal play.
+- Added browser regression using Experiment 12 at 14/14 drops.
+- Next: PR → parallel CI → Aggregate Gate → merge → deploy → live smoke.
