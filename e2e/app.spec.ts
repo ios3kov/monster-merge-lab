@@ -222,9 +222,9 @@ test('Experiment progress persists and resumes after reload', async ({
   await page.reload();
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
 
-  const experimentCard = page
-    .getByRole('button')
-    .filter({ hasText: 'Experiments' });
+  const experimentCard = page.getByRole('button', {
+    name: /^Experiments\b/,
+  });
   await expect(experimentCard).toContainText(
     'Continue with Experiment 2 of 12.',
   );
