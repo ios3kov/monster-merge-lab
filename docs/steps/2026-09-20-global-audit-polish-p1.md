@@ -76,5 +76,10 @@ PR #33 run #147 failed in Audit at TypeScript before merge:
 - renaming alone did not resolve the recursive control-flow inference; run #148 reproduced TS7022 on the new name;
 - actual fix: explicitly type the traversal parent as `HTMLElement | null`;
 - no behavior or UX semantics changed.
+- run #149 then exposed two E2E test-isolation issues:
+  - the new coach copy contains “monsters”, so the old non-exact toolbar locator matched two buttons;
+  - the readability viewport loop persisted Experiment mode into the next viewport, where Overdrive is intentionally absent.
+- fix: exact toolbar locator + clear persisted state before each readability viewport.
+- product behavior remains unchanged by these test corrections.
 
 Status: IN PROGRESS.
