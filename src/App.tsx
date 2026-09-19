@@ -1,4 +1,4 @@
-import { RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -66,6 +66,7 @@ import {
 } from './physics';
 import { MonsterArt, REDUCED_MOTION, drawMonster, drawTank } from './rendering';
 import { LabModal, MonstersModal, ShopModal } from './game-modals';
+import { GameToolbar } from './game-toolbar';
 import { storageGet, storageRemove, storageSet } from './storage';
 import {
   emitTelemetry,
@@ -1900,69 +1901,21 @@ function App() {
           </div>
         </div>
 
-        <div className="concept-toolbar">
-          <button
-            type="button"
-            onClick={() => setShowShop(true)}
-            className="wood-button shop-hit"
-            aria-label="Shop"
-          >
-            SHOP
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowMonsters(true)}
-            className="wood-button monsters-hit"
-            aria-label="Monsters"
-          >
-            MONSTERS
-          </button>
-          <button
-            type="button"
-            onClick={drop}
-            className="concept-drop-button drop-hit"
-            disabled={!ui.canDrop || ui.gameOver || ui.experimentFailed}
-            aria-label="Drop monster"
-          >
-            DROP
-          </button>
-          <button
-            type="button"
-            onClick={nudge}
-            className="wood-button power-hit"
-            disabled={
-              !preset.allowPower ||
-              ui.gameOver ||
-              ui.experimentComplete ||
-              ui.experimentFailed ||
-              (preset.limits?.powerUses !== undefined &&
-                ui.runPowerUses >= preset.limits.powerUses)
-            }
-            aria-label={
-              preset.allowPower
-                ? preset.mode === 'experiments'
-                  ? 'Power-up. ' + String(powerUsesRemaining) + ' run uses remaining'
-                  : 'Power-up. ' + String(ui.powerCharges) + ' available'
-                : 'Power-up unavailable in this mode'
-            }
-          >
-            <RotateCcw size={22} />
-            <span>POWER</span>
-            {powerUsesRemaining > 0 && (
-              <b className="power-charge" aria-hidden="true">
-                {powerUsesRemaining}
-              </b>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowLab(true)}
-            className="wood-button lab-hit"
-            aria-label="Lab and game modes"
-          >
-            LAB
-          </button>
-        </div>
+        <GameToolbar
+          preset={preset}
+          canDrop={ui.canDrop}
+          gameOver={ui.gameOver}
+          experimentComplete={ui.experimentComplete}
+          experimentFailed={ui.experimentFailed}
+          runPowerUses={ui.runPowerUses}
+          powerCharges={ui.powerCharges}
+          powerUsesRemaining={powerUsesRemaining}
+          onShop={() => setShowShop(true)}
+          onMonsters={() => setShowMonsters(true)}
+          onDrop={drop}
+          onPower={nudge}
+          onLab={() => setShowLab(true)}
+        />
 
         {showMonsters && (
           <MonstersModal
