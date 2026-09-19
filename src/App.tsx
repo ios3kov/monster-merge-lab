@@ -603,7 +603,12 @@ function App() {
     worldRef.current.bodies.push(spawnBody(tier, x, 82, performance.now()));
     state.currentTier = state.nextTier;
     state.nextTier = state.afterNextTier;
-    state.afterNextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+    state.afterNextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      state.bestTier,
+      randomRef.current,
+    );
     state.canHold = true;
     state.canDrop = false;
     sync();
@@ -616,14 +621,23 @@ function App() {
 
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     dropTimerRef.current = window.setTimeout(() => {
-      if (!uiRef.current.gameOver) {
+      if (!uiRef.current.gameOver && !uiRef.current.experimentComplete) {
         uiRef.current.canDrop = true;
         sync();
       }
     }, DROP_COOLDOWN_MS);
   }, [coach, flash, sync]);
 
-  const restart = useCallback(() => {
+  const resetRun = useCallback((mode: GameMode) => {
+    const nextPreset = getRunPreset(mode);
+    presetRef.current = nextPreset;
+    setPreset(nextPreset);
+    fixedQueueRef.current = [...nextPreset.fixedQueue];
+    randomRef.current =
+      nextPreset.seed === undefined
+        ? Math.random
+        : createSeededRandom(nextPreset.seed);
+
     worldRef.current.bodies = [];
     burstsRef.current = [];
     spawnBagRef.current = [];
@@ -632,14 +646,30 @@ function App() {
     overdriveEndRef.current = 0;
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     if (comboTimerRef.current !== null) window.clearTimeout(comboTimerRef.current);
+
     const state = uiRef.current;
     state.score = 0;
     state.progress = 0;
     state.combo = 0;
     state.bestCombo = 0;
-    state.currentTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
-    state.nextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
-    state.afterNextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+    state.currentTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      state.bestTier,
+      randomRef.current,
+    );
+    state.nextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      state.bestTier,
+      randomRef.current,
+    );
+    state.afterNextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      state.bestTier,
+      randomRef.current,
+    );
     state.holdTier = null;
     state.canHold = true;
     state.canDrop = true;
@@ -647,15 +677,33 @@ function App() {
     state.message = '';
     state.overdrive = 0;
     state.overdriveActive = false;
+    state.experimentComplete = false;
     aimXRef.current = WIDTH / 2;
     sync();
     playSound('restart');
     haptic('restart');
   }, [sync]);
 
+  const restart = useCallback(() => {
+    resetRun(presetRef.current.mode);
+  }, [resetRun]);
+
+  const startMode = useCallback((mode: GameMode) => {
+    resetRun(mode);
+    setShowLab(false);
+  }, [resetRun]);
+
   const hold = useCallback(() => {
     const state = uiRef.current;
-    if (!state.canDrop || !state.canHold || state.gameOver) return;
+    if (
+      !presetRef.current.allowHold ||
+      !state.canDrop ||
+      !state.canHold ||
+      state.gameOver ||
+      state.experimentComplete
+    ) {
+      return;
+    }
 
     if (state.holdTier === state.currentTier) {
       flash('Same monster already held');
@@ -698,7 +746,11 @@ function App() {
 
   const nudge = useCallback(() => {
     const state = uiRef.current;
-    if (state.gameOver) return;
+    if (!presetRef.current.allowPower) {
+      flash('Power unavailable in this mode');
+      return;
+    }
+    if (state.gameOver || state.experimentComplete) return;
     if (state.powerCharges <= 0) {
       setShowShop(true);
       flash('Get a Pulse in Shop');
