@@ -130,9 +130,12 @@ This file is updated after each major production step.
 
 ## 2026-09-20 — Architecture phase
 
-### Renderer extraction — IN PROGRESS
+### Renderer extraction — DONE
 - Goal: reduce App.tsx responsibility before future feature-heavy work.
-- Scope is behavior-neutral: move monster/canvas drawing helpers and MonsterArt into src/rendering.tsx.
+- Scope is behavior-neutral: moved monster/canvas drawing helpers and MonsterArt into src/rendering.tsx.
 - Physics, state, timers, persistence, telemetry and game rules remain unchanged.
-- App.tsx reduced from 2506 to 2116 lines in the initial extraction.
-- Next: PR → full parallel CI → Aggregate Gate → code review → merge if green.
+- App.tsx reduced from 2506 to 2116 lines.
+- Exact extraction review: renderer implementation matches the original source block 1:1 after exports/imports.
+- Hidden/bidirectional Unicode controls: none in changed files.
+- PR #28 run #130: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Final documentation commit follows; merge remains gated on the final PR head.
