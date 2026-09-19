@@ -274,8 +274,8 @@ function resolvePair(
 }
 
 function broadPhase(bodies: Body[]) {
-  return [...bodies].sort(
-    (a, b) => a.x - a.r - (b.x - b.r)
+  return bodies.sort(
+    (a, b) => a.x - a.r - (b.x - b.r),
   );
 }
 
@@ -399,11 +399,13 @@ export function stepWorld(
   }
 
   const solverIterations =
-    world.bodies.length > 36
-      ? Math.max(4, SOLVER_ITERATIONS - 2)
-      : world.bodies.length > 20
-        ? Math.max(5, SOLVER_ITERATIONS - 1)
-        : SOLVER_ITERATIONS;
+    world.bodies.length > 40
+      ? Math.max(3, SOLVER_ITERATIONS - 3)
+      : world.bodies.length > 28
+        ? Math.max(4, SOLVER_ITERATIONS - 2)
+        : world.bodies.length > 18
+          ? Math.max(5, SOLVER_ITERATIONS - 1)
+          : SOLVER_ITERATIONS;
 
   for (let iteration = 0; iteration < solverIterations; iteration += 1) {
     const reportImpact = iteration === 0;
