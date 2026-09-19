@@ -62,12 +62,44 @@ export function hashSeed(value: string) {
   return hash >>> 0;
 }
 
-export function createSeededRandom(seed: number) {
+export type SeededRandom = (() => number) & {
+  getState: () => number;
+  setState: (state: number) => void;
+};
+
+export function createSeededRandom(seed: number): SeededRandom {
   let value = seed >>> 0;
-  return () => {
+  const random = (() => {
     value = (Math.imul(value, 1664525) + 1013904223) >>> 0;
     return value / 0x1_0000_0000;
+  }) as SeededRandom;
+  random.getState = () => value >>> 0;
+  random.setState = (state: number) => {
+    if (!Number.isFinite(state) || !Number.isInteger(state) || state < 0) {
+      throw new Error('Seeded random state must be a non-negative integer');
+    }
+    value = state >>> 0;
   };
+  return random;
+}
+
+export function getSeededRandomState(random: () => number) {
+  const candidate = random as Partial<SeededRandom>;
+  return typeof candidate.getState === 'function'
+    ? candidate.getState()
+    : undefined;
+}
+
+export function setSeededRandomState(
+  random: () => number,
+  state: number | undefined,
+) {
+  if (state === undefined) return;
+  const candidate = random as Partial<SeededRandom>;
+  if (typeof candidate.setState !== 'function') {
+    throw new Error('Random source is not stateful');
+  }
+  candidate.setState(state);
 }
 
 const DAILY_OPENING_BAGS: readonly (readonly number[])[] = [

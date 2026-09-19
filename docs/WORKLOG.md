@@ -40,10 +40,23 @@ This file is updated after each major production step.
 - Fixed Complete → Lab → Continue path.
 - CI green; deployed.
 
-### Background gameplay clocks — VERIFIED IN PR
+### Background gameplay clocks — DONE
 - Problem: physics paused in background, but Danger and Overdrive clocks kept consuming wall time.
 - Added pure clock-shift helper and unit tests.
-- Runtime now shifts active Danger/Overdrive deadlines by actual hidden duration on resume.
-- PR #21 opened.
-- PR CI: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
-- Next: merge → post-merge CI → Cloudflare deploy → live smoke.
+- Runtime shifts active Danger/Overdrive deadlines by actual hidden duration on resume.
+- PR #21 merged.
+- PR + post-merge CI: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
+- Cloudflare deploy ✓.
+- Production live smoke ✓.
+
+
+### Active run persistence — VERIFIED IN PR
+- Recover active run after mobile tab/process eviction or reload.
+- Versioned/validated snapshot preserves mode, physics bodies, queue/HOLD, run counters, Danger and Overdrive.
+- Body IDs are recreated safely; relative body age is restored.
+- Daily seeded RNG state is serialized so deterministic continuation is preserved.
+- Stale/corrupt/wrong-day snapshots fall back safely.
+- Terminal states clear the snapshot.
+- PR #22 verification: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
+- Reload E2E: Experiment body restore ✓ Daily queue continuity ✓ corrupt snapshot fallback ✓.
+- Next: final-head CI → merge → post-merge CI → Cloudflare deploy → live smoke.

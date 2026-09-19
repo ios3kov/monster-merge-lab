@@ -14,3 +14,13 @@ export function storageSet(key: string, value: string) {
     return false;
   }
 }
+
+
+export function storageRemove(key: string) {
+  try {
+    localStorage.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}

@@ -41,6 +41,8 @@ import {
   MODE_OPTIONS,
   createSeededRandom,
   getRunPreset,
+  getSeededRandomState,
+  setSeededRandomState,
   usesPersistentMetaProgress,
   type GameMode,
   type RunPreset,
@@ -59,8 +61,15 @@ import {
   type Body,
   type World,
 } from './physics';
-import { storageGet, storageSet } from './storage';
+import { storageGet, storageRemove, storageSet } from './storage';
 import { emitTelemetry, type TelemetryContext } from './telemetry';
+import {
+  decodeActiveRunSession,
+  encodeActiveRunSession,
+  restoreBodiesFromSession,
+  saveBodyForSession,
+  type ActiveRunSession,
+} from './session';
 
 type Burst = { x: number; y: number; tier: number; start: number };
 type Ui = {
@@ -124,6 +133,7 @@ const ORDER_KEY = 'monster-merge-order-v3';
 const COACH_KEY = 'monster-merge-coach-v3';
 const POWER_KEY = 'monster-merge-power-v1';
 const EXPERIMENT_PROGRESS_KEY = 'monster-merge-experiments-completed-v1';
+const ACTIVE_RUN_KEY = 'monster-merge-active-run-v1';
 const POWER_COST = 200;
 const REDUCED_MOTION =
   typeof window !== 'undefined' &&
@@ -621,6 +631,167 @@ function App() {
 
   const sync = useCallback(() => setUi({ ...uiRef.current }), []);
 
+  const saveRunSession = useCallback(() => {
+    const state = uiRef.current;
+    const activePreset = presetRef.current;
+
+    if (
+      state.gameOver ||
+      state.experimentComplete ||
+      state.experimentFailed
+    ) {
+      storageRemove(ACTIVE_RUN_KEY);
+      return;
+    }
+
+    if (
+      activePreset.mode === 'endless' &&
+      state.runDrops === 0 &&
+      worldRef.current.bodies.length === 0
+    ) {
+      storageRemove(ACTIVE_RUN_KEY);
+      return;
+    }
+
+    const now = performance.now();
+    const randomState = getSeededRandomState(randomRef.current);
+    const session: ActiveRunSession = {
+      version: 1,
+      savedAt: Date.now(),
+      mode: activePreset.mode,
+      ...(activePreset.experimentId
+        ? { experimentId: activePreset.experimentId }
+        : {}),
+      ...(activePreset.dailyKey ? { dailyKey: activePreset.dailyKey } : {}),
+      ui: {
+        score: state.score,
+        progress: state.progress,
+        orderNo: state.orderNo,
+        currentTier: state.currentTier,
+        nextTier: state.nextTier,
+        afterNextTier: state.afterNextTier,
+        holdTier: state.holdTier,
+        canHold: state.canHold,
+        bestCombo: state.bestCombo,
+        overdrive: state.overdrive,
+        overdriveActive: state.overdriveActive,
+        runHighestTier: state.runHighestTier,
+        runMerges: state.runMerges,
+        runDrops: state.runDrops,
+        runHoldUses: state.runHoldUses,
+        runPowerUses: state.runPowerUses,
+        runOrdersCompleted: state.runOrdersCompleted,
+        runRescues: state.runRescues,
+      },
+      bodies: worldRef.current.bodies.map((body) =>
+        saveBodyForSession(body, now),
+      ),
+      fixedQueue: [...fixedQueueRef.current],
+      spawnBag: [...spawnBagRef.current],
+      aimX: aimXRef.current,
+      dangerElapsedMs:
+        dangerRef.current === null
+          ? null
+          : Math.max(0, now - dangerRef.current),
+      overdriveRemainingMs:
+        state.overdriveActive && overdriveEndRef.current > 0
+          ? Math.max(0, overdriveEndRef.current - now)
+          : 0,
+      ...(randomState === undefined ? {} : { randomState }),
+    };
+
+    storageSet(ACTIVE_RUN_KEY, encodeActiveRunSession(session));
+  }, []);
+
+  useEffect(() => {
+    const raw = storageGet(ACTIVE_RUN_KEY);
+    const session = decodeActiveRunSession(raw);
+    if (!session) {
+      if (raw) storageRemove(ACTIVE_RUN_KEY);
+      return;
+    }
+
+    let restoredPreset: RunPreset;
+    try {
+      restoredPreset = getRunPreset(
+        session.mode,
+        new Date(),
+        session.experimentId,
+      );
+    } catch {
+      storageRemove(ACTIVE_RUN_KEY);
+      return;
+    }
+
+    if (
+      session.mode === 'daily' &&
+      restoredPreset.dailyKey !== session.dailyKey
+    ) {
+      storageRemove(ACTIVE_RUN_KEY);
+      return;
+    }
+
+    const now = performance.now();
+    const random =
+      restoredPreset.seed === undefined
+        ? Math.random
+        : createSeededRandom(restoredPreset.seed);
+    try {
+      setSeededRandomState(random, session.randomState);
+    } catch {
+      storageRemove(ACTIVE_RUN_KEY);
+      return;
+    }
+
+    presetRef.current = restoredPreset;
+    setPreset(restoredPreset);
+    fixedQueueRef.current = [...session.fixedQueue];
+    spawnBagRef.current = [...session.spawnBag];
+    randomRef.current = random;
+    worldRef.current.bodies = restoreBodiesFromSession(session.bodies, now);
+
+    const currentRadius = TIER_DEFS[session.ui.currentTier]!.radius;
+    aimXRef.current = Math.max(
+      LEFT_WALL + currentRadius + 2,
+      Math.min(RIGHT_WALL - currentRadius - 2, session.aimX),
+    );
+    dangerRef.current =
+      session.dangerElapsedMs === null
+        ? null
+        : now - session.dangerElapsedMs;
+    overdriveEndRef.current = session.ui.overdriveActive
+      ? now + session.overdriveRemainingMs
+      : 0;
+
+    const state = uiRef.current;
+    state.score = session.ui.score;
+    state.progress = session.ui.progress;
+    state.orderNo = session.ui.orderNo;
+    state.order = makeOrder(session.ui.orderNo);
+    state.currentTier = session.ui.currentTier;
+    state.nextTier = session.ui.nextTier;
+    state.afterNextTier = session.ui.afterNextTier;
+    state.holdTier = session.ui.holdTier;
+    state.canHold = session.ui.canHold;
+    state.canDrop = true;
+    state.gameOver = false;
+    state.combo = 0;
+    state.bestCombo = session.ui.bestCombo;
+    state.message = '';
+    state.overdrive = session.ui.overdrive;
+    state.overdriveActive = session.ui.overdriveActive;
+    state.experimentComplete = false;
+    state.experimentFailed = false;
+    state.runHighestTier = session.ui.runHighestTier;
+    state.runMerges = session.ui.runMerges;
+    state.runDrops = session.ui.runDrops;
+    state.runHoldUses = session.ui.runHoldUses;
+    state.runPowerUses = session.ui.runPowerUses;
+    state.runOrdersCompleted = session.ui.runOrdersCompleted;
+    state.runRescues = session.ui.runRescues;
+    sync();
+  }, [sync]);
+
   useEffect(() => {
     installAudioUnlock();
   }, []);
@@ -630,6 +801,21 @@ function App() {
     emitTelemetry({ name: 'session_start', ...context });
     emitTelemetry({ name: 'run_start', ...context });
   }, []);
+
+  useEffect(() => {
+    const persist = () => saveRunSession();
+    const onVisibility = () => {
+      if (document.hidden) persist();
+    };
+    const timer = window.setInterval(persist, 1500);
+    window.addEventListener('pagehide', persist);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('pagehide', persist);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [saveRunSession]);
 
   const flash = useCallback((message: string) => {
     uiRef.current.message = message;
@@ -659,6 +845,7 @@ function App() {
     }
     state.experimentComplete = true;
     state.canDrop = false;
+    storageRemove(ACTIVE_RUN_KEY);
     if (
       presetRef.current.mode === 'experiments' &&
       presetRef.current.experimentId
@@ -765,6 +952,7 @@ function App() {
           if (!finalState.experimentComplete && !finalState.gameOver) {
             finalState.experimentFailed = true;
             finalState.canDrop = false;
+            storageRemove(ACTIVE_RUN_KEY);
             emitTelemetry({
               name: 'experiment_failed',
               ...getTelemetryContext(presetRef.current),
@@ -784,6 +972,7 @@ function App() {
   }, [coach, completeExperimentIfGoalMet, flash, sync]);
 
   const resetRun = useCallback((mode: GameMode, experimentId?: string) => {
+    storageRemove(ACTIVE_RUN_KEY);
     const nextPreset = getRunPreset(mode, new Date(), experimentId);
     presetRef.current = nextPreset;
     setPreset(nextPreset);
@@ -868,9 +1057,10 @@ function App() {
       name: 'run_start',
       ...getTelemetryContext(nextPreset),
     });
+    saveRunSession();
     playSound('restart');
     haptic('restart');
-  }, [sync]);
+  }, [saveRunSession, sync]);
 
   const restart = useCallback(() => {
     resetRun(presetRef.current.mode, presetRef.current.experimentId);
@@ -1413,6 +1603,7 @@ function App() {
           if (time - dangerRef.current > DANGER_GRACE_MS) {
             uiRef.current.gameOver = true;
             uiRef.current.canDrop = false;
+            storageRemove(ACTIVE_RUN_KEY);
             if (usesPersistentMetaProgress(presetRef.current.mode)) {
               uiRef.current.bestScore = Math.max(
                 uiRef.current.bestScore,
