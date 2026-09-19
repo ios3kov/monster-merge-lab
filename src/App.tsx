@@ -65,7 +65,11 @@ import {
   type World,
 } from './physics';
 import { storageGet, storageRemove, storageSet } from './storage';
-import { emitTelemetry, type TelemetryContext } from './telemetry';
+import {
+  emitTelemetry,
+  type RunTerminalMetrics,
+  type TelemetryContext,
+} from './telemetry';
 import {
   decodeActiveRunSession,
   encodeActiveRunSession,
@@ -564,6 +568,11 @@ function App() {
   const randomRef = useRef<() => number>(Math.random);
   const presetRef = useRef<RunPreset>(getRunPreset('endless'));
   const overdriveEndRef = useRef(0);
+  const runStartedAtRef = useRef(performance.now());
+  const firstDecisionElapsedRef = useRef<number | null>(null);
+  const runOverdriveStartsRef = useRef(0);
+  const runDangerStartsRef = useRef(0);
+  const restoredSessionRef = useRef(false);
 
   const initialOrderNo = Math.max(1, readInt(ORDER_KEY, 1));
   const initialBestTier = readInt(BEST_TIER_KEY, 0);
@@ -638,6 +647,33 @@ function App() {
 
   const sync = useCallback(() => setUi({ ...uiRef.current }), []);
 
+  const runElapsedMs = useCallback(
+    () => Math.max(0, performance.now() - runStartedAtRef.current),
+    [],
+  );
+
+  const markFirstDecision = useCallback(() => {
+    if (firstDecisionElapsedRef.current === null) {
+      firstDecisionElapsedRef.current = runElapsedMs();
+    }
+  }, [runElapsedMs]);
+
+  const getTerminalMetrics = useCallback((): RunTerminalMetrics => {
+    const state = uiRef.current;
+    return {
+      runDurationMs: runElapsedMs(),
+      timeToFirstDecisionMs: firstDecisionElapsedRef.current,
+      drops: state.runDrops,
+      merges: state.runMerges,
+      highestTier: state.runHighestTier,
+      holdUses: state.runHoldUses,
+      powerUses: state.runPowerUses,
+      overdriveStarts: runOverdriveStartsRef.current,
+      dangerStarts: runDangerStartsRef.current,
+      rescues: state.runRescues,
+    };
+  }, [runElapsedMs]);
+
   const saveRunSession = useCallback(() => {
     const state = uiRef.current;
     const activePreset = presetRef.current;
@@ -689,6 +725,8 @@ function App() {
         runPowerUses: state.runPowerUses,
         runOrdersCompleted: state.runOrdersCompleted,
         runRescues: state.runRescues,
+        runOverdriveStarts: runOverdriveStartsRef.current,
+        runDangerStarts: runDangerStartsRef.current,
       },
       bodies: worldRef.current.bodies.map((body) =>
         saveBodyForSession(body, now),
@@ -704,6 +742,8 @@ function App() {
         state.overdriveActive && overdriveEndRef.current > 0
           ? Math.max(0, overdriveEndRef.current - now)
           : 0,
+      runElapsedMs: Math.max(0, now - runStartedAtRef.current),
+      firstDecisionElapsedMs: firstDecisionElapsedRef.current,
       ...(randomState === undefined ? {} : { randomState }),
     };
 
@@ -756,6 +796,12 @@ function App() {
     spawnBagRef.current = [...session.spawnBag];
     randomRef.current = random;
     worldRef.current.bodies = restoreBodiesFromSession(session.bodies, now);
+    runStartedAtRef.current = now - (session.runElapsedMs ?? 0);
+    firstDecisionElapsedRef.current =
+      session.firstDecisionElapsedMs ?? null;
+    runOverdriveStartsRef.current = session.ui.runOverdriveStarts ?? 0;
+    runDangerStartsRef.current = session.ui.runDangerStarts ?? 0;
+    restoredSessionRef.current = true;
 
     const currentRadius = TIER_DEFS[session.ui.currentTier]!.radius;
     aimXRef.current = Math.max(
@@ -810,8 +856,16 @@ function App() {
 
   useEffect(() => {
     const context = getTelemetryContext(presetRef.current);
+    const resumed = restoredSessionRef.current;
     emitTelemetry({ name: 'session_start', ...context });
-    emitTelemetry({ name: 'run_start', ...context });
+    emitTelemetry({ name: 'run_started', ...context, resumed });
+    if (presetRef.current.mode === 'experiments') {
+      emitTelemetry({
+        name: 'experiment_started',
+        ...context,
+        resumed,
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -873,10 +927,11 @@ function App() {
       }
     }
     emitTelemetry({
-      name: 'experiment_complete',
+      name: 'experiment_completed',
       ...getTelemetryContext(presetRef.current),
       score: state.score,
       goalKind: presetRef.current.goal?.kind ?? 'unknown',
+      metrics: getTerminalMetrics(),
     });
     if (limitTimerRef.current !== null) {
       window.clearTimeout(limitTimerRef.current);
@@ -884,7 +939,7 @@ function App() {
     }
     limitResolveAtRef.current = null;
     return true;
-  }, [isPileBelowDanger]);
+  }, [getTerminalMetrics, isPileBelowDanger]);
 
   const resetCombo = useCallback(() => {
     comboTimerRef.current = null;
@@ -918,12 +973,13 @@ function App() {
         ...getTelemetryContext(presetRef.current),
         score: finalState.score,
         reason: 'drop_limit',
+        metrics: getTerminalMetrics(),
       });
       sync();
       playSound('fail');
       haptic('fail');
     }
-  }, [completeExperimentIfGoalMet, sync]);
+  }, [completeExperimentIfGoalMet, getTerminalMetrics, sync]);
 
   useEffect(() => {
     if (!restoredDropLimitPendingRef.current) return;
@@ -1000,14 +1056,26 @@ function App() {
       return;
     }
 
-    worldRef.current.bodies.push(spawnBody(tier, x, 82, performance.now()));
+    const dropAt = performance.now();
+    worldRef.current.bodies.push(spawnBody(tier, x, 82, dropAt));
     state.runDrops += 1;
+    markFirstDecision();
+    const telemetryContext = getTelemetryContext(presetRef.current);
     emitTelemetry({
       name: 'drop',
-      ...getTelemetryContext(presetRef.current),
+      ...telemetryContext,
       tier,
       drops: state.runDrops,
     });
+    if (state.runDrops === 1) {
+      emitTelemetry({
+        name: 'first_drop',
+        ...telemetryContext,
+        tier,
+        drops: state.runDrops,
+        runElapsedMs: runElapsedMs(),
+      });
+    }
     state.currentTier = state.nextTier;
     state.nextTier = state.afterNextTier;
     const spawnProgressTier =
@@ -1036,7 +1104,14 @@ function App() {
       finishDropCooldown,
       DROP_COOLDOWN_MS,
     );
-  }, [coach, finishDropCooldown, flash, sync]);
+  }, [
+    coach,
+    finishDropCooldown,
+    flash,
+    markFirstDecision,
+    runElapsedMs,
+    sync,
+  ]);
 
   const resetRun = useCallback((mode: GameMode, experimentId?: string) => {
     storageRemove(ACTIVE_RUN_KEY);
@@ -1078,6 +1153,11 @@ function App() {
     comboResetAtRef.current = null;
     limitResolveAtRef.current = null;
     restoredDropLimitPendingRef.current = false;
+    runStartedAtRef.current = performance.now();
+    firstDecisionElapsedRef.current = null;
+    runOverdriveStartsRef.current = 0;
+    runDangerStartsRef.current = 0;
+    restoredSessionRef.current = false;
 
     const state = uiRef.current;
     state.score = 0;
@@ -1126,10 +1206,19 @@ function App() {
     state.runRescues = 0;
     aimXRef.current = WIDTH / 2;
     sync();
+    const telemetryContext = getTelemetryContext(nextPreset);
     emitTelemetry({
-      name: 'run_start',
-      ...getTelemetryContext(nextPreset),
+      name: 'run_started',
+      ...telemetryContext,
+      resumed: false,
     });
+    if (nextPreset.mode === 'experiments') {
+      emitTelemetry({
+        name: 'experiment_started',
+        ...telemetryContext,
+        resumed: false,
+      });
+    }
     saveRunSession();
     playSound('restart');
     haptic('restart');
@@ -1194,15 +1283,16 @@ function App() {
 
     state.canHold = false;
     state.runHoldUses += 1;
+    markFirstDecision();
     emitTelemetry({
-      name: 'hold',
+      name: 'hold_used',
       ...getTelemetryContext(presetRef.current),
       uses: state.runHoldUses,
     });
     sync();
     playSound('ui');
     haptic('drop');
-  }, [flash, sync]);
+  }, [flash, markFirstDecision, sync]);
 
   const buyPower = useCallback(() => {
     const state = uiRef.current;
@@ -1256,8 +1346,9 @@ function App() {
       storageSet(POWER_KEY, String(state.powerCharges));
     }
     state.runPowerUses += 1;
+    markFirstDecision();
     emitTelemetry({
-      name: 'power_use',
+      name: 'power_used',
       ...getTelemetryContext(presetRef.current),
       uses: state.runPowerUses,
     });
@@ -1270,7 +1361,7 @@ function App() {
     }
     playSound('bounce');
     haptic('merge');
-  }, [flash, sync]);
+  }, [flash, markFirstDecision, sync]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1356,6 +1447,11 @@ function App() {
         );
         dangerRef.current = shifted.dangerStartedAt;
         overdriveEndRef.current = shifted.overdriveEndsAt;
+        runStartedAtRef.current =
+          shiftGameplayTimestampForPause(
+            runStartedAtRef.current,
+            pausedFor,
+          );
         lastMergeRef.current = shiftGameplayTimestampForPause(
           lastMergeRef.current,
           pausedFor,
@@ -1429,6 +1525,17 @@ function App() {
         merges: state.runMerges,
         score: state.score,
       });
+      if (state.runMerges === 1) {
+        emitTelemetry({
+          name: 'first_merge',
+          ...telemetryContext,
+          tier,
+          combo: state.combo,
+          merges: state.runMerges,
+          score: state.score,
+          runElapsedMs: runElapsedMs(),
+        });
+      }
       if (state.combo > 1) {
         emitTelemetry({
           name: 'chain',
@@ -1446,10 +1553,12 @@ function App() {
           state.overdrive = 0;
           state.overdriveActive = true;
           overdriveEndRef.current = now + OVERDRIVE_DURATION_MS;
+          runOverdriveStartsRef.current += 1;
           emitTelemetry({
-            name: 'overdrive_start',
+            name: 'overdrive_started',
             ...telemetryContext,
             score: state.score,
+            count: runOverdriveStartsRef.current,
           });
           flash('LAB OVERDRIVE ×2');
           playSound('order');
@@ -1736,10 +1845,12 @@ function App() {
         if (offender) {
           if (dangerRef.current === null) {
             dangerRef.current = time;
+            runDangerStartsRef.current += 1;
             emitTelemetry({
-              name: 'danger_start',
+              name: 'danger_started',
               ...getTelemetryContext(presetRef.current),
               score: uiRef.current.score,
+              count: runDangerStartsRef.current,
             });
           }
           if (time - dangerRef.current > DANGER_GRACE_MS) {
@@ -1758,6 +1869,7 @@ function App() {
               ...getTelemetryContext(presetRef.current),
               score: uiRef.current.score,
               highestTier: uiRef.current.runHighestTier,
+              metrics: getTerminalMetrics(),
             });
             sync();
             playSound('fail');
@@ -1784,6 +1896,13 @@ function App() {
             !uiRef.current.experimentFailed
           ) {
             uiRef.current.runRescues += 1;
+            emitTelemetry({
+              name: 'rescued',
+              ...getTelemetryContext(presetRef.current),
+              score: uiRef.current.score,
+              rescues: uiRef.current.runRescues,
+              dangerDurationMs: time - dangerStartedAt,
+            });
             const completedExperiment = completeExperimentIfGoalMet();
             sync();
             if (completedExperiment) {
@@ -1810,10 +1929,12 @@ function App() {
   }, [
     completeExperimentIfGoalMet,
     finishDropCooldown,
+    getTerminalMetrics,
     flash,
     isPileBelowDanger,
     resetCombo,
     resolveDropLimit,
+    runElapsedMs,
     sync,
   ]);
 

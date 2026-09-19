@@ -8,12 +8,40 @@ export type TelemetryContext = {
   dailyKey?: string;
 };
 
+export type RunTerminalMetrics = {
+  runDurationMs: number;
+  timeToFirstDecisionMs: number | null;
+  drops: number;
+  merges: number;
+  highestTier: number;
+  holdUses: number;
+  powerUses: number;
+  overdriveStarts: number;
+  dangerStarts: number;
+  rescues: number;
+};
+
 export type TelemetryEventInput =
   | ({ name: 'session_start' } & TelemetryContext)
-  | ({ name: 'run_start' } & TelemetryContext)
+  | ({ name: 'run_started'; resumed: boolean } & TelemetryContext)
+  | ({ name: 'experiment_started'; resumed: boolean } & TelemetryContext)
+  | ({
+      name: 'first_drop';
+      tier: number;
+      drops: number;
+      runElapsedMs: number;
+    } & TelemetryContext)
+  | ({
+      name: 'first_merge';
+      tier: number;
+      combo: number;
+      merges: number;
+      score: number;
+      runElapsedMs: number;
+    } & TelemetryContext)
   | ({ name: 'drop'; tier: number; drops: number } & TelemetryContext)
-  | ({ name: 'hold'; uses: number } & TelemetryContext)
-  | ({ name: 'power_use'; uses: number } & TelemetryContext)
+  | ({ name: 'hold_used'; uses: number } & TelemetryContext)
+  | ({ name: 'power_used'; uses: number } & TelemetryContext)
   | ({
       name: 'merge';
       tier: number;
@@ -23,13 +51,42 @@ export type TelemetryEventInput =
     } & TelemetryContext)
   | ({ name: 'chain'; combo: number; score: number } & TelemetryContext)
   | ({ name: 'order_complete'; orderNo: number; reward: number } & TelemetryContext)
-  | ({ name: 'overdrive_start'; score: number } & TelemetryContext)
+  | ({
+      name: 'overdrive_started';
+      score: number;
+      count: number;
+    } & TelemetryContext)
   | ({ name: 'overdrive_end'; score: number } & TelemetryContext)
-  | ({ name: 'danger_start'; score: number } & TelemetryContext)
+  | ({
+      name: 'danger_started';
+      score: number;
+      count: number;
+    } & TelemetryContext)
   | ({ name: 'danger_end'; rescued: boolean; score: number } & TelemetryContext)
-  | ({ name: 'game_over'; score: number; highestTier: number } & TelemetryContext)
-  | ({ name: 'experiment_complete'; score: number; goalKind: string } & TelemetryContext)
-  | ({ name: 'experiment_failed'; score: number; reason: 'drop_limit' } & TelemetryContext);
+  | ({
+      name: 'rescued';
+      score: number;
+      rescues: number;
+      dangerDurationMs: number;
+    } & TelemetryContext)
+  | ({
+      name: 'game_over';
+      score: number;
+      highestTier: number;
+      metrics: RunTerminalMetrics;
+    } & TelemetryContext)
+  | ({
+      name: 'experiment_completed';
+      score: number;
+      goalKind: string;
+      metrics: RunTerminalMetrics;
+    } & TelemetryContext)
+  | ({
+      name: 'experiment_failed';
+      score: number;
+      reason: 'drop_limit';
+      metrics: RunTerminalMetrics;
+    } & TelemetryContext);
 
 export type TelemetryEvent = TelemetryEventInput & {
   at: number;
