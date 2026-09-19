@@ -52,4 +52,18 @@ Required before merge:
 - dependency audit ✓
 - Aggregate Gate ✓
 
-Status: IN PROGRESS.
+## Verification result
+
+- exact extraction comparison ✓
+- hidden/bidirectional Unicode control scan ✓
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- Audit ✓
+- Aggregate Gate ✓
+
+PR #28 CI run #130 passed on the code extraction head.
+The final documentation-only commit must pass the same PR gate before merge.
+
+Status: DONE.
