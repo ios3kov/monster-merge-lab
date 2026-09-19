@@ -26,6 +26,13 @@ import {
 } from './gameplay';
 import { haptic } from './haptics';
 import {
+  MODE_OPTIONS,
+  createSeededRandom,
+  getRunPreset,
+  type GameMode,
+  type RunPreset,
+} from './modes';
+import {
   DANGER_Y,
   FLOOR_Y,
   HEIGHT,
@@ -64,6 +71,7 @@ type Ui = {
   powerCharges: number;
   overdrive: number;
   overdriveActive: boolean;
+  experimentComplete: boolean;
 };
 
 const COINS_KEY = 'monster-merge-coins-v3';
@@ -469,6 +477,16 @@ function drawMonster(
   ctx.restore();
 }
 
+function drawRunTier(
+  fixedQueue: number[],
+  bag: number[],
+  bestTier: number,
+  random: () => number,
+) {
+  if (fixedQueue.length > 0) return fixedQueue.shift() ?? 0;
+  return drawSpawnTier(bag, bestTier, random);
+}
+
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const worldRef = useRef<World>({ bodies: [] });
@@ -480,6 +498,9 @@ function App() {
   const lastMergeRef = useRef(-Infinity);
   const burstsRef = useRef<Burst[]>([]);
   const spawnBagRef = useRef<number[]>([]);
+  const fixedQueueRef = useRef<number[]>([]);
+  const randomRef = useRef<() => number>(Math.random);
+  const presetRef = useRef<RunPreset>(getRunPreset('endless'));
   const overdriveEndRef = useRef(0);
 
   const initialOrderNo = Math.max(1, readInt(ORDER_KEY, 1));
@@ -488,10 +509,26 @@ function App() {
   const [showMonsters, setShowMonsters] = useState(false);
   const [showShop, setShowShop] = useState(false);
   const [showLab, setShowLab] = useState(false);
+  const [preset, setPreset] = useState<RunPreset>(() => presetRef.current);
   const [ui, setUi] = useState<Ui>(() => {
-    const currentTier = drawSpawnTier(spawnBagRef.current, initialBestTier);
-    const nextTier = drawSpawnTier(spawnBagRef.current, initialBestTier);
-    const afterNextTier = drawSpawnTier(spawnBagRef.current, initialBestTier);
+    const currentTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      initialBestTier,
+      randomRef.current,
+    );
+    const nextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      initialBestTier,
+      randomRef.current,
+    );
+    const afterNextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      initialBestTier,
+      randomRef.current,
+    );
     return {
       score: 0,
       coins: readInt(COINS_KEY, 0),
@@ -514,6 +551,7 @@ function App() {
       powerCharges: readInt(POWER_KEY, 1),
       overdrive: 0,
       overdriveActive: false,
+      experimentComplete: false,
     };
   });
   const uiRef = useRef(ui);
@@ -565,7 +603,14 @@ function App() {
     worldRef.current.bodies.push(spawnBody(tier, x, 82, performance.now()));
     state.currentTier = state.nextTier;
     state.nextTier = state.afterNextTier;
-    state.afterNextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+    const spawnProgressTier =
+      presetRef.current.mode === 'endless' ? state.bestTier : 0;
+    state.afterNextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      spawnProgressTier,
+      randomRef.current,
+    );
     state.canHold = true;
     state.canDrop = false;
     sync();
@@ -578,14 +623,23 @@ function App() {
 
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     dropTimerRef.current = window.setTimeout(() => {
-      if (!uiRef.current.gameOver) {
+      if (!uiRef.current.gameOver && !uiRef.current.experimentComplete) {
         uiRef.current.canDrop = true;
         sync();
       }
     }, DROP_COOLDOWN_MS);
   }, [coach, flash, sync]);
 
-  const restart = useCallback(() => {
+  const resetRun = useCallback((mode: GameMode) => {
+    const nextPreset = getRunPreset(mode);
+    presetRef.current = nextPreset;
+    setPreset(nextPreset);
+    fixedQueueRef.current = [...nextPreset.fixedQueue];
+    randomRef.current =
+      nextPreset.seed === undefined
+        ? Math.random
+        : createSeededRandom(nextPreset.seed);
+
     worldRef.current.bodies = [];
     burstsRef.current = [];
     spawnBagRef.current = [];
@@ -594,14 +648,31 @@ function App() {
     overdriveEndRef.current = 0;
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     if (comboTimerRef.current !== null) window.clearTimeout(comboTimerRef.current);
+
     const state = uiRef.current;
     state.score = 0;
     state.progress = 0;
     state.combo = 0;
     state.bestCombo = 0;
-    state.currentTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
-    state.nextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
-    state.afterNextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+    const spawnProgressTier = mode === 'endless' ? state.bestTier : 0;
+    state.currentTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      spawnProgressTier,
+      randomRef.current,
+    );
+    state.nextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      spawnProgressTier,
+      randomRef.current,
+    );
+    state.afterNextTier = drawRunTier(
+      fixedQueueRef.current,
+      spawnBagRef.current,
+      spawnProgressTier,
+      randomRef.current,
+    );
     state.holdTier = null;
     state.canHold = true;
     state.canDrop = true;
@@ -609,15 +680,33 @@ function App() {
     state.message = '';
     state.overdrive = 0;
     state.overdriveActive = false;
+    state.experimentComplete = false;
     aimXRef.current = WIDTH / 2;
     sync();
     playSound('restart');
     haptic('restart');
   }, [sync]);
 
+  const restart = useCallback(() => {
+    resetRun(presetRef.current.mode);
+  }, [resetRun]);
+
+  const startMode = useCallback((mode: GameMode) => {
+    resetRun(mode);
+    setShowLab(false);
+  }, [resetRun]);
+
   const hold = useCallback(() => {
     const state = uiRef.current;
-    if (!state.canDrop || !state.canHold || state.gameOver) return;
+    if (
+      !presetRef.current.allowHold ||
+      !state.canDrop ||
+      !state.canHold ||
+      state.gameOver ||
+      state.experimentComplete
+    ) {
+      return;
+    }
 
     if (state.holdTier === state.currentTier) {
       flash('Same monster already held');
@@ -628,7 +717,14 @@ function App() {
       state.holdTier = state.currentTier;
       state.currentTier = state.nextTier;
       state.nextTier = state.afterNextTier;
-      state.afterNextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+      const spawnProgressTier =
+        presetRef.current.mode === 'endless' ? state.bestTier : 0;
+      state.afterNextTier = drawRunTier(
+        fixedQueueRef.current,
+        spawnBagRef.current,
+        spawnProgressTier,
+        randomRef.current,
+      );
     } else {
       const held = state.holdTier;
       state.holdTier = state.currentTier;
@@ -660,7 +756,11 @@ function App() {
 
   const nudge = useCallback(() => {
     const state = uiRef.current;
-    if (state.gameOver) return;
+    if (!presetRef.current.allowPower) {
+      flash('Power unavailable in this mode');
+      return;
+    }
+    if (state.gameOver || state.experimentComplete) return;
     if (state.powerCharges <= 0) {
       setShowShop(true);
       flash('Get a Pulse in Shop');
@@ -744,7 +844,8 @@ function App() {
           scoreMultiplier,
       );
 
-      if (!state.overdriveActive) {
+      const activePreset = presetRef.current;
+      if (activePreset.allowOverdrive && !state.overdriveActive) {
         state.overdrive = Math.min(
           OVERDRIVE_MAX,
           state.overdrive + getOverdriveGain(tier, state.combo),
@@ -757,7 +858,7 @@ function App() {
           playSound('order');
           haptic('order');
         }
-      } else {
+      } else if (activePreset.allowOverdrive && state.overdriveActive) {
         const extension = getOverdriveExtensionMs(state.combo);
         if (extension > 0) {
           overdriveEndRef.current = Math.min(
@@ -765,6 +866,9 @@ function App() {
             now + OVERDRIVE_DURATION_MS,
           );
         }
+      } else {
+        state.overdrive = 0;
+        state.overdriveActive = false;
       }
       state.bestTier = Math.max(state.bestTier, tier);
       state.bestScore = Math.max(state.bestScore, state.score);
@@ -779,7 +883,18 @@ function App() {
         sync();
       }, 1250);
 
-      if (tier === state.order.tier) {
+      const goal = activePreset.goal;
+      const completedExperiment =
+        goal?.kind === 'create-tier' &&
+        tier >= goal.tier &&
+        !state.experimentComplete;
+
+      if (completedExperiment) {
+        state.experimentComplete = true;
+        state.canDrop = false;
+      }
+
+      if (activePreset.showOrders && tier === state.order.tier) {
         state.progress += 1;
         if (state.progress >= state.order.count) {
           const reward = state.order.reward;
@@ -796,6 +911,9 @@ function App() {
           playSound('merge');
           haptic('merge');
         }
+      } else if (completedExperiment) {
+        playSound('order');
+        haptic('order');
       } else {
         playSound('merge');
         haptic('merge');
@@ -988,7 +1106,7 @@ function App() {
         sync();
       }
 
-      if (!uiRef.current.gameOver) {
+      if (!uiRef.current.gameOver && !uiRef.current.experimentComplete) {
         const offender = worldRef.current.bodies.some((body) => {
           const speed = Math.hypot(body.vx, body.vy);
           return time - body.bornAt > 900 && body.y - body.r < DANGER_Y && speed < 70;
@@ -1189,51 +1307,85 @@ function App() {
               : '')
           }
           onClick={hold}
-          disabled={!ui.canDrop || !ui.canHold || ui.gameOver}
+          disabled={
+            !preset.allowHold ||
+            !ui.canDrop ||
+            !ui.canHold ||
+            ui.gameOver ||
+            ui.experimentComplete
+          }
           aria-label={
-            ui.holdTier === null
-              ? 'Hold current monster'
-              : 'Swap current monster with held monster'
+            !preset.allowHold
+              ? 'Hold unavailable in this mode'
+              : ui.holdTier === null
+                ? 'Hold current monster'
+                : 'Swap current monster with held monster'
           }
         >
-          <span>{ui.canHold ? 'HOLD' : 'USED'}</span>
+          <span>{!preset.allowHold ? 'LOCKED' : ui.canHold ? 'HOLD' : 'USED'}</span>
           {ui.holdTier === null ? <b>+</b> : <MonsterArt tier={ui.holdTier} size={42} />}
         </button>
 
         <div className="status-cluster">
           <div className="score-plaque">
-            <span>SCORE</span>
+            <span>{preset.mode === 'daily' ? 'DAILY SCORE' : 'SCORE'}</span>
             <strong>{ui.score}</strong>
             {ui.bestCombo > 1 && <small>BEST ×{ui.bestCombo}</small>}
           </div>
-          <div
-            className={'overdrive-panel' + (ui.overdriveActive ? ' is-active' : '')}
-            aria-label={
-              ui.overdriveActive
-                ? 'Lab Overdrive active, double score'
-                : 'Lab Overdrive ' + String(ui.overdrive) + ' percent'
-            }
-          >
-            <span>{ui.overdriveActive ? 'OVERDRIVE ×2' : 'OVERDRIVE'}</span>
-            <i>
-              <b style={{ width: (ui.overdriveActive ? 100 : ui.overdrive) + '%' }} />
-            </i>
-          </div>
+          {preset.allowOverdrive ? (
+            <div
+              className={'overdrive-panel' + (ui.overdriveActive ? ' is-active' : '')}
+              aria-label={
+                ui.overdriveActive
+                  ? 'Lab Overdrive active, double score'
+                  : 'Lab Overdrive ' + String(ui.overdrive) + ' percent'
+              }
+            >
+              <span>{ui.overdriveActive ? 'OVERDRIVE ×2' : 'OVERDRIVE'}</span>
+              <i>
+                <b style={{ width: (ui.overdriveActive ? 100 : ui.overdrive) + '%' }} />
+              </i>
+            </div>
+          ) : (
+            <div className="mode-status" aria-label={preset.title + ', ' + preset.subtitle}>
+              {preset.title} · {preset.subtitle}
+            </div>
+          )}
         </div>
 
-        <section className="orders-board" aria-label="Orders">
-          <h2>ORDERS</h2>
-          {orders.map((order, index) => (
-            <div className={'order-row ' + (index === 0 ? 'current' : '')} key={String(ui.orderNo) + '-' + String(index)}>
-              <MonsterArt tier={order.tier} size={34} />
-              <span>{index === 0 ? ui.progress : 0}/{order.count}</span>
-              <b>● +{order.reward}</b>
+        {preset.showOrders ? (
+          <section className="orders-board" aria-label="Orders">
+            <h2>ORDERS</h2>
+            {orders.map((order, index) => (
+              <div className={'order-row ' + (index === 0 ? 'current' : '')} key={String(ui.orderNo) + '-' + String(index)}>
+                <MonsterArt tier={order.tier} size={34} />
+                <span>{index === 0 ? ui.progress : 0}/{order.count}</span>
+                <b>● +{order.reward}</b>
+              </div>
+            ))}
+            <div className="order-track" aria-hidden="true">
+              <i style={{ width: String(Math.min(100, (ui.progress / ui.order.count) * 100)) + '%' }} />
             </div>
-          ))}
-          <div className="order-track" aria-hidden="true">
-            <i style={{ width: String(Math.min(100, (ui.progress / ui.order.count) * 100)) + '%' }} />
-          </div>
-        </section>
+          </section>
+        ) : (
+          <section className="orders-board mode-objective-board" aria-label={preset.title + ' objective'}>
+            <h2>{preset.mode === 'daily' ? 'DAILY' : 'GOAL'}</h2>
+            <div className="mode-objective">
+              <strong>
+                {preset.mode === 'daily'
+                  ? 'FAIR RUN'
+                  : preset.goal?.label ?? preset.subtitle}
+              </strong>
+              <span>
+                {preset.mode === 'daily'
+                  ? preset.dailyKey
+                  : ui.experimentComplete
+                    ? 'COMPLETE'
+                    : 'Merge two Sprouts'}
+              </span>
+            </div>
+          </section>
+        )}
 
         <div className="game-frame">
           <div className="canvas-wrap">
@@ -1270,10 +1422,23 @@ function App() {
             )}
             {ui.combo > 1 && <div className="combo-badge">CHAIN ×{ui.combo}</div>}
             {ui.message && <div className="toast" role="status">{ui.message}</div>}
-            {ui.gameOver && (
+            {ui.experimentComplete && (
+              <div className="game-over experiment-complete" role="dialog" aria-modal="true">
+                <div className="game-over-card">
+                  <span>EXPERIMENT COMPLETE</span>
+                  <h2>PEEP CREATED</h2>
+                  <p>Goal cleared in {ui.score} points</p>
+                  <div className="completion-actions">
+                    <button autoFocus onClick={restart}>Retry</button>
+                    <button onClick={() => setShowLab(true)}>Lab</button>
+                  </div>
+                </div>
+              </div>
+            )}
+            {ui.gameOver && !ui.experimentComplete && (
               <div className="game-over" role="dialog" aria-modal="true">
                 <div className="game-over-card">
-                  <span>LAB OVERFLOW</span>
+                  <span>{preset.mode === 'daily' ? 'DAILY OVER' : 'LAB OVERFLOW'}</span>
                   <h2>{ui.score}</h2>
                   <p>Best {ui.bestScore}</p>
                   <button autoFocus onClick={restart}>Try again</button>
@@ -1313,7 +1478,12 @@ function App() {
             type="button"
             onClick={nudge}
             className="wood-button power-hit"
-            aria-label={'Power-up. ' + String(ui.powerCharges) + ' available'}
+            disabled={!preset.allowPower || ui.gameOver || ui.experimentComplete}
+            aria-label={
+              preset.allowPower
+                ? 'Power-up. ' + String(ui.powerCharges) + ' available'
+                : 'Power-up unavailable in this mode'
+            }
           >
             <RotateCcw size={22} />
             <span>POWER</span>
@@ -1325,7 +1495,7 @@ function App() {
             type="button"
             onClick={() => setShowLab(true)}
             className="wood-button lab-hit"
-            aria-label="Lab stats"
+            aria-label="Lab and game modes"
           >
             LAB
           </button>
@@ -1402,7 +1572,26 @@ function App() {
             <div className="monster-modal-card lab-card">
               <button autoFocus className="modal-close" onClick={() => setShowLab(false)} aria-label="Close">×</button>
               <h2 id="lab-title">LAB</h2>
+              <div className="mode-grid" role="group" aria-label="Game modes">
+                {MODE_OPTIONS.map((option) => {
+                  const active = option.id === preset.mode;
+                  return (
+                    <button
+                      type="button"
+                      className={'mode-card' + (active ? ' is-active' : '')}
+                      key={option.id}
+                      disabled={active}
+                      onClick={() => startMode(option.id)}
+                    >
+                      <strong>{option.title}</strong>
+                      <span>{option.description}</span>
+                      <b>{active ? 'ACTIVE' : 'START'}</b>
+                    </button>
+                  );
+                })}
+              </div>
               <dl className="lab-stats">
+                <div><dt>Current mode</dt><dd>{preset.title}</dd></div>
                 <div><dt>Best score</dt><dd>{ui.bestScore}</dd></div>
                 <div><dt>Orders completed</dt><dd>{Math.max(0, ui.orderNo - 1)}</dd></div>
                 <div><dt>Highest evolution</dt><dd>{TIER_DEFS[Math.min(ui.bestTier, MAX_TIER)]!.name}</dd></div>
