@@ -51,4 +51,20 @@ Required before merge:
 - dependency audit;
 - Aggregate Gate.
 
-Status: IN PROGRESS.
+## Verification result
+
+- TypeScript ✓
+- ESLint ✓
+- unit tests ✓
+- Chromium E2E/accessibility ✓
+- WebKit E2E/accessibility ✓
+- Offline/PWA ✓
+- Performance ✓
+- dependency audit ✓
+- Aggregate Gate ✓
+- code review found no behavior change in modal states/callbacks ✓
+
+PR #30 CI run #136 passed on the implementation head.
+The final documentation-only head must pass the same gate before merge.
+
+Status: DONE.
