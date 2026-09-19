@@ -84,3 +84,53 @@ test('initial screen has no serious automated accessibility violations', async (
   await page.keyboard.press('Shift+Tab');
   await expect(page.getByRole('button', { name: 'Close' })).toBeFocused();
 });
+
+
+test('idle render loop stays inside a safe frame budget', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+  await page.waitForTimeout(400);
+
+  const stats = await page.evaluate(
+    () =>
+      new Promise<{ average: number; p95: number; max: number }>((resolve) => {
+        const samples: number[] = [];
+        let previous = performance.now();
+
+        const sample = (time: number) => {
+          samples.push(time - previous);
+          previous = time;
+
+          if (samples.length < 120) {
+            requestAnimationFrame(sample);
+            return;
+          }
+
+          const sorted = [...samples].sort((a, b) => a - b);
+          const average =
+            samples.reduce((sum, value) => sum + value, 0) / samples.length;
+          const p95 = sorted[Math.floor(sorted.length * 0.95)] ?? 0;
+          const max = sorted[sorted.length - 1] ?? 0;
+          resolve({ average, p95, max });
+        };
+
+        requestAnimationFrame(sample);
+      }),
+  );
+
+  console.log(
+    'Browser frame profile | average=' +
+      stats.average.toFixed(2) +
+      'ms | p95=' +
+      stats.p95.toFixed(2) +
+      'ms | max=' +
+      stats.max.toFixed(2) +
+      'ms',
+  );
+
+  expect(stats.average).toBeLessThan(35);
+  expect(stats.p95).toBeLessThan(70);
+});
