@@ -1959,7 +1959,9 @@ function App() {
               <h2 id="lab-title">LAB</h2>
               <div className="mode-grid" role="group" aria-label="Game modes">
                 {MODE_OPTIONS.map((option) => {
-                  const active = option.id === preset.mode;
+                  const active =
+                    option.id === preset.mode &&
+                    !(option.id === 'experiments' && ui.experimentComplete);
                   return (
                     <button
                       type="button"
