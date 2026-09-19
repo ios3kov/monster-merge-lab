@@ -199,7 +199,11 @@ This file is updated after each major production step.
 - Fix: props that App always passes now explicitly accept `undefined` rather than being optional/omittable.
 - PR #32 corrected-head run #143: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
 - Code review: terminal visibility rules, copy, Retry/Next/Lab callbacks and game-over score/best/daily/title presentation preserved.
-- Final documentation head must pass the same gate before merge.
+- Final PR head run #145: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- PR #32 merged as 8d9a988.
+- Post-merge main run #146: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓ Deploy ✓.
+- Production endpoint renders the expected game shell/HUD ✓.
+- Interactive live smoke remained waived for the architecture phase.
 
 ### Architecture extraction phase — STOP CRITERION
 - Renderer extracted to src/rendering.tsx.
@@ -209,3 +213,14 @@ This file is updated after each major production step.
 - Terminal run overlays extracted to src/run-overlays.tsx.
 - App.tsx reduced from 2506 to 1925 lines while retaining intentional state/gameplay orchestration.
 - Stop after PR #32 post-merge verification unless a concrete feature or defect exposes a new architecture boundary.
+
+
+## 2026-09-20 — Global audit and professional polish phase
+
+### Global audit baseline — DONE
+- Added docs/GLOBAL_AUDIT_2026-09-20.md.
+- No P0 release blocker found.
+- P1 findings: terminal-dialog isolation, tiny HUD copy, objective truncation, weak disabled-control feedback, incomplete first-run merge instruction, missing automated post-deploy interaction smoke.
+- Performance baseline: physics 0.154 ms/step; browser frame avg 16.55 ms / p95 16.80 ms; JS 90.18 KB gzip; total first-load 354 KB; raw dist 560 KB.
+- Runtime art (lab background + monster atlas) is the dominant remaining transfer cost.
+- Current implementation work addresses all identified P1 items before any P2 optimization.
