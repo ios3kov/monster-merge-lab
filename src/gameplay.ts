@@ -68,11 +68,30 @@ export function drawSpawnTier(
 
 
 export const OVERDRIVE_MAX = 100;
-export const OVERDRIVE_DURATION_MS = 7500;
-export const DANGER_GRACE_MS = 2200;
+export const OVERDRIVE_DURATION_MS = 7200;
+export const DANGER_GRACE_MS = 2400;
+export const DROP_COOLDOWN_MS = 380;
 
 export function getOverdriveGain(tier: number, combo: number) {
   const tierBonus = Math.min(10, Math.max(0, tier) * 2);
-  const chainBonus = Math.min(3, Math.max(0, combo - 1)) * 4;
-  return 10 + tierBonus + chainBonus;
+  const chainBonus = Math.min(3, Math.max(0, combo - 1)) * 3;
+  return 11 + tierBonus + chainBonus;
+}
+
+export function getOverdriveExtensionMs(combo: number) {
+  if (combo <= 1) return 0;
+  return 140 + Math.min(220, (combo - 1) * 60);
+}
+
+export function getMergeShockwave(tier: number, radius: number) {
+  const normalizedTier = Math.max(0, tier);
+  return {
+    radius: radius * 2.15 + 18,
+    impulse: 24 + Math.min(36, normalizedTier * 5),
+    upwardLift: 7,
+    spin: 0.1,
+    impactBase: 0.14,
+    impactGain: 0.18,
+    mergedLift: Math.min(30, 8 + normalizedTier * 3),
+  };
 }
