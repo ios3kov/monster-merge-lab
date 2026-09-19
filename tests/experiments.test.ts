@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   EXPERIMENTS,
   getExperiment,
+  getNextExperimentId,
   validateExperiment,
   validateExperimentCatalog,
   type Experiment,
@@ -10,7 +11,7 @@ import {
 
 test('production Experiment catalog is valid', () => {
   assert.deepEqual(validateExperimentCatalog(), []);
-  assert.ok(EXPERIMENTS.length >= 1);
+  assert.equal(EXPERIMENTS.length, 12);
 });
 
 test('getExperiment returns cloned mutable run data', () => {
@@ -84,4 +85,20 @@ test('same-tier prepared bodies cannot begin inside merge distance', () => {
       error.includes('would auto-merge on load'),
     ),
   );
+});
+
+
+test('Experiment sequence advances through all 12 scenarios', () => {
+  assert.equal(getNextExperimentId('exp-01'), 'exp-02');
+  assert.equal(getNextExperimentId('exp-11'), 'exp-12');
+  assert.equal(getNextExperimentId('exp-12'), null);
+  assert.throws(() => getNextExperimentId('missing'), /Unknown Experiment/);
+});
+
+test('later Experiments use prepared starts and unlock tools progressively', () => {
+  assert.equal(getExperiment('exp-01').startBodies.length, 0);
+  assert.ok(getExperiment('exp-03').startBodies.length > 0);
+  assert.equal(getExperiment('exp-04').allowHold, true);
+  assert.equal(getExperiment('exp-07').allowOverdrive, true);
+  assert.equal(getExperiment('exp-09').allowPower, true);
 });
