@@ -66,6 +66,40 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   expect(errors).toEqual([]);
 });
 
+test('meta shop and saved Order stats stay isolated from non-Endless modes', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.addInitScript(() => {
+    localStorage.setItem('monster-merge-coins-v3', '500');
+    localStorage.setItem('monster-merge-order-v3', '5');
+  });
+
+  await page.goto('/');
+
+  await page.getByRole('button', { name: 'Shop' }).click();
+  const endlessShop = page.getByRole('dialog', { name: 'SHOP' });
+  await expect(endlessShop.getByRole('button', { name: '● 200' })).toBeEnabled();
+  await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
+  await page.getByRole('button', { name: /Daily Experiment/ }).click();
+
+  await page.getByRole('button', { name: 'Shop' }).click();
+  const dailyShop = page.getByRole('dialog', { name: 'SHOP' });
+  await expect(dailyShop).toContainText('Purchases are available in Endless Lab.');
+  await expect(dailyShop.getByRole('button', { name: '● 200' })).toBeDisabled();
+  await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
+  const lab = page.getByRole('dialog', { name: 'LAB' });
+  const ordersRow = lab.locator('dt', { hasText: 'Orders completed' }).locator('..');
+  await expect(ordersRow.locator('dd')).toHaveText('4');
+
+  await expect(page.getByLabel('500 coins')).toBeVisible();
+});
+
 test('telemetry bridge emits real gameplay events', async ({
   page,
 }, testInfo) => {
