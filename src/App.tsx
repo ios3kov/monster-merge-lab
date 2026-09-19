@@ -33,6 +33,11 @@ import {
   type RunPreset,
 } from './modes';
 import {
+  formatGoalProgress,
+  isGoalComplete,
+  type RunMetrics,
+} from './objectives';
+import {
   DANGER_Y,
   FLOOR_Y,
   HEIGHT,
@@ -72,6 +77,15 @@ type Ui = {
   overdrive: number;
   overdriveActive: boolean;
   experimentComplete: boolean;
+  experimentFailed: boolean;
+  experimentFailureReason: string;
+  runHighestTier: number;
+  merges: number;
+  ordersCompletedRun: number;
+  rescues: number;
+  drops: number;
+  holdUses: number;
+  powerUses: number;
 };
 
 const COINS_KEY = 'monster-merge-coins-v3';
@@ -81,6 +95,7 @@ const ORDER_KEY = 'monster-merge-order-v3';
 const COACH_KEY = 'monster-merge-coach-v3';
 const POWER_KEY = 'monster-merge-power-v1';
 const POWER_COST = 200;
+const DANGER_RESCUE_MIN_MS = 300;
 const REDUCED_MOTION =
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -495,6 +510,7 @@ function App() {
   const comboTimerRef = useRef<number | null>(null);
   const messageTimerRef = useRef<number | null>(null);
   const dangerRef = useRef<number | null>(null);
+  const lastDropAtRef = useRef(-Infinity);
   const lastMergeRef = useRef(-Infinity);
   const burstsRef = useRef<Burst[]>([]);
   const spawnBagRef = useRef<number[]>([]);
@@ -552,6 +568,15 @@ function App() {
       overdrive: 0,
       overdriveActive: false,
       experimentComplete: false,
+      experimentFailed: false,
+      experimentFailureReason: '',
+      runHighestTier: 0,
+      merges: 0,
+      ordersCompletedRun: 0,
+      rescues: 0,
+      drops: 0,
+      holdUses: 0,
+      powerUses: 0,
     };
   });
   const uiRef = useRef(ui);
