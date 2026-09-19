@@ -1200,18 +1200,25 @@ function App() {
           {ui.holdTier === null ? <b>+</b> : <MonsterArt tier={ui.holdTier} size={42} />}
         </button>
 
-        <div
-          className={'overdrive-panel' + (ui.overdriveActive ? ' is-active' : '')}
-          aria-label={
-            ui.overdriveActive
-              ? 'Lab Overdrive active, double score'
-              : 'Lab Overdrive ' + String(ui.overdrive) + ' percent'
-          }
-        >
-          <span>{ui.overdriveActive ? 'OVERDRIVE ×2' : 'OVERDRIVE'}</span>
-          <i>
-            <b style={{ width: (ui.overdriveActive ? 100 : ui.overdrive) + '%' }} />
-          </i>
+        <div className="status-cluster">
+          <div className="score-plaque">
+            <span>SCORE</span>
+            <strong>{ui.score}</strong>
+            {ui.bestCombo > 1 && <small>BEST ×{ui.bestCombo}</small>}
+          </div>
+          <div
+            className={'overdrive-panel' + (ui.overdriveActive ? ' is-active' : '')}
+            aria-label={
+              ui.overdriveActive
+                ? 'Lab Overdrive active, double score'
+                : 'Lab Overdrive ' + String(ui.overdrive) + ' percent'
+            }
+          >
+            <span>{ui.overdriveActive ? 'OVERDRIVE ×2' : 'OVERDRIVE'}</span>
+            <i>
+              <b style={{ width: (ui.overdriveActive ? 100 : ui.overdrive) + '%' }} />
+            </i>
+          </div>
         </div>
 
         <section className="orders-board" aria-label="Orders">
@@ -1274,12 +1281,6 @@ function App() {
               </div>
             )}
           </div>
-        </div>
-
-        <div className="score-plaque">
-          <span>SCORE</span>
-          <strong>{ui.score}</strong>
-          {ui.bestCombo > 1 && <small>BEST ×{ui.bestCombo}</small>}
         </div>
 
         <div className="concept-toolbar">
