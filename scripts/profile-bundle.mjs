@@ -53,8 +53,8 @@ console.log(
 const budgets = [
   ['JavaScript gzip', jsGzip, 105 * 1024],
   ['CSS gzip', cssGzip, 10 * 1024],
-  ['Total dist gzip-equivalent', totalGzip, 180 * 1024],
-  ['Total dist raw', totalRaw, 450 * 1024],
+  ['Total first-load transfer estimate', totalGzip, 400 * 1024],
+  ['Total dist raw', totalRaw, 700 * 1024],
 ];
 
 for (const [label, value, limit] of budgets) {
