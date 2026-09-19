@@ -28,6 +28,7 @@ import {
   shiftGameplayTimestampForPause,
   type Order,
 } from './gameplay';
+import { createFixedStepGameLoop } from './game-loop';
 import {
   EXPERIMENTS,
   advanceExperimentProgress,
@@ -1002,9 +1003,6 @@ function App() {
     glassGradient.addColorStop(0.82, 'rgba(255,255,255,.02)');
     glassGradient.addColorStop(1, 'rgba(255,255,255,.13)');
 
-    let frame = 0;
-    let previous = performance.now();
-    let accumulator = 0;
     let lastBounce = -Infinity;
     const tierBuckets = Array.from(
       { length: MAX_TIER + 1 },
@@ -1102,8 +1100,7 @@ function App() {
         hiddenAt = null;
         paused = false;
       }
-      previous = now;
-      accumulator = 0;
+      loopController.resetClock(now);
     };
     document.addEventListener('visibilitychange', onVisibility);
 
@@ -1413,128 +1410,119 @@ function App() {
       }
     };
 
-    const loop = (time: number) => {
-      if (paused) {
-        previous = time;
-        frame = requestAnimationFrame(loop);
-        return;
-      }
-      const delta = Math.min(0.05, (time - previous) / 1000);
-      previous = time;
-      accumulator += delta;
-      while (accumulator >= 1 / 120) {
+    const loopController = createFixedStepGameLoop({
+      isPaused: () => paused,
+      onStep: (time, stepSeconds) => {
         if (!uiRef.current.gameOver && !uiRef.current.experimentFailed) {
-          stepWorld(worldRef.current, 1 / 120, time, onMerge, onImpact);
+          stepWorld(worldRef.current, stepSeconds, time, onMerge, onImpact);
         }
-        accumulator -= 1 / 120;
-      }
-
-      if (
-        uiRef.current.overdriveActive &&
-        time >= overdriveEndRef.current
-      ) {
-        uiRef.current.overdriveActive = false;
-        uiRef.current.overdrive = 0;
-        emitTelemetry({
-          name: 'overdrive_end',
-          ...getTelemetryContext(presetRef.current),
-          score: uiRef.current.score,
-        });
-        sync();
-      }
-
-      if (
-        !uiRef.current.gameOver &&
-        !uiRef.current.experimentComplete &&
-        !uiRef.current.experimentFailed
-      ) {
-        const offender = worldRef.current.bodies.some((body) => {
-          const speed = Math.hypot(body.vx, body.vy);
-          return time - body.bornAt > 900 && body.y - body.r < DANGER_Y && speed < 70;
-        });
-        if (offender) {
-          if (dangerRef.current === null) {
-            dangerRef.current = time;
-            runDangerStartsRef.current += 1;
-            emitTelemetry({
-              name: 'danger_started',
-              ...getTelemetryContext(presetRef.current),
-              score: uiRef.current.score,
-              count: runDangerStartsRef.current,
-            });
-          }
-          if (time - dangerRef.current > DANGER_GRACE_MS) {
-            uiRef.current.gameOver = true;
-            uiRef.current.canDrop = false;
-            storageRemove(ACTIVE_RUN_KEY);
-            if (usesPersistentMetaProgress(presetRef.current.mode)) {
-              uiRef.current.bestScore = Math.max(
-                uiRef.current.bestScore,
-                uiRef.current.score,
-              );
-              storageSet(BEST_SCORE_KEY, String(uiRef.current.bestScore));
+      },
+      onFrame: (time) => {
+        if (
+          uiRef.current.overdriveActive &&
+          time >= overdriveEndRef.current
+        ) {
+          uiRef.current.overdriveActive = false;
+          uiRef.current.overdrive = 0;
+          emitTelemetry({
+            name: 'overdrive_end',
+            ...getTelemetryContext(presetRef.current),
+            score: uiRef.current.score,
+          });
+          sync();
+        }
+  
+        if (
+          !uiRef.current.gameOver &&
+          !uiRef.current.experimentComplete &&
+          !uiRef.current.experimentFailed
+        ) {
+          const offender = worldRef.current.bodies.some((body) => {
+            const speed = Math.hypot(body.vx, body.vy);
+            return time - body.bornAt > 900 && body.y - body.r < DANGER_Y && speed < 70;
+          });
+          if (offender) {
+            if (dangerRef.current === null) {
+              dangerRef.current = time;
+              runDangerStartsRef.current += 1;
+              emitTelemetry({
+                name: 'danger_started',
+                ...getTelemetryContext(presetRef.current),
+                score: uiRef.current.score,
+                count: runDangerStartsRef.current,
+              });
             }
-            emitTelemetry({
-              name: 'game_over',
-              ...getTelemetryContext(presetRef.current),
-              score: uiRef.current.score,
-              highestTier: uiRef.current.runHighestTier,
-              metrics: getTerminalMetrics(),
-            });
-            sync();
-            playSound('fail');
-            haptic('fail');
-          }
-        } else {
-          const dangerStartedAt = dangerRef.current;
-          dangerRef.current = null;
-          if (dangerStartedAt !== null) {
-            emitTelemetry({
-              name: 'danger_end',
-              ...getTelemetryContext(presetRef.current),
-              rescued:
-                time - dangerStartedAt >= 250 &&
-                isPileBelowDanger(),
-              score: uiRef.current.score,
-            });
-          }
-          if (
-            dangerStartedAt !== null &&
-            time - dangerStartedAt >= 250 &&
-            isPileBelowDanger() &&
-            !uiRef.current.experimentComplete &&
-            !uiRef.current.experimentFailed
-          ) {
-            uiRef.current.runRescues += 1;
-            emitTelemetry({
-              name: 'rescued',
-              ...getTelemetryContext(presetRef.current),
-              score: uiRef.current.score,
-              rescues: uiRef.current.runRescues,
-              dangerDurationMs: time - dangerStartedAt,
-            });
-            const completedExperiment = completeExperimentIfGoalMet();
-            sync();
-            if (completedExperiment) {
+            if (time - dangerRef.current > DANGER_GRACE_MS) {
+              uiRef.current.gameOver = true;
+              uiRef.current.canDrop = false;
+              storageRemove(ACTIVE_RUN_KEY);
+              if (usesPersistentMetaProgress(presetRef.current.mode)) {
+                uiRef.current.bestScore = Math.max(
+                  uiRef.current.bestScore,
+                  uiRef.current.score,
+                );
+                storageSet(BEST_SCORE_KEY, String(uiRef.current.bestScore));
+              }
+              emitTelemetry({
+                name: 'game_over',
+                ...getTelemetryContext(presetRef.current),
+                score: uiRef.current.score,
+                highestTier: uiRef.current.runHighestTier,
+                metrics: getTerminalMetrics(),
+              });
+              sync();
+              playSound('fail');
+              haptic('fail');
+            }
+          } else {
+            const dangerStartedAt = dangerRef.current;
+            dangerRef.current = null;
+            if (dangerStartedAt !== null) {
+              emitTelemetry({
+                name: 'danger_end',
+                ...getTelemetryContext(presetRef.current),
+                rescued:
+                  time - dangerStartedAt >= 250 &&
+                  isPileBelowDanger(),
+                score: uiRef.current.score,
+              });
+            }
+            if (
+              dangerStartedAt !== null &&
+              time - dangerStartedAt >= 250 &&
+              isPileBelowDanger() &&
+              !uiRef.current.experimentComplete &&
+              !uiRef.current.experimentFailed
+            ) {
+              uiRef.current.runRescues += 1;
+              emitTelemetry({
+                name: 'rescued',
+                ...getTelemetryContext(presetRef.current),
+                score: uiRef.current.score,
+                rescues: uiRef.current.runRescues,
+                dangerDurationMs: time - dangerStartedAt,
+              });
+              const completedExperiment = completeExperimentIfGoalMet();
+              sync();
+              if (completedExperiment) {
+                playSound('order');
+                haptic('order');
+              }
+            } else if (completeExperimentIfGoalMet()) {
+              sync();
               playSound('order');
               haptic('order');
             }
-          } else if (completeExperimentIfGoalMet()) {
-            sync();
-            playSound('order');
-            haptic('order');
           }
         }
-      }
-
-      draw(time);
-      frame = requestAnimationFrame(loop);
-    };
-
-    frame = requestAnimationFrame(loop);
+  
+        draw(time);
+      },
+    });
+    loopController.start();
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
-      cancelAnimationFrame(frame);
+      loopController.stop();
     };
   }, [
     completeExperimentIfGoalMet,
