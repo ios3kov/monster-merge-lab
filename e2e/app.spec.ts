@@ -249,6 +249,82 @@ test('Experiment progress persists and resumes after reload', async ({
   );
 });
 
+test('active Experiment run restores its physics state after reload', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
+  await page.getByRole('button', { name: /Experiments/ }).click();
+
+  const dropButton = page.getByRole('button', { name: 'Drop monster' });
+  await dropButton.click();
+  await page.waitForTimeout(550);
+
+  await page.reload();
+  await expect(page.getByLabel('Experiment 1 objective')).toContainText(
+    'Create a Peep',
+  );
+
+  const restoredSession = await page.evaluate(() => {
+    const raw = localStorage.getItem('monster-merge-active-run-v1');
+    return raw ? JSON.parse(raw) : null;
+  });
+  expect(restoredSession?.mode).toBe('experiments');
+  expect(restoredSession?.bodies?.length).toBe(1);
+
+  await page.getByRole('button', { name: 'Drop monster' }).click();
+  const completionDialog = page
+    .getByRole('dialog')
+    .filter({ hasText: 'EXPERIMENT COMPLETE' });
+  await expect(completionDialog).toBeVisible({ timeout: 4000 });
+});
+
+test('Daily restores the same visible queue position after reload', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
+  await page.getByRole('button', { name: /Daily Experiment/ }).click();
+
+  await page.getByRole('button', { name: 'Drop monster' }).click();
+  await page.waitForTimeout(550);
+  const expectedNext = await page
+    .getByRole('group', { name: /Next monster tier/ })
+    .getAttribute('aria-label');
+
+  await page.reload();
+  await expect(page.getByLabel('Daily Experiment objective')).toContainText(
+    'FAIR RUN',
+  );
+  await expect(
+    page.getByRole('group', { name: /Next monster tier/ }),
+  ).toHaveAttribute('aria-label', expectedNext ?? '');
+});
+
+test('invalid active-run snapshot falls back safely and is discarded', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.addInitScript(() => {
+    localStorage.setItem('monster-merge-active-run-v1', '{bad json');
+  });
+  await page.goto('/');
+
+  await expect(page.getByRole('region', { name: 'Orders' })).toBeVisible();
+  await expect(
+    page.getByLabel('Experiment 1 objective'),
+  ).toHaveCount(0);
+  const snapshot = await page.evaluate(() =>
+    localStorage.getItem('monster-merge-active-run-v1'),
+  );
+  expect(snapshot).toBeNull();
+});
+
 test('enlarged tank and HUD stay clear across target viewports', async ({
   page,
 }, testInfo) => {
