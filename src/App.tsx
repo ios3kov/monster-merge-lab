@@ -630,8 +630,8 @@ function App() {
     }, DROP_COOLDOWN_MS);
   }, [coach, flash, sync]);
 
-  const resetRun = useCallback((mode: GameMode) => {
-    const nextPreset = getRunPreset(mode);
+  const resetRun = useCallback((mode: GameMode, experimentId?: string) => {
+    const nextPreset = getRunPreset(mode, new Date(), experimentId);
     presetRef.current = nextPreset;
     setPreset(nextPreset);
     fixedQueueRef.current = [...nextPreset.fixedQueue];
@@ -701,7 +701,7 @@ function App() {
   }, [sync]);
 
   const restart = useCallback(() => {
-    resetRun(presetRef.current.mode);
+    resetRun(presetRef.current.mode, presetRef.current.experimentId);
   }, [resetRun]);
 
   const startMode = useCallback((mode: GameMode) => {
