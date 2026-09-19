@@ -50,12 +50,29 @@ Added:
 PR #23 was merged after a full green code run, while later documentation-only runs and the post-merge run failed before checkout with no job steps/logs. Its deploy is therefore still pending and will be included by the next successful aggregate-gated main deploy.
 
 ## Verification
-Pending:
-- Chromium job
-- WebKit job
-- Offline/PWA job
-- Performance job
-- Audit job
-- Aggregate Gate
-- post-merge Deploy
+Workflow structure:
+- Chromium job created ✓
+- WebKit job created ✓
+- Offline/PWA job created ✓
+- Performance job created ✓
+- Audit job created ✓
+- Aggregate Gate created ✓
+- Deploy correctly skipped on PR ✓
+
+External blocker:
+- all GitHub-hosted jobs are failing before `checkout`;
+- job payloads have `steps: null` and no executable logs;
+- failed check-runs contain GitHub system annotations;
+- the same repository code had previously completed a full green run before this startup restriction appeared;
+- GitHub public status currently reports Actions operational.
+
+Pending after account-level Actions startup is restored:
+- execute Chromium
+- execute WebKit
+- execute Offline/PWA
+- execute Performance
+- execute Audit
+- Aggregate Gate green
+- merge
+- post-merge aggregate-gated Deploy
 - production live smoke
