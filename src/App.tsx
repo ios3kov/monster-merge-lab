@@ -984,6 +984,8 @@ function App() {
         ? Math.min(9, Math.max(1, state.combo) + 1)
         : 1;
       state.bestCombo = Math.max(state.bestCombo, state.combo);
+      state.merges += 1;
+      state.runHighestTier = Math.max(state.runHighestTier, tier);
       lastMergeRef.current = now;
       const scoreMultiplier = state.overdriveActive ? 2 : 1;
       state.score += Math.round(
@@ -1032,40 +1034,27 @@ function App() {
         sync();
       }, 1250);
 
-      const goal = activePreset.goal;
-      const completedExperiment =
-        goal?.kind === 'create-tier' &&
-        tier >= goal.tier &&
-        !state.experimentComplete;
-
-      if (completedExperiment) {
-        state.experimentComplete = true;
-        state.canDrop = false;
-      }
-
+      let orderCompleted = false;
       if (activePreset.showOrders && tier === state.order.tier) {
         state.progress += 1;
         if (state.progress >= state.order.count) {
           const reward = state.order.reward;
           state.coins += reward;
           state.orderNo += 1;
+          state.ordersCompletedRun += 1;
           state.order = makeOrder(state.orderNo);
           state.progress = 0;
           storageSet(COINS_KEY, String(state.coins));
           storageSet(ORDER_KEY, String(state.orderNo));
           flash('Order complete +' + String(reward));
-          playSound('order');
-          haptic('order');
-        } else {
-          playSound('merge');
-          haptic('merge');
+          orderCompleted = true;
         }
-      } else if (completedExperiment) {
-        playSound('order');
-        haptic('order');
-      } else {
-        playSound('merge');
-        haptic('merge');
+      }
+
+      const completedExperiment = completeExperimentIfReady();
+      if (!completedExperiment) {
+        playSound(orderCompleted ? 'order' : 'merge');
+        haptic(orderCompleted ? 'order' : 'merge');
       }
       sync();
     };
