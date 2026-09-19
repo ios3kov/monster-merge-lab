@@ -61,9 +61,7 @@ test('initial screen has no serious automated accessibility violations', async (
   page,
 }) => {
   await page.goto('/');
-  const result = await new AxeBuilder({ page })
-    .disableRules(['color-contrast'])
-    .analyze();
+  const result = await new AxeBuilder({ page }).analyze();
 
   const serious = result.violations.filter((violation) =>
     ['serious', 'critical'].includes(violation.impact ?? ''),
@@ -73,9 +71,7 @@ test('initial screen has no serious automated accessibility violations', async (
   await page.getByRole('button', { name: 'Shop' }).click();
   await expect(page.getByRole('dialog', { name: 'SHOP' })).toBeVisible();
 
-  const modalResult = await new AxeBuilder({ page })
-    .disableRules(['color-contrast'])
-    .analyze();
+  const modalResult = await new AxeBuilder({ page }).analyze();
   const modalSerious = modalResult.violations.filter((violation) =>
     ['serious', 'critical'].includes(violation.impact ?? ''),
   );
