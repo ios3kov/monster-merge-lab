@@ -54,7 +54,7 @@ Why it matters:
 - this weakens fast scanning during active play.
 
 Remediation in this pass:
-- raise critical landscape HUD text to a 7–8 px floor while preserving current geometry.
+- raise critical landscape HUD text to an 8 px minimum while preserving current geometry.
 
 #### 2. Disabled control affordance
 
@@ -81,6 +81,10 @@ Genre benchmark:
 
 Remediation in this pass:
 - keep onboarding one-line and lightweight: aim/drop, match twins, do not overflow.
+
+#### Verification catch
+
+The first final-head Chromium pass correctly rejected a remaining 7 px landscape Order reward. The regression guard was kept strict; the UI was fixed instead of weakening the test. The related landscape objective hint was also raised to the same 8 px floor.
 
 ### P1 — portrait HUD readability
 
