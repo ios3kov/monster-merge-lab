@@ -3,6 +3,10 @@ import type { ExperimentGoal, ExperimentLimits } from './goals.ts';
 import { hasLongRun, makeSpawnBag } from './gameplay.ts';
 export type GameMode = 'endless' | 'experiments' | 'daily';
 
+export function usesPersistentMetaProgress(mode: GameMode) {
+  return mode === 'endless';
+}
+
 export type RunPreset = {
   mode: GameMode;
   title: string;
@@ -78,8 +82,14 @@ export function makeDailyQueue(dailyKey: string, length = 96) {
   const random = createSeededRandom(
     hashSeed('monster-merge-lab:daily-queue:' + dailyKey),
   );
-  const opening =
-    DAILY_OPENING_BAGS[hashSeed(dailyKey) % DAILY_OPENING_BAGS.length]!;
+  const parsedDay = Date.parse(dailyKey + 'T00:00:00Z');
+  const dayOrdinal = Number.isFinite(parsedDay)
+    ? Math.floor(parsedDay / 86_400_000)
+    : hashSeed(dailyKey);
+  const openingIndex =
+    ((dayOrdinal % DAILY_OPENING_BAGS.length) + DAILY_OPENING_BAGS.length) %
+    DAILY_OPENING_BAGS.length;
+  const opening = DAILY_OPENING_BAGS[openingIndex]!;
   const queue = [...opening].slice(0, length);
 
   while (queue.length < length) {
