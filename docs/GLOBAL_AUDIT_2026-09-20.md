@@ -75,8 +75,20 @@ Why it matters:
 - first 30-second comprehension depends on discovering the core action quickly;
 - the user should not need an accidental collision to understand the loop.
 
+Genre benchmark:
+- the official Suika Game onboarding explicitly teaches three steps: drop, combine identical pieces, avoid overflow while chasing score;
+- Monster Merge Lab now mirrors that clarity without adding a blocking tutorial screen.
+
 Remediation in this pass:
-- keep onboarding one-line and lightweight, but explicitly mention matching twins to merge.
+- keep onboarding one-line and lightweight: aim/drop, match twins, do not overflow.
+
+### P1 — portrait HUD readability
+
+Several secondary portrait HUD labels were also 7–8 px. They were usable but below the intended polish floor.
+
+Remediation in this pass:
+- raise critical gameplay labels to an 8–9 px floor;
+- add computed-style E2E assertions across target viewports.
 
 ### P1 — performance verification gap
 
@@ -88,7 +100,12 @@ Why it matters:
 
 Remediation in this pass:
 - add a deterministic 48-body active-board browser frame profile;
-- run both idle and crowded profiles in the Performance gate.
+- run idle + crowded profiles only in the dedicated Performance gate to avoid duplicate CI work.
+
+Measured after implementation:
+- crowded Chromium: **16.54 ms average / 16.70 ms p95 / 16.80 ms max**;
+- synthetic crowded WebKit observation during the initial audit run: **20.23 ms average / 30 ms p95 / 218 ms max**;
+- the WebKit p95 remains healthy; the one-off max spike is tracked as a P2 watch item rather than treated as a sustained bottleneck.
 
 ## P2 — follow-up findings
 
@@ -98,11 +115,23 @@ Canvas reduced-motion preference is read when the rendering module loads. CSS re
 
 Status: non-blocking. Candidate for a later accessibility polish PR if needed.
 
+### PWA install icon completeness
+
+The manifest currently has no `icons` entries and the document has no Apple touch icon.
+
+Status: non-blocking, but installed-app polish is incomplete. Schedule a dedicated asset/PWA pass rather than inventing production artwork inside this UX patch.
+
 ### Service-worker cache lifecycle
 
 Runtime hashed assets use cache-first behavior and the cache name remains `monster-merge-lab-shell-v1`. Old hashed runtime assets can accumulate across deployments for long-lived users.
 
 Status: non-blocking storage/maintenance issue. Offline behavior is currently verified and production navigation is network-first.
+
+### WebKit worst-frame spike under synthetic crowd
+
+The crowded synthetic board produced a healthy 30 ms p95 in WebKit but one 218 ms maximum frame on CI.
+
+Status: P2 watch. Do not optimize blindly while sustained metrics remain healthy; re-profile if future rendering/features increase p95 or repeated hitches appear.
 
 ### First-load headroom
 
