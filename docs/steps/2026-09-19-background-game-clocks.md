@@ -28,7 +28,7 @@ PR #21:
 - browser E2E ✓
 - responsive/accessibility ✓
 
-Pending:
-- post-merge CI
-- Cloudflare deploy
-- live smoke
+Completed:
+- post-merge CI ✓
+- Cloudflare deploy ✓
+- production live smoke ✓
