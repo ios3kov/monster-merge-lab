@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   EXPERIMENTS,
+  advanceExperimentProgress,
   getExperiment,
   getNextExperimentId,
+  getResumeExperimentId,
   validateExperiment,
   validateExperimentCatalog,
   type Experiment,
@@ -154,4 +156,25 @@ test('every power-enabled Experiment has a finite free run budget', () => {
       assert.equal(experiment.limits?.powerUses, undefined);
     }
   }
+});
+
+
+test('Experiment progress resumes the first incomplete scenario', () => {
+  assert.equal(getResumeExperimentId(0), 'exp-01');
+  assert.equal(getResumeExperimentId(1), 'exp-02');
+  assert.equal(getResumeExperimentId(11), 'exp-12');
+  assert.equal(getResumeExperimentId(12), 'exp-01');
+  assert.equal(getResumeExperimentId(999), 'exp-01');
+  assert.equal(getResumeExperimentId(-5), 'exp-01');
+});
+
+test('Experiment progress only moves forward and clamps to the catalog', () => {
+  assert.equal(advanceExperimentProgress(0, 'exp-01'), 1);
+  assert.equal(advanceExperimentProgress(4, 'exp-02'), 4);
+  assert.equal(advanceExperimentProgress(4, 'exp-07'), 7);
+  assert.equal(advanceExperimentProgress(99, 'exp-12'), EXPERIMENTS.length);
+  assert.throws(
+    () => advanceExperimentProgress(0, 'missing'),
+    /Unknown Experiment/,
+  );
 });
