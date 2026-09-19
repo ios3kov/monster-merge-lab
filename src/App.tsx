@@ -654,6 +654,7 @@ function App() {
     }
 
     const now = performance.now();
+    const randomState = getSeededRandomState(randomRef.current);
     const session: ActiveRunSession = {
       version: 1,
       savedAt: Date.now(),
@@ -696,9 +697,7 @@ function App() {
         state.overdriveActive && overdriveEndRef.current > 0
           ? Math.max(0, overdriveEndRef.current - now)
           : 0,
-      ...(getSeededRandomState(randomRef.current) === undefined
-        ? {}
-        : { randomState: getSeededRandomState(randomRef.current) }),
+      ...(randomState === undefined ? {} : { randomState }),
     };
 
     storageSet(ACTIVE_RUN_KEY, encodeActiveRunSession(session));
