@@ -279,6 +279,32 @@ function broadPhase(bodies: Body[]) {
   );
 }
 
+function applyMergeShockwave(bodies: Body[], merged: Body) {
+  const radius = merged.r * 2.45 + 28;
+  const baseImpulse = 38 + merged.tier * 7;
+
+  for (const body of bodies) {
+    if (body.id === merged.id) continue;
+
+    const dx = body.x - merged.x;
+    const dy = body.y - merged.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance <= 0.001 || distance >= radius) continue;
+
+    const falloff = 1 - distance / radius;
+    const impulse = baseImpulse * falloff;
+    const nx = dx / distance;
+    const ny = dy / distance;
+
+    body.vx += nx * impulse;
+    body.vy += ny * impulse - 10 * falloff;
+    body.omega += Math.sign(dx || 1) * falloff * 0.16;
+    body.impact = Math.max(body.impact, 0.18 + falloff * 0.26);
+  }
+
+  merged.vy -= Math.min(42, 10 + merged.tier * 4);
+}
+
 function findMerges(bodies: Body[], now: number) {
   const consumed = new Set<number>();
   const pairs: Array<[Body, Body]> = [];
@@ -365,6 +391,7 @@ export function stepWorld(
       merged.impact = 0.78;
       merged.pressure = Math.min(0.5, (a.pressure + b.pressure) * 0.3);
       nextBodies.push(merged);
+      applyMergeShockwave(nextBodies, merged);
       onMerge({ tier, x: merged.x, y: merged.y });
     }
 
