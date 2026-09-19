@@ -66,6 +66,54 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   expect(errors).toEqual([]);
 });
 
+test('telemetry bridge emits real gameplay events', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.addInitScript(() => {
+    const events: string[] = [];
+    Object.defineProperty(window, '__monsterMergeTelemetry', {
+      value: events,
+      configurable: true,
+    });
+    window.addEventListener('monster-merge:telemetry', (event: Event) => {
+      const detail = (event as CustomEvent<{ name?: string }>).detail;
+      if (detail?.name) events.push(detail.name);
+    });
+  });
+
+  await page.goto('/');
+
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as Window & {
+              __monsterMergeTelemetry?: string[];
+            }
+          ).__monsterMergeTelemetry ?? [],
+      ),
+    )
+    .toContain('session_start');
+
+  await page.getByRole('button', { name: 'Drop monster' }).click();
+
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as Window & {
+              __monsterMergeTelemetry?: string[];
+            }
+          ).__monsterMergeTelemetry ?? [],
+      ),
+    )
+    .toContain('drop');
+});
+
 test('mode hub starts functional Experiment and Daily runs', async ({
   page,
 }, testInfo) => {
