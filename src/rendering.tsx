@@ -8,10 +8,7 @@ import {
   WIDTH,
   type Body,
 } from './physics';
-
-export const REDUCED_MOTION =
-  typeof window !== 'undefined' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+import { prefersReducedMotion } from './motion';
 const HYBRID_ATLAS_URL = '/assets/monster-atlas-v1.webp';
 const HYBRID_TIER_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 7];
 const HYBRID_IRIS = [
@@ -353,17 +350,18 @@ export function drawMonster(
   const index = atlasIndex(body.tier);
   const { column, row } = atlasPosition(index);
   const speed = Math.hypot(body.vx ?? 0, body.vy ?? 0);
+  const reducedMotion = prefersReducedMotion();
   const idle =
-    !REDUCED_MOTION && speed < 70
+    !reducedMotion && speed < 70
       ? Math.sin(time * 0.0021 + body.id * 1.19)
       : 0;
   const pressure = Math.min(1, body.pressure ?? 0);
   const impact = Math.min(1, body.impact ?? 0);
-  const motionScale = REDUCED_MOTION ? 0.6 : 1;
+  const motionScale = reducedMotion ? 0.6 : 1;
   const squash = (impact * 0.075 + pressure * 0.035) * motionScale;
   const breathe = idle * 0.018 * (1 - pressure) * motionScale;
   const nervous =
-    !REDUCED_MOTION && pressure > 0.46
+    !reducedMotion && pressure > 0.46
       ? Math.sin(time * 0.025 + body.id) * 0.018
       : 0;
   const radius = body.r * (body.tier >= 5 ? 1.08 : 1.12);
