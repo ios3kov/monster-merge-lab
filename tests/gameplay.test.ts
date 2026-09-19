@@ -2,9 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   DANGER_GRACE_MS,
+  DROP_COOLDOWN_MS,
   OVERDRIVE_DURATION_MS,
   OVERDRIVE_MAX,
   drawSpawnTier,
+  getMergeShockwave,
+  getOverdriveExtensionMs,
   getOverdriveGain,
   hasLongRun,
   makeOrder,
@@ -75,5 +78,38 @@ test('Overdrive and rescue timings keep the peak short and the rescue tense', ()
   assert.ok(OVERDRIVE_DURATION_MS >= 6500);
   assert.ok(OVERDRIVE_DURATION_MS <= 8500);
   assert.ok(DANGER_GRACE_MS >= 1800);
+  assert.ok(DANGER_GRACE_MS <= 2500);
+});
+
+
+test('Overdrive cadence lands after about eight ordinary tier-one merges', () => {
+  const ordinaryGain = getOverdriveGain(1, 1);
+  assert.ok(ordinaryGain * 7 < OVERDRIVE_MAX);
+  assert.ok(ordinaryGain * 8 >= OVERDRIVE_MAX);
+});
+
+test('chains extend Overdrive without making every merge prolong it', () => {
+  assert.equal(getOverdriveExtensionMs(1), 0);
+  assert.ok(getOverdriveExtensionMs(2) > 0);
+  assert.ok(getOverdriveExtensionMs(5) <= 360);
+});
+
+test('drop rhythm stays responsive without allowing accidental double drops', () => {
+  assert.ok(DROP_COOLDOWN_MS >= 320);
+  assert.ok(DROP_COOLDOWN_MS <= 420);
+});
+
+test('shockwave scales with monster size but stays bounded', () => {
+  const low = getMergeShockwave(1, 20);
+  const high = getMergeShockwave(6, 60);
+
+  assert.ok(low.radius < high.radius);
+  assert.ok(low.impulse < high.impulse);
+  assert.ok(high.impulse <= 60);
+  assert.ok(high.mergedLift <= 30);
+});
+
+test('rescue window is readable but still tense', () => {
+  assert.ok(DANGER_GRACE_MS >= 2300);
   assert.ok(DANGER_GRACE_MS <= 2500);
 });
