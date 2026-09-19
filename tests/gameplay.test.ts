@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  DANGER_GRACE_MS,
+  OVERDRIVE_DURATION_MS,
+  OVERDRIVE_MAX,
   drawSpawnTier,
+  getOverdriveGain,
   hasLongRun,
   makeOrder,
   makeSpawnBag,
@@ -43,4 +47,33 @@ test('orders scale reward and required count', () => {
   assert.equal(makeOrder(5).count, 2);
   assert.equal(makeOrder(10).count, 3);
   assert.ok(makeOrder(10).reward > makeOrder(1).reward);
+});
+
+
+test('Overdrive reaches a payoff after a meaningful midgame merge streak', () => {
+  const sequence = [
+    [1, 1],
+    [2, 1],
+    [2, 2],
+    [3, 1],
+    [2, 2],
+    [3, 3],
+  ] as const;
+
+  let meter = 0;
+  for (let i = 0; i < sequence.length; i += 1) {
+    const [tier, combo] = sequence[i]!;
+    meter += getOverdriveGain(tier, combo);
+    if (i < sequence.length - 1) {
+      assert.ok(meter < OVERDRIVE_MAX);
+    }
+  }
+  assert.ok(meter >= OVERDRIVE_MAX);
+});
+
+test('Overdrive and rescue timings keep the peak short and the rescue tense', () => {
+  assert.ok(OVERDRIVE_DURATION_MS >= 6500);
+  assert.ok(OVERDRIVE_DURATION_MS <= 8500);
+  assert.ok(DANGER_GRACE_MS >= 1800);
+  assert.ok(DANGER_GRACE_MS <= 2500);
 });
