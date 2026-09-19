@@ -89,11 +89,14 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await dropButton.click();
   await page.waitForTimeout(500);
   await dropButton.click();
-  await expect(
-    page.getByRole('dialog').filter({ hasText: 'EXPERIMENT COMPLETE' }),
-  ).toBeVisible({ timeout: 4000 });
+  const completionDialog = page
+    .getByRole('dialog')
+    .filter({ hasText: 'EXPERIMENT COMPLETE' });
+  await expect(completionDialog).toBeVisible({ timeout: 4000 });
 
-  await page.getByRole('button', { name: 'Lab' }).click();
+  await completionDialog
+    .getByRole('button', { name: 'Lab', exact: true })
+    .click();
   await page.getByRole('button', { name: /Daily Experiment/ }).click();
 
   await expect(
