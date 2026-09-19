@@ -1,14 +1,7 @@
 import { getExperiment, type StartBody } from './experiments.ts';
-export type GameMode = 'endless' | 'experiments' | 'daily';
+import type { Goal } from './objectives.ts';
 
-export type Goal =
-  | {
-      kind: 'create-tier';
-      tier: number;
-      label: string;
-      hint: string;
-      successLabel: string;
-    };
+export type GameMode = 'endless' | 'experiments' | 'daily';
 
 export type RunPreset = {
   mode: GameMode;
@@ -24,6 +17,9 @@ export type RunPreset = {
   goal?: Goal;
   dailyKey?: string;
   experimentId?: string;
+  maxDrops?: number;
+  maxHoldUses?: number;
+  maxPowerUses?: number;
 };
 
 export const MODE_OPTIONS: ReadonlyArray<{
@@ -88,9 +84,12 @@ export function getRunPreset(
       allowHold: experiment.allowHold,
       allowPower: experiment.allowPower,
       allowOverdrive: experiment.allowOverdrive,
-      showOrders: false,
+      showOrders: experiment.showOrders ?? false,
       goal: { ...experiment.goal },
       experimentId: experiment.id,
+      maxDrops: experiment.maxDrops,
+      maxHoldUses: experiment.maxHoldUses,
+      maxPowerUses: experiment.maxPowerUses,
     };
   }
 
