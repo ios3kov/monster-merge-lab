@@ -66,11 +66,21 @@ export function createSeededRandom(seed: number) {
   };
 }
 
+const DAILY_OPENING_BAGS: readonly (readonly number[])[] = [
+  [0, 0, 1, 0, 0, 0, 1, 0],
+  [0, 1, 0, 0, 0, 1, 0, 0],
+  [0, 0, 0, 1, 0, 0, 1, 0],
+];
+
 export function makeDailyQueue(dailyKey: string, length = 96) {
+  if (length <= 0) return [];
+
   const random = createSeededRandom(
     hashSeed('monster-merge-lab:daily-queue:' + dailyKey),
   );
-  const queue: number[] = [];
+  const opening =
+    DAILY_OPENING_BAGS[hashSeed(dailyKey) % DAILY_OPENING_BAGS.length]!;
+  const queue = [...opening].slice(0, length);
 
   while (queue.length < length) {
     let bag: number[] | null = null;
