@@ -112,7 +112,7 @@ This file is updated after each major production step.
 - Normalizing internal telemetry to the original production vocabulary.
 - Canonical events: run_started, first_drop, first_merge, hold_used, power_used, overdrive_started, danger_started, rescued, experiment_started, experiment_completed, experiment_failed.
 - Low-level drop/merge/chain/order_complete/danger_end/overdrive_end remain available where useful.
-- Terminal events include run duration, first-decision time, drops, merges, HOLD/Power usage, Overdrive starts, danger starts and rescues.
+- Terminal events include run duration, first-decision time, drops, merges, highest tier, HOLD/Power usage, Overdrive starts, danger starts and rescues.
 - Active run timing excludes background time.
 - Optional telemetry timing/counters persist across reload without breaking existing v1 snapshots.
 - No external analytics SDK, persistence service, network calls or PII.
