@@ -137,3 +137,18 @@ test('invalid goals and limits are rejected by catalog validation', () => {
   assert.ok(errors.some((error) => error.includes('goal chain')));
   assert.ok(errors.some((error) => error.includes('limit drops')));
 });
+
+
+test('every power-enabled Experiment has a finite free run budget', () => {
+  for (const experiment of EXPERIMENTS) {
+    if (experiment.allowPower) {
+      assert.ok(
+        experiment.limits?.powerUses !== undefined &&
+          experiment.limits.powerUses > 0,
+        experiment.id + ' must define powerUses',
+      );
+    } else {
+      assert.equal(experiment.limits?.powerUses, undefined);
+    }
+  }
+});
