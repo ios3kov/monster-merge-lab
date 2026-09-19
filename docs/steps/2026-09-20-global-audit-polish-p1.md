@@ -72,8 +72,9 @@ The PR must not materially regress these values.
 
 PR #33 run #147 failed in Audit at TypeScript before merge:
 
-- root cause: local DOM traversal variable `parent` triggered TS7022 inference ambiguity;
-- fix: renamed it to `container`;
+- run #147 showed TS7022 around the DOM traversal temporary;
+- renaming alone did not resolve the recursive control-flow inference; run #148 reproduced TS7022 on the new name;
+- actual fix: explicitly type the traversal parent as `HTMLElement | null`;
 - no behavior or UX semantics changed.
 
 Status: IN PROGRESS.
