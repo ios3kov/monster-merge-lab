@@ -874,7 +874,7 @@ function App() {
     sync();
     playSound('ui');
     haptic('drop');
-  }, [flash, sync]);
+  }, [completeExperimentIfReady, failExperiment, flash, sync]);
 
   const buyPower = useCallback(() => {
     const state = uiRef.current;
@@ -1244,24 +1244,63 @@ function App() {
         sync();
       }
 
-      if (!uiRef.current.gameOver && !uiRef.current.experimentComplete) {
+      if (
+        !uiRef.current.gameOver &&
+        !uiRef.current.experimentComplete &&
+        !uiRef.current.experimentFailed
+      ) {
         const offender = worldRef.current.bodies.some((body) => {
           const speed = Math.hypot(body.vx, body.vy);
           return time - body.bornAt > 900 && body.y - body.r < DANGER_Y && speed < 70;
         });
+
         if (offender) {
           if (dangerRef.current === null) dangerRef.current = time;
           if (time - dangerRef.current > DANGER_GRACE_MS) {
-            uiRef.current.gameOver = true;
-            uiRef.current.canDrop = false;
-            uiRef.current.bestScore = Math.max(uiRef.current.bestScore, uiRef.current.score);
-            storageSet(BEST_SCORE_KEY, String(uiRef.current.bestScore));
-            sync();
-            playSound('fail');
-            haptic('fail');
+            if (presetRef.current.mode === 'experiments') {
+              failExperiment('Danger line held too long');
+            } else {
+              uiRef.current.gameOver = true;
+              uiRef.current.canDrop = false;
+              uiRef.current.bestScore = Math.max(
+                uiRef.current.bestScore,
+                uiRef.current.score,
+              );
+              storageSet(BEST_SCORE_KEY, String(uiRef.current.bestScore));
+              sync();
+              playSound('fail');
+              haptic('fail');
+            }
           }
         } else {
+          const dangerStartedAt = dangerRef.current;
           dangerRef.current = null;
+          if (
+            dangerStartedAt !== null &&
+            time - dangerStartedAt >= DANGER_RESCUE_MIN_MS
+          ) {
+            uiRef.current.rescues += 1;
+            if (!completeExperimentIfReady()) sync();
+          }
+        }
+
+        completeExperimentIfReady();
+
+        const activePreset = presetRef.current;
+        if (
+          activePreset.mode === 'experiments' &&
+          activePreset.maxDrops !== undefined &&
+          uiRef.current.drops >= activePreset.maxDrops &&
+          time - lastDropAtRef.current >= 1200 &&
+          !uiRef.current.experimentComplete &&
+          !uiRef.current.experimentFailed
+        ) {
+          const settled = worldRef.current.bodies.every(
+            (body) => Math.hypot(body.vx, body.vy) < 24,
+          );
+          if (settled && !completeExperimentIfReady()) {
+            failExperiment('Drop limit reached');
+          }
         }
       }
 
