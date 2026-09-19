@@ -3,8 +3,10 @@ import test from 'node:test';
 import {
   createSeededRandom,
   getRunPreset,
+  getSeededRandomState,
   getUtcDayKey,
   makeDailyQueue,
+  setSeededRandomState,
   usesPersistentMetaProgress,
 } from '../src/modes.ts';
 
@@ -102,4 +104,27 @@ test('consecutive UTC days always rotate the visible Daily opener', () => {
     assert.notDeepEqual(previous, next);
     previous = next;
   }
+});
+
+
+test('seeded random state can resume the exact deterministic sequence', () => {
+  const random = createSeededRandom(42);
+  const prefix = [random(), random(), random()];
+  const state = getSeededRandomState(random);
+  const expectedTail = [random(), random(), random()];
+
+  const restored = createSeededRandom(42);
+  setSeededRandomState(restored, state);
+  const actualTail = [restored(), restored(), restored()];
+
+  assert.equal(prefix.length, 3);
+  assert.deepEqual(actualTail, expectedTail);
+});
+
+test('state helpers reject restoring seeded state into Math.random', () => {
+  assert.equal(getSeededRandomState(Math.random), undefined);
+  assert.throws(
+    () => setSeededRandomState(Math.random, 123),
+    /not stateful/,
+  );
 });
