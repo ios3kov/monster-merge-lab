@@ -163,7 +163,7 @@ test('telemetry bridge emits real gameplay events', async ({
           ).__monsterMergeTelemetry ?? [],
       ),
     )
-    .toContain('session_start');
+    .toContain('run_started');
 
   await page.getByRole('button', { name: 'Drop monster' }).click();
 
@@ -178,7 +178,7 @@ test('telemetry bridge emits real gameplay events', async ({
           ).__monsterMergeTelemetry ?? [],
       ),
     )
-    .toContain('drop');
+    .toContain('first_drop');
 });
 
 test('mode hub starts functional Experiment and Daily runs', async ({
@@ -199,6 +199,18 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await expect(page.getByLabel('Experiment 1 objective')).toContainText(
     'Create a Peep',
   );
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as Window & {
+              __monsterMergeTelemetry?: string[];
+            }
+          ).__monsterMergeTelemetry ?? [],
+      ),
+    )
+    .toContain('experiment_started');
 
   const dropButton = page.getByRole('button', { name: 'Drop monster' });
   await dropButton.click();
