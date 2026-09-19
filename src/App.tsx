@@ -41,6 +41,9 @@ type Ui = {
   progress: number;
   currentTier: number;
   nextTier: number;
+  afterNextTier: number;
+  holdTier: number | null;
+  canHold: boolean;
   canDrop: boolean;
   gameOver: boolean;
   sound: boolean;
@@ -48,6 +51,8 @@ type Ui = {
   bestCombo: number;
   message: string;
   powerCharges: number;
+  overdrive: number;
+  overdriveActive: boolean;
 };
 
 const COINS_KEY = 'monster-merge-coins-v3';
@@ -57,6 +62,9 @@ const ORDER_KEY = 'monster-merge-order-v3';
 const COACH_KEY = 'monster-merge-coach-v3';
 const POWER_KEY = 'monster-merge-power-v1';
 const POWER_COST = 200;
+const OVERDRIVE_MAX = 100;
+const OVERDRIVE_DURATION_MS = 9000;
+const DANGER_GRACE_MS = 3000;
 const HYBRID_ATLAS_URL =
   'https://gcdn.picsart.com/editing-temp/f69fe466-c03a-4502-b5c1-7c5dfce62c4c.webp';
 const HYBRID_TIER_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 7];
@@ -97,11 +105,44 @@ function makeOrder(orderNo: number): Order {
   return { tier, count, reward: (tier + 1) * count * 60 };
 }
 
-function spawnTier(bestTier: number) {
-  const r = Math.random();
-  if (bestTier >= 6 && r < 0.08) return 2;
-  if (bestTier >= 3 && r < 0.28) return 1;
-  return 0;
+function shuffle<T>(items: T[]) {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j]!, result[i]!];
+  }
+  return result;
+}
+
+function hasLongRun(items: number[], maxRun = 3) {
+  let run = 1;
+  for (let i = 1; i < items.length; i += 1) {
+    run = items[i] === items[i - 1] ? run + 1 : 1;
+    if (run > maxRun) return true;
+  }
+  return false;
+}
+
+function makeSpawnBag(bestTier: number) {
+  const base =
+    bestTier >= 6
+      ? [0, 0, 0, 0, 0, 1, 1, 2]
+      : bestTier >= 3
+        ? [0, 0, 0, 0, 0, 0, 1, 1]
+        : [0, 0, 0, 0, 0, 0, 0, 0];
+
+  if (new Set(base).size === 1) return base;
+
+  let candidate = shuffle(base);
+  for (let attempt = 0; attempt < 12 && hasLongRun(candidate); attempt += 1) {
+    candidate = shuffle(base);
+  }
+  return candidate;
+}
+
+function drawSpawnTier(bag: number[], bestTier: number) {
+  if (bag.length === 0) bag.push(...makeSpawnBag(bestTier));
+  return bag.shift() ?? 0;
 }
 
 function atlasIndex(tier: number) {
@@ -473,6 +514,8 @@ function App() {
   const dangerRef = useRef<number | null>(null);
   const lastMergeRef = useRef(-Infinity);
   const burstsRef = useRef<Burst[]>([]);
+  const spawnBagRef = useRef<number[]>([]);
+  const overdriveEndRef = useRef(0);
 
   const initialOrderNo = Math.max(1, readInt(ORDER_KEY, 1));
   const initialBestTier = readInt(BEST_TIER_KEY, 0);
@@ -480,24 +523,34 @@ function App() {
   const [showMonsters, setShowMonsters] = useState(false);
   const [showShop, setShowShop] = useState(false);
   const [showLab, setShowLab] = useState(false);
-  const [ui, setUi] = useState<Ui>(() => ({
-    score: 0,
-    coins: readInt(COINS_KEY, 0),
-    bestScore: readInt(BEST_SCORE_KEY, 0),
-    bestTier: initialBestTier,
-    orderNo: initialOrderNo,
-    order: makeOrder(initialOrderNo),
-    progress: 0,
-    currentTier: 0,
-    nextTier: spawnTier(initialBestTier),
-    canDrop: true,
-    gameOver: false,
-    sound: readSoundEnabled(),
-    combo: 0,
-    bestCombo: 0,
-    message: '',
-    powerCharges: readInt(POWER_KEY, 1),
-  }));
+  const [ui, setUi] = useState<Ui>(() => {
+    const currentTier = drawSpawnTier(spawnBagRef.current, initialBestTier);
+    const nextTier = drawSpawnTier(spawnBagRef.current, initialBestTier);
+    const afterNextTier = drawSpawnTier(spawnBagRef.current, initialBestTier);
+    return {
+      score: 0,
+      coins: readInt(COINS_KEY, 0),
+      bestScore: readInt(BEST_SCORE_KEY, 0),
+      bestTier: initialBestTier,
+      orderNo: initialOrderNo,
+      order: makeOrder(initialOrderNo),
+      progress: 0,
+      currentTier,
+      nextTier,
+      afterNextTier,
+      holdTier: null,
+      canHold: true,
+      canDrop: true,
+      gameOver: false,
+      sound: readSoundEnabled(),
+      combo: 0,
+      bestCombo: 0,
+      message: '',
+      powerCharges: readInt(POWER_KEY, 1),
+      overdrive: 0,
+      overdriveActive: false,
+    };
+  });
   const uiRef = useRef(ui);
   uiRef.current = ui;
 
@@ -546,7 +599,9 @@ function App() {
 
     worldRef.current.bodies.push(spawnBody(tier, x, 82, performance.now()));
     state.currentTier = state.nextTier;
-    state.nextTier = spawnTier(state.bestTier);
+    state.nextTier = state.afterNextTier;
+    state.afterNextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+    state.canHold = true;
     state.canDrop = false;
     sync();
     if (coach) {
@@ -568,8 +623,10 @@ function App() {
   const restart = useCallback(() => {
     worldRef.current.bodies = [];
     burstsRef.current = [];
+    spawnBagRef.current = [];
     dangerRef.current = null;
     lastMergeRef.current = -Infinity;
+    overdriveEndRef.current = 0;
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     if (comboTimerRef.current !== null) window.clearTimeout(comboTimerRef.current);
     const state = uiRef.current;
@@ -577,15 +634,41 @@ function App() {
     state.progress = 0;
     state.combo = 0;
     state.bestCombo = 0;
-    state.currentTier = 0;
-    state.nextTier = spawnTier(state.bestTier);
+    state.currentTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+    state.nextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+    state.afterNextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+    state.holdTier = null;
+    state.canHold = true;
     state.canDrop = true;
     state.gameOver = false;
     state.message = '';
+    state.overdrive = 0;
+    state.overdriveActive = false;
     aimXRef.current = WIDTH / 2;
     sync();
     playSound('restart');
     haptic('restart');
+  }, [sync]);
+
+  const hold = useCallback(() => {
+    const state = uiRef.current;
+    if (!state.canDrop || !state.canHold || state.gameOver) return;
+
+    if (state.holdTier === null) {
+      state.holdTier = state.currentTier;
+      state.currentTier = state.nextTier;
+      state.nextTier = state.afterNextTier;
+      state.afterNextTier = drawSpawnTier(spawnBagRef.current, state.bestTier);
+    } else {
+      const held = state.holdTier;
+      state.holdTier = state.currentTier;
+      state.currentTier = held;
+    }
+
+    state.canHold = false;
+    sync();
+    playSound('ui');
+    haptic('drop');
   }, [sync]);
 
   const buyPower = useCallback(() => {
@@ -660,7 +743,33 @@ function App() {
         : 1;
       state.bestCombo = Math.max(state.bestCombo, state.combo);
       lastMergeRef.current = now;
-      state.score += Math.round(10 * 2 ** tier * (1 + (state.combo - 1) * 0.25));
+      const scoreMultiplier = state.overdriveActive ? 2 : 1;
+      state.score += Math.round(
+        10 *
+          2 ** tier *
+          (1 + (state.combo - 1) * 0.25) *
+          scoreMultiplier,
+      );
+
+      if (!state.overdriveActive) {
+        state.overdrive = Math.min(
+          OVERDRIVE_MAX,
+          state.overdrive + 18 + Math.min(22, tier * 4) + (state.combo > 1 ? 8 : 0),
+        );
+        if (state.overdrive >= OVERDRIVE_MAX) {
+          state.overdrive = 0;
+          state.overdriveActive = true;
+          overdriveEndRef.current = now + OVERDRIVE_DURATION_MS;
+          flash('LAB OVERDRIVE ×2');
+          playSound('order');
+          haptic('order');
+        }
+      } else {
+        overdriveEndRef.current = Math.min(
+          overdriveEndRef.current + 320,
+          now + OVERDRIVE_DURATION_MS,
+        );
+      }
       state.bestTier = Math.max(state.bestTier, tier);
       state.bestScore = Math.max(state.bestScore, state.score);
       storageSet(BEST_TIER_KEY, String(state.bestTier));
@@ -709,7 +818,10 @@ function App() {
     const draw = (time: number) => {
       drawTank(ctx);
 
-      const danger = dangerRef.current === null ? 0 : Math.min(1, (time - dangerRef.current) / 1400);
+      const danger =
+        dangerRef.current === null
+          ? 0
+          : Math.min(1, (time - dangerRef.current) / DANGER_GRACE_MS);
       if (danger > 0) {
         ctx.fillStyle = 'rgba(205,55,67,' + String(0.06 + danger * 0.15) + ')';
         ctx.fillRect(LEFT_WALL + 2, DANGER_Y - 12, RIGHT_WALL - LEFT_WALL - 4, 24);
@@ -722,6 +834,20 @@ function App() {
       ctx.lineTo(RIGHT_WALL - 8, DANGER_Y);
       ctx.stroke();
       ctx.setLineDash([]);
+
+      if (danger > 0 && dangerRef.current !== null) {
+        const remaining = Math.max(
+          0,
+          (DANGER_GRACE_MS - (time - dangerRef.current)) / 1000,
+        );
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = '900 14px Inter, system-ui, sans-serif';
+        ctx.fillStyle = 'rgba(112,26,31,.9)';
+        ctx.fillText('SAVE IT  ' + remaining.toFixed(1), WIDTH / 2, DANGER_Y + 24);
+        ctx.restore();
+      }
 
       const tier = uiRef.current.currentTier;
       const def = TIER_DEFS[tier]!;
@@ -835,6 +961,15 @@ function App() {
         accumulator -= 1 / 120;
       }
 
+      if (
+        uiRef.current.overdriveActive &&
+        time >= overdriveEndRef.current
+      ) {
+        uiRef.current.overdriveActive = false;
+        uiRef.current.overdrive = 0;
+        sync();
+      }
+
       if (!uiRef.current.gameOver) {
         const offender = worldRef.current.bodies.some((body) => {
           const speed = Math.hypot(body.vx, body.vy);
@@ -842,7 +977,7 @@ function App() {
         });
         if (offender) {
           if (dangerRef.current === null) dangerRef.current = time;
-          if (time - dangerRef.current > 1400) {
+          if (time - dangerRef.current > DANGER_GRACE_MS) {
             uiRef.current.gameOver = true;
             uiRef.current.canDrop = false;
             uiRef.current.bestScore = Math.max(uiRef.current.bestScore, uiRef.current.score);
@@ -871,6 +1006,7 @@ function App() {
     if (dropTimerRef.current !== null) window.clearTimeout(dropTimerRef.current);
     if (comboTimerRef.current !== null) window.clearTimeout(comboTimerRef.current);
     if (messageTimerRef.current !== null) window.clearTimeout(messageTimerRef.current);
+    overdriveEndRef.current = 0;
   }, []);
 
   useEffect(() => {
@@ -896,7 +1032,7 @@ function App() {
 
   return (
     <main className="app-shell">
-      <section className="game-shell">
+      <section className={'game-shell' + (ui.overdriveActive ? ' is-overdrive' : '')}>
         <div className="top-actions concept-top-actions">
           <div className="coin-pill" aria-label={String(ui.coins) + ' coins'}>
             <span className="coin">●</span>
@@ -907,9 +1043,50 @@ function App() {
           </button>
         </div>
 
-        <div className="next-board" aria-label={'Next monster tier ' + String(ui.nextTier + 1)}>
+        <div
+          className="next-board"
+          aria-label={
+            'Next monster tier ' +
+            String(ui.nextTier + 1) +
+            ', then tier ' +
+            String(ui.afterNextTier + 1)
+          }
+        >
           <strong>NEXT</strong>
           <MonsterArt tier={ui.nextTier} size={60} />
+          <span className="after-next" aria-hidden="true">
+            <small>+1</small>
+            <MonsterArt tier={ui.afterNextTier} size={30} />
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className={'hold-board' + (!ui.canHold ? ' is-used' : '')}
+          onClick={hold}
+          disabled={!ui.canDrop || !ui.canHold || ui.gameOver}
+          aria-label={
+            ui.holdTier === null
+              ? 'Hold current monster'
+              : 'Swap current monster with held monster'
+          }
+        >
+          <span>HOLD</span>
+          {ui.holdTier === null ? <b>+</b> : <MonsterArt tier={ui.holdTier} size={42} />}
+        </button>
+
+        <div
+          className={'overdrive-panel' + (ui.overdriveActive ? ' is-active' : '')}
+          aria-label={
+            ui.overdriveActive
+              ? 'Lab Overdrive active, double score'
+              : 'Lab Overdrive ' + String(ui.overdrive) + ' percent'
+          }
+        >
+          <span>{ui.overdriveActive ? 'OVERDRIVE ×2' : 'OVERDRIVE'}</span>
+          <i>
+            <b style={{ width: (ui.overdriveActive ? 100 : ui.overdrive) + '%' }} />
+          </i>
         </div>
 
         <section className="orders-board" aria-label="Orders">
