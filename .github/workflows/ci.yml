@@ -17,19 +17,61 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: Install
         run: npm install --no-fund
-      - name: Typecheck
-        run: npm run typecheck
-      - name: Lint
-        run: npm run lint
-      - name: Build
-        run: npm run build
-      - name: Production dependency audit
-        run: npm run audit:prod
+
+      - name: Verify code, unit tests and budgets
+        run: npm run verify
+
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser, responsive and accessibility smoke tests
+        run: npm run test:e2e
+
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Upload generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-lockfile
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 3
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout config
+        uses: actions/checkout@v4
+
+      - name: Download verified build
+        uses: actions/download-artifact@v4
+        with:
+          name: production-dist
+          path: dist
+
+      - name: Deploy verified build
+        run: npx --yes wrangler@4 deploy --config wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 018d8fa99d7e951d6c5751dd456ba7e1
