@@ -34,3 +34,27 @@ Recover an in-progress run after a mobile browser reload, tab eviction, or proce
 - First PR gate stopped at TypeScript `exactOptionalPropertyTypes`: the optional RNG state was inferred as `number | undefined`.
 - Fix: compute RNG state once and only add the property when it is defined.
 - No runtime code reached browser/deploy from the failed gate.
+
+
+## PR verification
+After the exact-optional fix:
+- typecheck ✓
+- lint ✓
+- unit tests ✓
+- physics performance budget ✓
+- production build ✓
+- bundle/first-load budgets ✓
+- production dependency audit ✓
+- browser E2E ✓
+- responsive smoke ✓
+- accessibility smoke ✓
+- Experiment body survives reload and completes with the next matching drop ✓
+- Daily visible queue position survives reload ✓
+- corrupt snapshot is discarded and fresh Endless loads ✓
+
+Pending:
+- final-head CI after documentation commit
+- merge
+- post-merge CI
+- Cloudflare deploy
+- production live smoke
