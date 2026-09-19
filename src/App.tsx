@@ -42,7 +42,6 @@ import {
 } from './goals';
 import { haptic } from './haptics';
 import {
-  MODE_OPTIONS,
   createSeededRandom,
   getRunPreset,
   getSeededRandomState,
