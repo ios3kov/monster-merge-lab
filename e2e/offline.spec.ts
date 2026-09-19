@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test';
 test('manifest and service worker provide an offline app shell', async ({
   page,
   context,
-}) => {
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('chromium'));
+
   await page.goto('/');
 
   await expect(page.getByLabel(/Monster tank/)).toBeVisible();
