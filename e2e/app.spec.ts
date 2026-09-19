@@ -53,7 +53,13 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
     await page.getByRole('button', { name: 'Drop monster' }).click();
   }
 
+  const dropButton = page.getByRole('button', { name: 'Drop monster' });
+  await expect(dropButton).toBeDisabled();
   await page.waitForTimeout(550);
+  await expect(dropButton).toBeEnabled();
+  await expect(
+    page.getByRole('button', { name: /Hold current monster|Swap current/ }),
+  ).toBeEnabled();
   expect(errors).toEqual([]);
 });
 
