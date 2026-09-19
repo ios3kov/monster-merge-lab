@@ -50,13 +50,20 @@ This file is updated after each major production step.
 - Production live smoke ✓.
 
 
-### Active run persistence — VERIFIED IN PR
+### Active run persistence — DONE
 - Recover active run after mobile tab/process eviction or reload.
 - Versioned/validated snapshot preserves mode, physics bodies, queue/HOLD, run counters, Danger and Overdrive.
 - Body IDs are recreated safely; relative body age is restored.
 - Daily seeded RNG state is serialized so deterministic continuation is preserved.
 - Stale/corrupt/wrong-day snapshots fall back safely.
 - Terminal states clear the snapshot.
-- PR #22 verification: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
+- PR #22 + final-head + post-merge CI: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
 - Reload E2E: Experiment body restore ✓ Daily queue continuity ✓ corrupt snapshot fallback ✓.
-- Next: final-head CI → merge → post-merge CI → Cloudflare deploy → live smoke.
+- Cloudflare deploy ✓.
+- Production live smoke ✓.
+
+
+### Final production audit — IN PROGRESS
+- Re-check current main after all gameplay/mode/session changes.
+- Focus: remaining UX regressions, session edge cases, stale documentation, production security/performance/test gates.
+- No large refactor unless the audit finds a concrete need.
