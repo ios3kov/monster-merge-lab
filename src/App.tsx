@@ -1545,8 +1545,9 @@ function App() {
     preset.goal,
     getRunGoalContext(ui, isPileBelowDanger()),
   );
-  const powerUsesRemaining =
-    preset.mode === 'experiments' && preset.limits?.powerUses !== undefined
+  const powerUsesRemaining = !preset.allowPower
+    ? 0
+    : preset.mode === 'experiments' && preset.limits?.powerUses !== undefined
       ? Math.max(0, preset.limits.powerUses - ui.runPowerUses)
       : ui.powerCharges;
 
