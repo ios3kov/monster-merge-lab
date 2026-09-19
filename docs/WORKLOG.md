@@ -120,15 +120,22 @@ This file is updated after each major production step.
 - Production live smoke ✓.
 
 
-### Final production sign-off — IN PROGRESS
-- No new features.
-- Final audit found no release-blocking runtime defect.
-- Updated stale production documentation for:
-  - active-run persistence;
-  - background gameplay clocks;
-  - WebKit coverage;
-  - PWA/offline support;
-  - parallel CI and Aggregate Gate;
-  - canonical internal telemetry.
-- Remaining architectural debt is limited to the size/responsibility of App.tsx and is non-blocking.
-- Final gate: PR CI → Aggregate Gate → merge → main Deploy → production live smoke.
+### Final production sign-off — DONE
+- PR #27 merged.
+- PR CI run #128: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Post-merge main run #129: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓ Deploy ✓.
+- Production endpoint responds and renders the expected game shell/HUD ✓.
+- Interactive live smoke was explicitly waived by the user on 2026-09-20 after deploy; no product failure was observed.
+- Production-polish phase closed. New work proceeds as a separate architecture phase.
+
+## 2026-09-20 — Architecture phase
+
+### Renderer extraction — DONE
+- Goal: reduce App.tsx responsibility before future feature-heavy work.
+- Scope is behavior-neutral: moved monster/canvas drawing helpers and MonsterArt into src/rendering.tsx.
+- Physics, state, timers, persistence, telemetry and game rules remain unchanged.
+- App.tsx reduced from 2506 to 2116 lines.
+- Exact extraction review: renderer implementation matches the original source block 1:1 after exports/imports.
+- Hidden/bidirectional Unicode controls: none in changed files.
+- PR #28 run #130: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Final documentation commit follows; merge remains gated on the final PR head.
