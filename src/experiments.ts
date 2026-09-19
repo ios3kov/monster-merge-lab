@@ -312,6 +312,22 @@ export function getNextExperimentId(id: string) {
   return EXPERIMENTS[index + 1]?.id ?? null;
 }
 
+export function getResumeExperimentId(completedCount: number) {
+  const safeCompleted = Number.isFinite(completedCount)
+    ? Math.max(0, Math.min(EXPERIMENTS.length, Math.floor(completedCount)))
+    : 0;
+  return EXPERIMENTS[safeCompleted]?.id ?? EXPERIMENTS[0]!.id;
+}
+
+export function advanceExperimentProgress(completedCount: number, id: string) {
+  const index = EXPERIMENTS.findIndex((item) => item.id === id);
+  if (index < 0) throw new Error(`Unknown Experiment: ${id}`);
+  const safeCompleted = Number.isFinite(completedCount)
+    ? Math.max(0, Math.min(EXPERIMENTS.length, Math.floor(completedCount)))
+    : 0;
+  return Math.max(safeCompleted, index + 1);
+}
+
 export function validateExperiment(experiment: Experiment) {
   const errors: string[] = [];
 
