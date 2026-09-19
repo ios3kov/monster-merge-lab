@@ -36,6 +36,8 @@ export type SavedRunUi = {
   runPowerUses: number;
   runOrdersCompleted: number;
   runRescues: number;
+  runOverdriveStarts?: number;
+  runDangerStarts?: number;
 };
 
 export type ActiveRunSession = {
@@ -51,6 +53,8 @@ export type ActiveRunSession = {
   aimX: number;
   dangerElapsedMs: number | null;
   overdriveRemainingMs: number;
+  runElapsedMs?: number;
+  firstDecisionElapsedMs?: number | null;
   randomState?: number;
 };
 
@@ -102,7 +106,11 @@ function validUi(value: unknown): value is SavedRunUi {
     nonNegativeInteger(ui.runHoldUses) &&
     nonNegativeInteger(ui.runPowerUses) &&
     nonNegativeInteger(ui.runOrdersCompleted) &&
-    nonNegativeInteger(ui.runRescues)
+    nonNegativeInteger(ui.runRescues) &&
+    (ui.runOverdriveStarts === undefined ||
+      nonNegativeInteger(ui.runOverdriveStarts)) &&
+    (ui.runDangerStarts === undefined ||
+      nonNegativeInteger(ui.runDangerStarts))
   );
 }
 
@@ -193,6 +201,16 @@ export function decodeActiveRunSession(
       ) ||
       !finite(value.overdriveRemainingMs) ||
       value.overdriveRemainingMs < 0 ||
+      !(
+        value.runElapsedMs === undefined ||
+        (finite(value.runElapsedMs) && value.runElapsedMs >= 0)
+      ) ||
+      !(
+        value.firstDecisionElapsedMs === undefined ||
+        value.firstDecisionElapsedMs === null ||
+        (finite(value.firstDecisionElapsedMs) &&
+          value.firstDecisionElapsedMs >= 0)
+      ) ||
       !(
         value.randomState === undefined ||
         nonNegativeInteger(value.randomState)
