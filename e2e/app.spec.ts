@@ -609,6 +609,9 @@ test('critical HUD copy stays legible across target viewports', async ({
   for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto('/');
+    await expect(page.getByLabel(/Monster tank/)).toBeVisible();
+    await expect(page.locator('.overdrive-panel > span')).toBeVisible();
+    await expect(page.locator('.orders-board h2')).toBeVisible();
 
     const initialSizes = await page.evaluate(() => {
       const selectors = [
@@ -637,6 +640,8 @@ test('critical HUD copy stays legible across target viewports', async ({
 
     await page.getByRole('button', { name: 'Lab and game modes' }).click();
     await page.getByRole('button', { name: /^Experiments\b/ }).click();
+    await expect(page.locator('.mode-objective strong')).toBeVisible();
+    await expect(page.locator('.mode-objective span')).toBeVisible();
 
     const objectiveSizes = await page.evaluate(() => {
       const selectors = ['.mode-objective strong', '.mode-objective span'];
