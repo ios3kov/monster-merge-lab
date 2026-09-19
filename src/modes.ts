@@ -1,6 +1,6 @@
 import { getExperiment, type StartBody } from './experiments.ts';
 import type { ExperimentGoal, ExperimentLimits } from './goals.ts';
-import { drawSpawnTier } from './gameplay.ts';
+import { hasLongRun, makeSpawnBag } from './gameplay.ts';
 export type GameMode = 'endless' | 'experiments' | 'daily';
 
 export type RunPreset = {
@@ -70,12 +70,24 @@ export function makeDailyQueue(dailyKey: string, length = 96) {
   const random = createSeededRandom(
     hashSeed('monster-merge-lab:daily-queue:' + dailyKey),
   );
-  const bag: number[] = [];
   const queue: number[] = [];
-  for (let i = 0; i < length; i += 1) {
-    queue.push(drawSpawnTier(bag, 0, random));
+
+  while (queue.length < length) {
+    let bag: number[] | null = null;
+    for (let attempt = 0; attempt < 64; attempt += 1) {
+      const candidate = makeSpawnBag(0, random);
+      if (!hasLongRun([...queue.slice(-3), ...candidate], 3)) {
+        bag = candidate;
+        break;
+      }
+    }
+    if (!bag) {
+      throw new Error('Unable to create fair Daily queue');
+    }
+    queue.push(...bag);
   }
-  return queue;
+
+  return queue.slice(0, length);
 }
 
 export function getRunPreset(
