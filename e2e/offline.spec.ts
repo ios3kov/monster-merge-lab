@@ -38,7 +38,59 @@ test('manifest and service worker provide an offline app shell', async ({
 
   const manifest = await page.request.get('/manifest.webmanifest');
   expect(manifest.ok()).toBe(true);
-  expect((await manifest.json()).start_url).toBe('/');
+  const manifestJson = await manifest.json();
+  expect(manifestJson.start_url).toBe('/');
+  expect(manifestJson.icons).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        src: '/icons/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      }),
+      expect.objectContaining({
+        src: '/icons/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      }),
+    ]),
+  );
+
+  const icon = await page.request.get('/icons/icon-192.png');
+  expect(icon.ok()).toBe(true);
+  expect(icon.headers()['content-type']).toContain('image/png');
+
+  await page.evaluate(async () => {
+    const cache = await caches.open('monster-merge-lab-runtime-v2');
+    for (let index = 0; index < 30; index += 1) {
+      await cache.put(
+        '/assets/stale-' + String(index) + '.js',
+        new Response('stale', {
+          headers: { 'content-type': 'application/javascript' },
+        }),
+      );
+    }
+
+    await fetch('/assets/lab-bg-v1.webp?cache-prune-check=1');
+  });
+
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        const names = await caches.keys();
+        const runtime = await caches.open('monster-merge-lab-runtime-v2');
+        return {
+          names,
+          runtimeEntries: (await runtime.keys()).length,
+        };
+      }),
+    )
+    .toMatchObject({
+      names: expect.arrayContaining([
+        'monster-merge-lab-shell-v2',
+        'monster-merge-lab-runtime-v2',
+      ]),
+      runtimeEntries: 24,
+    });
 
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
