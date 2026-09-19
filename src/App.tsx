@@ -1440,6 +1440,16 @@ function App() {
   };
 
   const orders = [ui.order, makeOrder(ui.orderNo + 1), makeOrder(ui.orderNo + 2)];
+  const holdLimitReached =
+    preset.maxHoldUses !== undefined && ui.holdUses >= preset.maxHoldUses;
+  const powerLimitReached =
+    preset.maxPowerUses !== undefined && ui.powerUses >= preset.maxPowerUses;
+  const dropLimitReached =
+    preset.maxDrops !== undefined && ui.drops >= preset.maxDrops;
+  const goalProgress =
+    preset.goal === undefined
+      ? ''
+      : formatGoalProgress(preset.goal, getRunMetrics());
 
   return (
     <main className="app-shell">
@@ -1486,20 +1496,32 @@ function App() {
           onClick={hold}
           disabled={
             !preset.allowHold ||
+            holdLimitReached ||
             !ui.canDrop ||
             !ui.canHold ||
             ui.gameOver ||
-            ui.experimentComplete
+            ui.experimentComplete ||
+            ui.experimentFailed
           }
           aria-label={
             !preset.allowHold
               ? 'Hold unavailable in this mode'
-              : ui.holdTier === null
-                ? 'Hold current monster'
-                : 'Swap current monster with held monster'
+              : holdLimitReached
+                ? 'Hold limit reached'
+                : ui.holdTier === null
+                  ? 'Hold current monster'
+                  : 'Swap current monster with held monster'
           }
         >
-          <span>{!preset.allowHold ? 'LOCKED' : ui.canHold ? 'HOLD' : 'USED'}</span>
+          <span>
+            {!preset.allowHold
+              ? 'LOCKED'
+              : holdLimitReached
+                ? 'LIMIT'
+                : ui.canHold
+                  ? 'HOLD'
+                  : 'USED'}
+          </span>
           {ui.holdTier === null ? <b>+</b> : <MonsterArt tier={ui.holdTier} size={42} />}
         </button>
 
@@ -1558,7 +1580,11 @@ function App() {
                   ? preset.dailyKey
                   : ui.experimentComplete
                     ? 'COMPLETE'
-                    : preset.goal?.hint ?? preset.subtitle}
+                    : ui.experimentFailed
+                      ? 'FAILED'
+                      : preset.goal
+                        ? preset.goal.hint + ' · ' + goalProgress
+                        : preset.subtitle}
               </span>
             </div>
           </section>
@@ -1612,6 +1638,19 @@ function App() {
                 </div>
               </div>
             )}
+            {ui.experimentFailed && !ui.experimentComplete && (
+              <div className="game-over experiment-failed" role="dialog" aria-modal="true">
+                <div className="game-over-card">
+                  <span>EXPERIMENT FAILED</span>
+                  <h2>TRY ANOTHER APPROACH</h2>
+                  <p>{ui.experimentFailureReason}</p>
+                  <div className="completion-actions">
+                    <button autoFocus onClick={restart}>Retry</button>
+                    <button onClick={() => setShowLab(true)}>Lab</button>
+                  </div>
+                </div>
+              </div>
+            )}
             {ui.gameOver && !ui.experimentComplete && (
               <div className="game-over" role="dialog" aria-modal="true">
                 <div className="game-over-card">
@@ -1646,8 +1685,14 @@ function App() {
             type="button"
             onClick={drop}
             className="concept-drop-button drop-hit"
-            disabled={!ui.canDrop || ui.gameOver}
-            aria-label="Drop monster"
+            disabled={
+              !ui.canDrop ||
+              ui.gameOver ||
+              ui.experimentComplete ||
+              ui.experimentFailed ||
+              dropLimitReached
+            }
+            aria-label={dropLimitReached ? 'Drop limit reached' : 'Drop monster'}
           >
             DROP
           </button>
@@ -1655,11 +1700,19 @@ function App() {
             type="button"
             onClick={nudge}
             className="wood-button power-hit"
-            disabled={!preset.allowPower || ui.gameOver || ui.experimentComplete}
+            disabled={
+              !preset.allowPower ||
+              powerLimitReached ||
+              ui.gameOver ||
+              ui.experimentComplete ||
+              ui.experimentFailed
+            }
             aria-label={
-              preset.allowPower
-                ? 'Power-up. ' + String(ui.powerCharges) + ' available'
-                : 'Power-up unavailable in this mode'
+              !preset.allowPower
+                ? 'Power-up unavailable in this mode'
+                : powerLimitReached
+                  ? 'Power-up limit reached'
+                  : 'Power-up. ' + String(ui.powerCharges) + ' available'
             }
           >
             <RotateCcw size={22} />
