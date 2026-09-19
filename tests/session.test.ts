@@ -114,3 +114,22 @@ test('body restore creates fresh ids while preserving relative physics state', (
   assert.equal(restored.pressure, original.pressure);
   assert.equal(9_000 - restored.bornAt, 750);
 });
+
+
+test('optional telemetry run metrics survive active-session round-trip', () => {
+  const session = fixture();
+  session.ui.runOverdriveStarts = 2;
+  session.ui.runDangerStarts = 3;
+  session.runElapsedMs = 12_345;
+  session.firstDecisionElapsedMs = 620;
+
+  const decoded = decodeActiveRunSession(
+    encodeActiveRunSession(session),
+    session.savedAt,
+  );
+
+  assert.equal(decoded?.ui.runOverdriveStarts, 2);
+  assert.equal(decoded?.ui.runDangerStarts, 3);
+  assert.equal(decoded?.runElapsedMs, 12_345);
+  assert.equal(decoded?.firstDecisionElapsedMs, 620);
+});
