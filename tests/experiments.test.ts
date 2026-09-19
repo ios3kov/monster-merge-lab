@@ -112,7 +112,10 @@ test('designed Experiments exercise the real goal system and limits', () => {
   assert.equal(getExperiment('exp-08').goal.kind, 'create-merges');
   assert.equal(getExperiment('exp-09').goal.kind, 'pile-below-danger');
   assert.deepEqual(getExperiment('exp-10').limits, { powerUses: 1 });
-  assert.deepEqual(getExperiment('exp-11').limits, { holdUses: 2 });
+  assert.deepEqual(getExperiment('exp-11').limits, {
+    holdUses: 2,
+    powerUses: 1,
+  });
   assert.deepEqual(getExperiment('exp-12').limits, {
     drops: 14,
     holdUses: 3,
@@ -136,4 +139,19 @@ test('invalid goals and limits are rejected by catalog validation', () => {
   const errors = validateExperiment(invalid);
   assert.ok(errors.some((error) => error.includes('goal chain')));
   assert.ok(errors.some((error) => error.includes('limit drops')));
+});
+
+
+test('every power-enabled Experiment has a finite free run budget', () => {
+  for (const experiment of EXPERIMENTS) {
+    if (experiment.allowPower) {
+      assert.ok(
+        experiment.limits?.powerUses !== undefined &&
+          experiment.limits.powerUses > 0,
+        experiment.id + ' must define powerUses',
+      );
+    } else {
+      assert.equal(experiment.limits?.powerUses, undefined);
+    }
+  }
 });

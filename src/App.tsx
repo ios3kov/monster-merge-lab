@@ -35,6 +35,7 @@ import {
   MODE_OPTIONS,
   createSeededRandom,
   getRunPreset,
+  usesPersistentMetaProgress,
   type GameMode,
   type RunPreset,
 } from './modes';
@@ -789,6 +790,11 @@ function App() {
     const state = uiRef.current;
     state.score = 0;
     state.progress = 0;
+    const runOrderNo = usesPersistentMetaProgress(mode)
+      ? Math.max(1, readInt(ORDER_KEY, 1))
+      : 1;
+    state.orderNo = runOrderNo;
+    state.order = makeOrder(runOrderNo);
     state.combo = 0;
     state.bestCombo = 0;
     const spawnProgressTier = mode === 'endless' ? state.bestTier : 0;
@@ -927,7 +933,10 @@ function App() {
       flash('Pulse limit reached');
       return;
     }
-    if (state.powerCharges <= 0) {
+    const consumesInventory = usesPersistentMetaProgress(
+      presetRef.current.mode,
+    );
+    if (consumesInventory && state.powerCharges <= 0) {
       setShowShop(true);
       flash('Get a Pulse in Shop');
       return;
@@ -936,14 +945,16 @@ function App() {
       flash('Drop a monster first');
       return;
     }
-    state.powerCharges -= 1;
+    if (consumesInventory) {
+      state.powerCharges -= 1;
+      storageSet(POWER_KEY, String(state.powerCharges));
+    }
     state.runPowerUses += 1;
     emitTelemetry({
       name: 'power_use',
       ...getTelemetryContext(presetRef.current),
       uses: state.runPowerUses,
     });
-    storageSet(POWER_KEY, String(state.powerCharges));
     sync();
     for (const body of worldRef.current.bodies) {
       const direction = body.x < WIDTH / 2 ? -1 : 1;
@@ -1066,10 +1077,12 @@ function App() {
         state.overdrive = 0;
         state.overdriveActive = false;
       }
-      state.bestTier = Math.max(state.bestTier, tier);
-      state.bestScore = Math.max(state.bestScore, state.score);
-      storageSet(BEST_TIER_KEY, String(state.bestTier));
-      storageSet(BEST_SCORE_KEY, String(state.bestScore));
+      if (usesPersistentMetaProgress(activePreset.mode)) {
+        state.bestTier = Math.max(state.bestTier, tier);
+        state.bestScore = Math.max(state.bestScore, state.score);
+        storageSet(BEST_TIER_KEY, String(state.bestTier));
+        storageSet(BEST_SCORE_KEY, String(state.bestScore));
+      }
       burstsRef.current.push({ x, y, tier, start: now });
       if (burstsRef.current.length > 14) burstsRef.current.shift();
 
@@ -1084,7 +1097,10 @@ function App() {
         state.progress += 1;
         if (state.progress >= state.order.count) {
           const reward = state.order.reward;
-          state.coins += reward;
+          const persistentOrder = usesPersistentMetaProgress(activePreset.mode);
+          if (persistentOrder) {
+            state.coins += reward;
+          }
           state.orderNo += 1;
           state.order = makeOrder(state.orderNo);
           state.progress = 0;
@@ -1094,11 +1110,15 @@ function App() {
             name: 'order_complete',
             ...telemetryContext,
             orderNo: state.orderNo - 1,
-            reward,
+            reward: persistentOrder ? reward : 0,
           });
-          storageSet(COINS_KEY, String(state.coins));
-          storageSet(ORDER_KEY, String(state.orderNo));
-          flash('Order complete +' + String(reward));
+          if (persistentOrder) {
+            storageSet(COINS_KEY, String(state.coins));
+            storageSet(ORDER_KEY, String(state.orderNo));
+            flash('Order complete +' + String(reward));
+          } else {
+            flash('Order complete');
+          }
           playSound('order');
           haptic('order');
         }
@@ -1332,8 +1352,13 @@ function App() {
           if (time - dangerRef.current > DANGER_GRACE_MS) {
             uiRef.current.gameOver = true;
             uiRef.current.canDrop = false;
-            uiRef.current.bestScore = Math.max(uiRef.current.bestScore, uiRef.current.score);
-            storageSet(BEST_SCORE_KEY, String(uiRef.current.bestScore));
+            if (usesPersistentMetaProgress(presetRef.current.mode)) {
+              uiRef.current.bestScore = Math.max(
+                uiRef.current.bestScore,
+                uiRef.current.score,
+              );
+              storageSet(BEST_SCORE_KEY, String(uiRef.current.bestScore));
+            }
             emitTelemetry({
               name: 'game_over',
               ...getTelemetryContext(presetRef.current),
@@ -1520,6 +1545,11 @@ function App() {
     preset.goal,
     getRunGoalContext(ui, isPileBelowDanger()),
   );
+  const powerUsesRemaining = !preset.allowPower
+    ? 0
+    : preset.mode === 'experiments' && preset.limits?.powerUses !== undefined
+      ? Math.max(0, preset.limits.powerUses - ui.runPowerUses)
+      : ui.powerCharges;
 
   return (
     <main className="app-shell">
@@ -1730,7 +1760,13 @@ function App() {
                 <div className="game-over-card">
                   <span>{preset.mode === 'daily' ? 'DAILY OVER' : 'LAB OVERFLOW'}</span>
                   <h2>{ui.score}</h2>
-                  <p>Best {ui.bestScore}</p>
+                  <p>
+                    {preset.mode === 'endless'
+                      ? 'Best ' + String(ui.bestScore)
+                      : preset.mode === 'daily'
+                        ? preset.dailyKey
+                        : preset.title}
+                  </p>
                   <button autoFocus onClick={restart}>Try again</button>
                 </div>
               </div>
@@ -1778,14 +1814,18 @@ function App() {
             }
             aria-label={
               preset.allowPower
-                ? 'Power-up. ' + String(ui.powerCharges) + ' available'
+                ? preset.mode === 'experiments'
+                  ? 'Power-up. ' + String(powerUsesRemaining) + ' run uses remaining'
+                  : 'Power-up. ' + String(ui.powerCharges) + ' available'
                 : 'Power-up unavailable in this mode'
             }
           >
             <RotateCcw size={22} />
             <span>POWER</span>
-            {ui.powerCharges > 0 && (
-              <b className="power-charge" aria-hidden="true">{ui.powerCharges}</b>
+            {powerUsesRemaining > 0 && (
+              <b className="power-charge" aria-hidden="true">
+                {powerUsesRemaining}
+              </b>
             )}
           </button>
           <button
