@@ -280,8 +280,8 @@ function broadPhase(bodies: Body[]) {
 }
 
 function applyMergeShockwave(bodies: Body[], merged: Body) {
-  const radius = merged.r * 2.45 + 28;
-  const baseImpulse = 38 + merged.tier * 7;
+  const radius = merged.r * 2.2 + 22;
+  const baseImpulse = 46 + merged.tier * 6;
 
   for (const body of bodies) {
     if (body.id === merged.id) continue;
@@ -295,14 +295,15 @@ function applyMergeShockwave(bodies: Body[], merged: Body) {
     const impulse = baseImpulse * falloff;
     const nx = dx / distance;
     const ny = dy / distance;
+    const vertical = ny * impulse * 0.35;
 
     body.vx += nx * impulse;
-    body.vy += ny * impulse - 10 * falloff;
-    body.omega += Math.sign(dx || 1) * falloff * 0.16;
-    body.impact = Math.max(body.impact, 0.18 + falloff * 0.26);
+    body.vy += Math.max(-10, vertical) - 3 * falloff;
+    body.omega += Math.sign(dx || 1) * falloff * 0.14;
+    body.impact = Math.max(body.impact, 0.2 + falloff * 0.24);
   }
 
-  merged.vy -= Math.min(42, 10 + merged.tier * 4);
+  merged.vy -= Math.min(24, 6 + merged.tier * 2.5);
 }
 
 function findMerges(bodies: Body[], now: number) {
