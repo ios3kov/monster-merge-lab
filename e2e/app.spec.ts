@@ -239,6 +239,17 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await expect(page.locator('.concept-toolbar')).toHaveAttribute('inert', '');
   await expect(page.getByLabel(/Monster tank/)).toHaveAttribute('inert', '');
 
+  await completionDialog.getByRole('button', { name: 'Lab' }).click();
+  const layeredLab = page.getByRole('dialog', { name: 'LAB' });
+  await expect(layeredLab).toBeVisible();
+  await expect(layeredLab.getByRole('button', { name: 'Close' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(layeredLab).toHaveCount(0);
+  await expect(
+    completionDialog.getByRole('button', { name: 'Retry' }),
+  ).toBeFocused();
+  await expect(page.locator('.concept-toolbar')).toHaveAttribute('inert', '');
+
   await expect(
     completionDialog.getByRole('button', { name: 'Next Experiment' }),
   ).toBeVisible();
