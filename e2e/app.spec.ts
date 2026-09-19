@@ -499,6 +499,17 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         ),
       ).map(rectOf);
 
+      const readableTextSizes = [
+        '.hold-board > span',
+        '.score-plaque span',
+        '.orders-board h2',
+        '.order-row.current span',
+        '.order-row.current b',
+      ]
+        .map((selector) => document.querySelector<HTMLElement>(selector))
+        .filter((element): element is HTMLElement => element !== null)
+        .map((element) => parseFloat(getComputedStyle(element).fontSize));
+
       if (!shell || !frame || !toolbar) return null;
 
       return {
@@ -507,6 +518,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         toolbar: rectOf(toolbar),
         hud,
         touchTargets,
+        readableTextSizes,
         scrollWidth: document.documentElement.scrollWidth,
         scrollHeight: document.documentElement.scrollHeight,
         viewportWidth: window.innerWidth,
@@ -562,6 +574,10 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
     for (const rect of geometry.touchTargets) {
       expect(rect.width, viewport.name + ' touch target width').toBeGreaterThanOrEqual(44);
       expect(rect.height, viewport.name + ' touch target height').toBeGreaterThanOrEqual(44);
+    }
+
+    for (const fontSize of geometry.readableTextSizes) {
+      expect(fontSize, viewport.name + ' HUD readable text size').toBeGreaterThanOrEqual(8);
     }
 
     expect(geometry.scrollWidth, viewport.name + ' horizontal overflow').toBeLessThanOrEqual(
