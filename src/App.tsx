@@ -1022,6 +1022,67 @@ function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
+  useEffect(() => {
+    const modalOpen = showMonsters || showShop || showLab;
+    if (!modalOpen) return;
+
+    const shell = canvasRef.current?.closest('.game-shell');
+    const modal = shell?.querySelector<HTMLElement>(
+      '.monster-modal[role="dialog"]',
+    );
+    if (!shell || !modal) return;
+
+    const previousFocus =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    const inertTargets = Array.from(shell.children).filter(
+      (element) => element !== modal,
+    );
+
+    for (const element of inertTargets) {
+      element.setAttribute('inert', '');
+      element.setAttribute('aria-hidden', 'true');
+    }
+
+    const onModalKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+
+      const focusable = Array.from(
+        modal.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => !element.hasAttribute('inert'));
+
+      if (focusable.length === 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', onModalKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onModalKeyDown);
+      for (const element of inertTargets) {
+        element.removeAttribute('inert');
+        element.removeAttribute('aria-hidden');
+      }
+      previousFocus?.focus();
+    };
+  }, [showLab, showMonsters, showShop]);
+
   const handleCanvasKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
       const state = uiRef.current;
