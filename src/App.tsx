@@ -906,6 +906,12 @@ function App() {
 
   const buyPower = useCallback(() => {
     const state = uiRef.current;
+    if (!usesPersistentMetaProgress(presetRef.current.mode)) {
+      flash('Shop purchases are available in Endless Lab');
+      playSound('fail');
+      haptic('fail');
+      return;
+    }
     if (state.coins < POWER_COST) {
       flash('Need ' + String(POWER_COST) + ' coins');
       playSound('fail');
@@ -1541,6 +1547,8 @@ function App() {
   };
 
   const orders = [ui.order, makeOrder(ui.orderNo + 1), makeOrder(ui.orderNo + 2)];
+  const persistentMetaEnabled = usesPersistentMetaProgress(preset.mode);
+  const persistentOrdersCompleted = Math.max(0, readInt(ORDER_KEY, 1) - 1);
   const objectiveProgress = goalProgressText(
     preset.goal,
     getRunGoalContext(ui, isPileBelowDanger()),
@@ -1880,13 +1888,17 @@ function App() {
                 <MonsterArt tier={4} size={72} />
                 <div>
                   <strong>Pulse</strong>
-                  <span>Loosens a crowded pile and creates new merge chances.</span>
+                  <span>
+                    {persistentMetaEnabled
+                      ? 'Loosens a crowded pile and creates new merge chances.'
+                      : 'Purchases are available in Endless Lab.'}
+                  </span>
                 </div>
                 <button
                   type="button"
                   className="buy-button"
                   onClick={buyPower}
-                  disabled={ui.coins < POWER_COST}
+                  disabled={!persistentMetaEnabled || ui.coins < POWER_COST}
                 >
                   ● {POWER_COST}
                 </button>
@@ -1930,7 +1942,7 @@ function App() {
               <dl className="lab-stats">
                 <div><dt>Current mode</dt><dd>{preset.title}</dd></div>
                 <div><dt>Best score</dt><dd>{ui.bestScore}</dd></div>
-                <div><dt>Orders completed</dt><dd>{Math.max(0, ui.orderNo - 1)}</dd></div>
+                <div><dt>Orders completed</dt><dd>{persistentOrdersCompleted}</dd></div>
                 <div><dt>Highest evolution</dt><dd>{TIER_DEFS[Math.min(ui.bestTier, MAX_TIER)]!.name}</dd></div>
                 <div><dt>Coins</dt><dd>{ui.coins}</dd></div>
               </dl>
