@@ -16,8 +16,9 @@ npm run verify
 npm run test:e2e
 ```
 
-The CI pipeline additionally runs responsive browser, accessibility and
-frame-time smoke tests in Chromium.
+CI runs five independent production gates in parallel: Chromium, WebKit,
+Offline/PWA, Performance and Audit. An Aggregate Gate requires all five before
+main-branch deployment can start.
 
 ## Performance profiling
 
@@ -32,7 +33,8 @@ Budgets and audit notes are documented in
 
 ## Deployment
 
-Pushes to `main` are verified first. The verified `dist` artifact is then
-deployed to the Cloudflare Worker `monster-merge-lab`.
+Pushes to `main` must pass Chromium, WebKit, Offline/PWA, Performance and
+Audit plus the Aggregate Gate. The verified `dist` artifact from Performance
+is then deployed to the Cloudflare Worker `monster-merge-lab`.
 
 Production: https://monster-merge-lab.os3kov.workers.dev
