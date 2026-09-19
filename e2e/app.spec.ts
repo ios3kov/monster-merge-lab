@@ -200,6 +200,48 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   );
 });
 
+test('Experiment progress persists and resumes after reload', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
+  await page.getByRole('button', { name: /Experiments/ }).click();
+
+  const dropButton = page.getByRole('button', { name: 'Drop monster' });
+  await dropButton.click();
+  await page.waitForTimeout(500);
+  await dropButton.click();
+
+  const completionDialog = page
+    .getByRole('dialog')
+    .filter({ hasText: 'EXPERIMENT COMPLETE' });
+  await expect(completionDialog).toBeVisible({ timeout: 4000 });
+
+  await page.reload();
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
+
+  const experimentCard = page.getByRole('button', {
+    name: /^Experiments\b/,
+  });
+  await expect(experimentCard).toContainText(
+    'Continue with Experiment 2 of 12.',
+  );
+  await expect(experimentCard).toContainText('CONTINUE');
+
+  const lab = page.getByRole('dialog', { name: 'LAB' });
+  const completedRow = lab
+    .locator('dt', { hasText: 'Experiments completed' })
+    .locator('..');
+  await expect(completedRow.locator('dd')).toHaveText('1/12');
+
+  await experimentCard.click();
+  await expect(page.getByLabel('Experiment 2 objective')).toContainText(
+    'Create a Puff',
+  );
+});
+
 test('enlarged tank and HUD stay clear across target viewports', async ({
   page,
 }, testInfo) => {

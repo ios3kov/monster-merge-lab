@@ -24,7 +24,12 @@ import {
   makeOrder,
   type Order,
 } from './gameplay';
-import { getNextExperimentId } from './experiments';
+import {
+  EXPERIMENTS,
+  advanceExperimentProgress,
+  getNextExperimentId,
+  getResumeExperimentId,
+} from './experiments';
 import {
   goalProgressText,
   isGoalComplete,
@@ -117,6 +122,7 @@ const BEST_TIER_KEY = 'monster-merge-best-tier-v3';
 const ORDER_KEY = 'monster-merge-order-v3';
 const COACH_KEY = 'monster-merge-coach-v3';
 const POWER_KEY = 'monster-merge-power-v1';
+const EXPERIMENT_PROGRESS_KEY = 'monster-merge-experiments-completed-v1';
 const POWER_COST = 200;
 const REDUCED_MOTION =
   typeof window !== 'undefined' &&
@@ -543,6 +549,15 @@ function App() {
 
   const initialOrderNo = Math.max(1, readInt(ORDER_KEY, 1));
   const initialBestTier = readInt(BEST_TIER_KEY, 0);
+  const initialExperimentsCompleted = Math.min(
+    EXPERIMENTS.length,
+    readInt(EXPERIMENT_PROGRESS_KEY, 0),
+  );
+  const [experimentsCompleted, setExperimentsCompleted] = useState(
+    initialExperimentsCompleted,
+  );
+  const experimentsCompletedRef = useRef(initialExperimentsCompleted);
+  experimentsCompletedRef.current = experimentsCompleted;
   const [coach, setCoach] = useState(storageGet(COACH_KEY) !== 'done');
   const [showMonsters, setShowMonsters] = useState(false);
   const [showShop, setShowShop] = useState(false);
@@ -643,6 +658,20 @@ function App() {
     }
     state.experimentComplete = true;
     state.canDrop = false;
+    if (
+      presetRef.current.mode === 'experiments' &&
+      presetRef.current.experimentId
+    ) {
+      const nextCompleted = advanceExperimentProgress(
+        experimentsCompletedRef.current,
+        presetRef.current.experimentId,
+      );
+      if (nextCompleted !== experimentsCompletedRef.current) {
+        experimentsCompletedRef.current = nextCompleted;
+        setExperimentsCompleted(nextCompleted);
+        storageSet(EXPERIMENT_PROGRESS_KEY, String(nextCompleted));
+      }
+    }
     emitTelemetry({
       name: 'experiment_complete',
       ...getTelemetryContext(presetRef.current),
@@ -847,7 +876,14 @@ function App() {
   }, [resetRun]);
 
   const startMode = useCallback((mode: GameMode) => {
-    resetRun(mode);
+    if (mode === 'experiments') {
+      resetRun(
+        mode,
+        getResumeExperimentId(experimentsCompletedRef.current),
+      );
+    } else {
+      resetRun(mode);
+    }
     setShowLab(false);
   }, [resetRun]);
 
@@ -1933,14 +1969,40 @@ function App() {
                       onClick={() => startMode(option.id)}
                     >
                       <strong>{option.title}</strong>
-                      <span>{option.description}</span>
-                      <b>{active ? 'ACTIVE' : 'START'}</b>
+                      <span>
+                        {option.id === 'experiments' && !active
+                          ? experimentsCompleted >= EXPERIMENTS.length
+                            ? 'All 12 complete. Replay from Experiment 1.'
+                            : experimentsCompleted > 0
+                              ? 'Continue with Experiment ' +
+                                String(experimentsCompleted + 1) +
+                                ' of ' +
+                                String(EXPERIMENTS.length) +
+                                '.'
+                              : option.description
+                          : option.description}
+                      </span>
+                      <b>
+                        {active
+                          ? 'ACTIVE'
+                          : option.id === 'experiments' &&
+                              experimentsCompleted >= EXPERIMENTS.length
+                            ? 'REPLAY'
+                            : option.id === 'experiments' &&
+                                experimentsCompleted > 0
+                              ? 'CONTINUE'
+                              : 'START'}
+                      </b>
                     </button>
                   );
                 })}
               </div>
               <dl className="lab-stats">
                 <div><dt>Current mode</dt><dd>{preset.title}</dd></div>
+                <div>
+                  <dt>Experiments completed</dt>
+                  <dd>{experimentsCompleted}/{EXPERIMENTS.length}</dd>
+                </div>
                 <div><dt>Best score</dt><dd>{ui.bestScore}</dd></div>
                 <div><dt>Orders completed</dt><dd>{persistentOrdersCompleted}</dd></div>
                 <div><dt>Highest evolution</dt><dd>{TIER_DEFS[Math.min(ui.bestTier, MAX_TIER)]!.name}</dd></div>
