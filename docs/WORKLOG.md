@@ -76,7 +76,7 @@ This file is updated after each major production step.
 - Next successful main CI/deploy will carry PR #23 into production.
 
 
-### Parallel CI gates — BLOCKED BY GITHUB ACTIONS STARTUP
+### Parallel CI gates — VERIFIED IN PR
 - Replaced monolithic verify job with independent parallel gates:
   - Chromium
   - WebKit
@@ -88,7 +88,11 @@ This file is updated after each major production step.
 - Performance owns the verified production artifact.
 - Aggregate Gate requires all five jobs to succeed before Deploy.
 - Deploy remains main-only and consumes the verified production-dist artifact.
-- PR #24 created all five jobs plus Aggregate Gate correctly.
-- Current blocker: every GitHub-hosted job is rejected before checkout with no executed steps/logs; check-runs show system annotations.
-- GitHub public status reports Actions operational, so this is not a test/YAML failure.
-- Next: resolve the account-level Actions startup restriction, rerun PR #24, then merge/deploy only after all five gates and Aggregate Gate are green.
+- Making the repository public restored GitHub-hosted runners.
+- PR #24 run #116: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Fixes made during validation:
+  - Vite import-meta type definitions;
+  - non-fatal service-worker registration;
+  - service-worker syntax check in Audit;
+  - offline smoke warms hashed Vite assets through active SW before offline reload.
+- Next: final docs-only CI → merge → main aggregate-gated deploy → production live smoke.
