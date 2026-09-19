@@ -152,4 +152,19 @@ This file is updated after each major production step.
 - App.tsx reduced from 2116 to 2104 lines.
 - PR #29 run #133: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
 - No gameplay/storage/session/telemetry schema changes.
-- Final documentation commit follows; merge remains gated on the final PR head.
+- Final PR head run #134: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- PR #29 merged as 07586a5.
+- Post-merge main run #135: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓ Deploy ✓.
+- Production endpoint renders the expected game shell/HUD ✓.
+- Interactive live smoke remains waived by explicit user decision.
+
+### Game modal extraction — DONE
+- Goal: reduce React presentation responsibility in App.tsx without touching game behavior.
+- Scope: moved MONSTERS, SHOP and LAB dialog markup into src/game-modals.tsx.
+- App.tsx keeps modal visibility state, mode transitions, purchases and all gameplay logic.
+- App.tsx reduced from 2104 to 2004 lines after extraction/cleanup.
+- Existing E2E already covers modal open/close, mode navigation, Shop isolation and modal accessibility.
+- Code review: labels, disabled states, callbacks, backdrop close and autofocus behavior preserved.
+- PR #30 run #136: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- No physics, timing, persistence, storage, telemetry or gameplay-rule changes.
+- Final documentation head must pass the same gate before merge.
