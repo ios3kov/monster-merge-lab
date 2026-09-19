@@ -1561,33 +1561,48 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const modalOpen = showMonsters || showShop || showLab;
-    if (!modalOpen) return;
+    const dialogOpen =
+      showMonsters ||
+      showShop ||
+      showLab ||
+      ui.experimentComplete ||
+      ui.experimentFailed ||
+      ui.gameOver;
+    if (!dialogOpen) return;
 
     const shell = canvasRef.current?.closest('.game-shell');
-    const modal = shell?.querySelector<HTMLElement>(
-      '.monster-modal[role="dialog"]',
+    const dialog = shell?.querySelector<HTMLElement>(
+      '.monster-modal[role="dialog"], .game-over[role="dialog"]',
     );
-    if (!shell || !modal) return;
+    if (!shell || !dialog) return;
 
     const previousFocus =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
-    const inertTargets = Array.from(shell.children).filter(
-      (element) => element !== modal,
-    );
+    const inertTargets: HTMLElement[] = [];
+    let activeLayer: HTMLElement | null = dialog;
 
-    for (const element of inertTargets) {
-      element.setAttribute('inert', '');
-      element.setAttribute('aria-hidden', 'true');
+    while (activeLayer && activeLayer !== shell) {
+      const parent = activeLayer.parentElement;
+      if (!parent) break;
+
+      for (const sibling of Array.from(parent.children)) {
+        if (sibling === activeLayer || !(sibling instanceof HTMLElement)) {
+          continue;
+        }
+        sibling.setAttribute('inert', '');
+        sibling.setAttribute('aria-hidden', 'true');
+        inertTargets.push(sibling);
+      }
+      activeLayer = parent;
     }
 
     const onModalKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return;
 
       const focusable = Array.from(
-        modal.querySelectorAll<HTMLElement>(
+        dialog.querySelectorAll<HTMLElement>(
           'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
         ),
       ).filter((element) => !element.hasAttribute('inert'));
@@ -1619,7 +1634,14 @@ function App() {
       }
       previousFocus?.focus();
     };
-  }, [showLab, showMonsters, showShop]);
+  }, [
+    showLab,
+    showMonsters,
+    showShop,
+    ui.experimentComplete,
+    ui.experimentFailed,
+    ui.gameOver,
+  ]);
 
   const handleCanvasKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
@@ -1837,7 +1859,7 @@ function App() {
             />
             {coach && !ui.gameOver && !ui.experimentFailed && (
               <button className="coach" onClick={() => { storageSet(COACH_KEY, 'done'); setCoach(false); }}>
-                Drag to aim · release to drop
+                Drag to aim · release to drop · match identical monsters to merge
               </button>
             )}
             {ui.combo > 1 && <div className="combo-badge">CHAIN ×{ui.combo}</div>}
