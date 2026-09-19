@@ -50,8 +50,13 @@ This file is updated after each major production step.
 - Production live smoke ✓.
 
 
-### Active run persistence — IN PROGRESS
-- Goal: recover the active run after mobile tab/process eviction or reload instead of silently starting over.
-- Preserve mode/run identity, physics bodies and critical run state without changing game balance.
-- Daily fairness must remain deterministic after restore.
-- Next: define serializable session schema → pure validation/restore helpers → runtime save/restore → browser reload E2E → CI/deploy/live smoke.
+### Active run persistence — VERIFIED IN PR
+- Recover active run after mobile tab/process eviction or reload.
+- Versioned/validated snapshot preserves mode, physics bodies, queue/HOLD, run counters, Danger and Overdrive.
+- Body IDs are recreated safely; relative body age is restored.
+- Daily seeded RNG state is serialized so deterministic continuation is preserved.
+- Stale/corrupt/wrong-day snapshots fall back safely.
+- Terminal states clear the snapshot.
+- PR #22 verification: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
+- Reload E2E: Experiment body restore ✓ Daily queue continuity ✓ corrupt snapshot fallback ✓.
+- Next: final-head CI → merge → post-merge CI → Cloudflare deploy → live smoke.
