@@ -1583,9 +1583,10 @@ function App() {
     if (!dialogOpen) return;
 
     const shell = canvasRef.current?.closest('.game-shell');
-    const dialog = shell?.querySelector<HTMLElement>(
-      '.monster-modal[role="dialog"], .game-over[role="dialog"]',
-    );
+    const dialog =
+      shell?.querySelector<HTMLElement>('.monster-modal[role="dialog"]') ??
+      shell?.querySelector<HTMLElement>('.game-over[role="dialog"]') ??
+      null;
     if (!shell || !dialog) return;
 
     const previousFocus = dialogReturnFocusRef.current;
