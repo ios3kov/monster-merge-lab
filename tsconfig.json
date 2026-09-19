@@ -12,17 +12,11 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": [
-    "src/main.tsx",
-    "src/App.tsx",
-    "src/physics.ts",
-    "src/audio.ts",
-    "src/audioOutput.ts",
-    "src/haptics.ts",
-    "src/storage.ts"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

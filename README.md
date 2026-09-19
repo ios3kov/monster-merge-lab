@@ -5,23 +5,34 @@ Mobile-first physics merge game with living round monsters.
 ## Development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-## Verification
+## Production verification
 
 ```bash
-npm run typecheck
-npm run lint
-npm run build
-npm run audit:prod
+npm run verify
+npm run test:e2e
 ```
 
-## Cloudflare
+The CI pipeline additionally runs responsive browser, accessibility and
+frame-time smoke tests in Chromium.
 
-The app is configured as a Cloudflare Worker with static assets via `wrangler.jsonc`.
-Deployment is performed from GitHub Actions on pushes to `main`.
+## Performance profiling
 
+```bash
+npm run profile:physics
+npm run build
+npm run profile:bundle
+```
 
-Deployment trigger: production Cloudflare sync.
+Budgets and audit notes are documented in
+[`docs/PRODUCTION_AUDIT.md`](docs/PRODUCTION_AUDIT.md).
+
+## Deployment
+
+Pushes to `main` are verified first. The verified `dist` artifact is then
+deployed to the Cloudflare Worker `monster-merge-lab`.
+
+Production: https://monster-merge-lab.os3kov.workers.dev
