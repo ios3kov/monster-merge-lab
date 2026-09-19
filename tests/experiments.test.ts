@@ -65,6 +65,23 @@ test('invalid starts fail fast before reaching runtime physics', () => {
   assert.ok(errors.some((error) => error.includes('overlaps')));
 });
 
-test('unknown Experiment id falls back to the first designed level', () => {
-  assert.equal(getExperiment('missing').id, EXPERIMENTS[0]!.id);
+test('unknown Experiment id fails fast', () => {
+  assert.throws(() => getExperiment('missing'), /Unknown Experiment/);
+});
+
+test('same-tier prepared bodies cannot begin inside merge distance', () => {
+  const experiment: Experiment = {
+    ...getExperiment('exp-01'),
+    id: 'unstable-start',
+    startBodies: [
+      { tier: 0, x: 140, y: 500 },
+      { tier: 0, x: 171, y: 500 },
+    ],
+  };
+
+  assert.ok(
+    validateExperiment(experiment).some((error) =>
+      error.includes('would auto-merge on load'),
+    ),
+  );
 });
