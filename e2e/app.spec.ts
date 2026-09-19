@@ -469,6 +469,8 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
     { name: 'landscape', width: 844, height: 390 },
   ];
 
+  await page.addInitScript(() => localStorage.clear());
+
   for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto('/');
@@ -596,8 +598,6 @@ test('critical HUD copy stays legible across target viewports', async ({
   for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto('/');
-    await page.evaluate(() => localStorage.clear());
-    await page.reload();
 
     const initialSizes = await page.evaluate(() => {
       const selectors = [
