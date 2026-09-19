@@ -13,6 +13,7 @@ export type RunTerminalMetrics = {
   timeToFirstDecisionMs: number | null;
   drops: number;
   merges: number;
+  highestTier: number;
   holdUses: number;
   powerUses: number;
   overdriveStarts: number;
