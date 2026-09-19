@@ -72,8 +72,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 .coin-pill strong { flex: 1; font-size: 17px; text-align: center; }
 .icon-button {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border: 2px solid #8d5a31;
   border-radius: 10px;
   display: grid;
@@ -249,7 +249,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 .order-row.current { background: rgba(255,255,255,.2); border-radius: 6px; }
 .order-row span { font-size: 10px; font-weight: 900; }
-.order-row b { font-size: 8px; color: #7c4a1f; white-space: nowrap; }
+.order-row b { font-size: 9px; color: #7c4a1f; white-space: nowrap; }
 .order-track {
   height: 6px;
   margin-top: 4px;
@@ -374,6 +374,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 
 .coach {
   position: absolute;
+  min-height: 44px;
   left: 50%;
   bottom: 7%;
   transform: translateX(-50%);
@@ -429,8 +430,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   border: 2px solid #85552e;
   box-shadow: 0 4px 8px rgba(46,25,12,.3);
 }
-.score-plaque span, .score-plaque small { display: block; font-size: 7px; font-weight: 900; letter-spacing: .08em; }
-.score-plaque strong { font-size: 14px; }
+.score-plaque span, .score-plaque small { display: block; font-size: 8px; font-weight: 900; letter-spacing: .08em; }
+.score-plaque strong { font-size: 16px; }
 
 .concept-toolbar {
   position: absolute;
@@ -541,10 +542,10 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .monster-modal-card h2 { margin: 0 30px 12px 0; font-size: 18px; }
 .modal-close {
   position: absolute;
-  right: 9px;
-  top: 8px;
-  width: 32px;
-  height: 32px;
+  right: 7px;
+  top: 6px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 8px;
   background: #5c3a24;
@@ -571,14 +572,15 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   }
 }
 @media (max-width: 390px) {
-  .orders-board { right: 1%; width: 29.5%; }
+  .orders-board { right: 1%; width: 30%; }
   .next-board > .monster-art { width: 42px !important; height: 42px !important; }
   .after-next { right: -28%; transform: scale(.9); }
-  .hold-board { left: 2.2%; width: 16%; }
+  .hold-board { left: 2.2%; width: 16.5%; }
   .concept-top-actions { right: 2%; }
-  .coin-pill { min-width: 102px; height: 35px; }
-  .icon-button { width: 35px; height: 35px; }
+  .coin-pill { min-width: 100px; height: 40px; }
+  .icon-button { width: 42px; height: 42px; }
   .concept-toolbar { left: 4.2%; right: 4.2%; }
+  .order-row b { font-size: 8px; }
 }
 
 .shop-card,
@@ -651,6 +653,49 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   margin: 0;
   font-size: 13px;
   font-weight: 1000;
+}
+
+
+.physics-canvas:focus-visible {
+  outline: 3px solid rgba(255, 245, 168, .95);
+  outline-offset: -4px;
+}
+
+.fatal-error {
+  width: 100%;
+  height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(circle at 50% 30%, #81512b, #1f140d 72%);
+  color: #fff9ec;
+}
+.fatal-error > div {
+  width: min(100%, 360px);
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  border-radius: 16px;
+  background: #5c3a24;
+  border: 2px solid #a66c38;
+  box-shadow: 0 18px 40px rgba(0,0,0,.35);
+}
+.fatal-error strong { font-size: 20px; }
+.fatal-error span { font-size: 13px; opacity: .86; }
+.fatal-error button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 10px;
+  font-weight: 1000;
+  color: #fff;
+  background: linear-gradient(#82e554,#38b72f);
+}
+
+@media (max-height: 700px) and (orientation: portrait) {
+  .orders-board { top: 7.8%; }
+  .hold-board { top: 7.8%; }
+  .next-board { top: 7%; }
+  .overdrive-panel { top: 15.7%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
