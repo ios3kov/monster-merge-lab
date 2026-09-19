@@ -85,3 +85,26 @@ test('same-tier prepared bodies cannot begin inside merge distance', () => {
     ),
   );
 });
+
+test('Experiment limits and order goals are validated', () => {
+  const invalid: Experiment = {
+    ...getExperiment('exp-01'),
+    id: 'invalid-limits',
+    goal: {
+      kind: 'complete-orders',
+      count: 2,
+      label: 'Orders',
+      hint: 'Complete two orders',
+      successLabel: 'ORDERS DONE',
+    },
+    showOrders: false,
+    maxDrops: 0,
+    maxHoldUses: 1,
+    allowHold: false,
+  };
+
+  const errors = validateExperiment(invalid);
+  assert.ok(errors.some((error) => error.includes('requires showOrders')));
+  assert.ok(errors.some((error) => error.includes('maxDrops')));
+  assert.ok(errors.some((error) => error.includes('maxHoldUses requires allowHold')));
+});
