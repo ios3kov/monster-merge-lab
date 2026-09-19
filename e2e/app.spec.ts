@@ -94,9 +94,17 @@ test('mode hub starts functional Experiment and Daily runs', async ({
     .filter({ hasText: 'EXPERIMENT COMPLETE' });
   await expect(completionDialog).toBeVisible({ timeout: 4000 });
 
+  await expect(
+    completionDialog.getByRole('button', { name: 'Next Experiment' }),
+  ).toBeVisible();
   await completionDialog
-    .getByRole('button', { name: 'Lab', exact: true })
+    .getByRole('button', { name: 'Next Experiment' })
     .click();
+  await expect(page.getByLabel('Experiment 2 objective')).toContainText(
+    'Create a Puff',
+  );
+
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Daily Experiment/ }).click();
 
   await expect(
