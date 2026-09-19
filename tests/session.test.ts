@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  ACTIVE_RUN_SESSION_MAX_BYTES,
   ACTIVE_RUN_SESSION_TTL_MS,
   decodeActiveRunSession,
   encodeActiveRunSession,
@@ -113,4 +114,77 @@ test('body restore creates fresh ids while preserving relative physics state', (
   assert.equal(restored.impact, original.impact);
   assert.equal(restored.pressure, original.pressure);
   assert.equal(9_000 - restored.bornAt, 750);
+});
+
+
+test('oversized and physically absurd snapshots are rejected before runtime', () => {
+  assert.equal(
+    decodeActiveRunSession('x'.repeat(ACTIVE_RUN_SESSION_MAX_BYTES + 1)),
+    null,
+  );
+
+  const hugeVelocity = fixture();
+  hugeVelocity.bodies = [
+    {
+      tier: 0,
+      x: 180,
+      y: 200,
+      vx: 1e100,
+      vy: 0,
+      angle: 0,
+      omega: 0,
+      impact: 0,
+      pressure: 0,
+      ageMs: 100,
+    },
+  ];
+  assert.equal(
+    decodeActiveRunSession(
+      encodeActiveRunSession(hugeVelocity),
+      hugeVelocity.savedAt,
+    ),
+    null,
+  );
+
+  const invalidAim = fixture();
+  invalidAim.aimX = 1e9;
+  assert.equal(
+    decodeActiveRunSession(
+      encodeActiveRunSession(invalidAim),
+      invalidAim.savedAt,
+    ),
+    null,
+  );
+});
+
+test('snapshot timers and RNG state stay inside gameplay-safe bounds', () => {
+  const invalidDanger = fixture();
+  invalidDanger.dangerElapsedMs = 1_000_000;
+  assert.equal(
+    decodeActiveRunSession(
+      encodeActiveRunSession(invalidDanger),
+      invalidDanger.savedAt,
+    ),
+    null,
+  );
+
+  const invalidOverdrive = fixture();
+  invalidOverdrive.overdriveRemainingMs = 1_000_000;
+  assert.equal(
+    decodeActiveRunSession(
+      encodeActiveRunSession(invalidOverdrive),
+      invalidOverdrive.savedAt,
+    ),
+    null,
+  );
+
+  const invalidRandom = fixture();
+  invalidRandom.randomState = 0x1_0000_0000;
+  assert.equal(
+    decodeActiveRunSession(
+      encodeActiveRunSession(invalidRandom),
+      invalidRandom.savedAt,
+    ),
+    null,
+  );
 });
