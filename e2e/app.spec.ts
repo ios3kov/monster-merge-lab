@@ -598,6 +598,111 @@ test('initial screen has no serious automated accessibility violations', async (
 });
 
 
+test('crowded active board stays inside a safe frame budget', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.addInitScript(() => {
+    const bodies = Array.from({ length: 48 }, (_, index) => {
+      const column = index % 8;
+      const row = Math.floor(index / 8);
+      return {
+        tier: 0,
+        x: 55 + column * 36,
+        y: 220 + row * 42,
+        vx: column % 2 === 0 ? 8 : -8,
+        vy: 0,
+        angle: 0,
+        omega: 0,
+        impact: 0,
+        pressure: 0,
+        ageMs: 1200,
+      };
+    });
+
+    localStorage.setItem(
+      'monster-merge-active-run-v1',
+      JSON.stringify({
+        version: 1,
+        savedAt: Date.now(),
+        mode: 'endless',
+        ui: {
+          score: 0,
+          progress: 0,
+          orderNo: 1,
+          currentTier: 0,
+          nextTier: 1,
+          afterNextTier: 0,
+          holdTier: null,
+          canHold: true,
+          bestCombo: 0,
+          overdrive: 0,
+          overdriveActive: false,
+          runHighestTier: 0,
+          runMerges: 0,
+          runDrops: 48,
+          runHoldUses: 0,
+          runPowerUses: 0,
+          runOrdersCompleted: 0,
+          runRescues: 0,
+        },
+        bodies,
+        fixedQueue: [],
+        spawnBag: [],
+        aimX: 180,
+        dangerElapsedMs: null,
+        overdriveRemainingMs: 0,
+      }),
+    );
+  });
+
+  await page.goto('/');
+  await expect(page.getByLabel(/Monster tank/)).toBeVisible();
+  await page.waitForTimeout(300);
+
+  const stats = await page.evaluate(
+    () =>
+      new Promise<{ average: number; p95: number; max: number }>((resolve) => {
+        const samples: number[] = [];
+        let previous = performance.now();
+
+        const sample = (time: number) => {
+          samples.push(time - previous);
+          previous = time;
+
+          if (samples.length < 120) {
+            requestAnimationFrame(sample);
+            return;
+          }
+
+          const sorted = [...samples].sort((a, b) => a - b);
+          resolve({
+            average:
+              samples.reduce((sum, value) => sum + value, 0) / samples.length,
+            p95: sorted[Math.floor(sorted.length * 0.95)] ?? 0,
+            max: sorted[sorted.length - 1] ?? 0,
+          });
+        };
+
+        requestAnimationFrame(sample);
+      }),
+  );
+
+  console.log(
+    'Crowded board frame profile | average=' +
+      stats.average.toFixed(2) +
+      'ms | p95=' +
+      stats.p95.toFixed(2) +
+      'ms | max=' +
+      stats.max.toFixed(2) +
+      'ms',
+  );
+
+  expect(stats.average).toBeLessThan(35);
+  expect(stats.p95).toBeLessThan(70);
+});
+
 test('idle render loop stays inside a safe frame budget', async ({
   page,
 }, testInfo) => {
