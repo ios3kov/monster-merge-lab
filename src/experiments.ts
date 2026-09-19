@@ -1,3 +1,4 @@
+import { validateGoal, type Goal } from './objectives.ts';
 import {
   FLOOR_Y,
   LEFT_WALL,
@@ -13,13 +14,7 @@ export type StartBody = {
   angle?: number;
 };
 
-export type ExperimentGoal = {
-  kind: 'create-tier';
-  tier: number;
-  label: string;
-  hint: string;
-  successLabel: string;
-};
+export type ExperimentGoal = Goal;
 
 export type Experiment = {
   id: string;
@@ -31,6 +26,10 @@ export type Experiment = {
   allowHold: boolean;
   allowPower: boolean;
   allowOverdrive: boolean;
+  showOrders?: boolean;
+  maxDrops?: number;
+  maxHoldUses?: number;
+  maxPowerUses?: number;
 };
 
 export const EXPERIMENTS: readonly Experiment[] = [
@@ -115,12 +114,33 @@ export function validateExperiment(experiment: Experiment) {
     }
   }
 
+  errors.push(...validateGoal(experiment.goal, MAX_TIER));
+
   if (
-    !Number.isInteger(experiment.goal.tier) ||
-    experiment.goal.tier < 1 ||
-    experiment.goal.tier > MAX_TIER
+    experiment.goal.kind === 'complete-orders' &&
+    experiment.showOrders !== true
   ) {
-    errors.push('goal tier must be a mergeable tier');
+    errors.push('complete-orders goal requires showOrders');
+  }
+
+  for (const [name, value, minimum] of [
+    ['maxDrops', experiment.maxDrops, 1],
+    ['maxHoldUses', experiment.maxHoldUses, 0],
+    ['maxPowerUses', experiment.maxPowerUses, 0],
+  ] as const) {
+    if (
+      value !== undefined &&
+      (!Number.isInteger(value) || value < minimum)
+    ) {
+      errors.push(`${name} must be an integer >= ${minimum}`);
+    }
+  }
+
+  if (experiment.maxHoldUses !== undefined && !experiment.allowHold) {
+    errors.push('maxHoldUses requires allowHold');
+  }
+  if (experiment.maxPowerUses !== undefined && !experiment.allowPower) {
+    errors.push('maxPowerUses requires allowPower');
   }
 
   return errors;
