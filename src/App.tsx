@@ -66,6 +66,7 @@ import {
   type World,
 } from './physics';
 import { MonsterArt, REDUCED_MOTION, drawMonster, drawTank } from './rendering';
+import { LabModal, MonstersModal, ShopModal } from './game-modals';
 import { storageGet, storageRemove, storageSet } from './storage';
 import {
   emitTelemetry,
@@ -1965,135 +1966,35 @@ function App() {
         </div>
 
         {showMonsters && (
-          <div
-            className="monster-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="evolution-title"
-            onClick={(event) => {
-              if (event.target === event.currentTarget) setShowMonsters(false);
-            }}
-          >
-            <div className="monster-modal-card">
-              <button autoFocus className="modal-close" onClick={() => setShowMonsters(false)} aria-label="Close">×</button>
-              <h2 id="evolution-title">MONSTER EVOLUTION</h2>
-              <div className="evolution-grid">
-                {TIER_DEFS.map((def, tier) => (
-                  <div key={def.name} className={tier <= ui.bestTier + 1 ? '' : 'locked'}>
-                    <MonsterArt tier={tier} size={66} />
-                    <span>{def.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <MonstersModal
+            bestTier={ui.bestTier}
+            onClose={() => setShowMonsters(false)}
+          />
         )}
 
         {showShop && (
-          <div
-            className="monster-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="shop-title"
-            onClick={(event) => {
-              if (event.target === event.currentTarget) setShowShop(false);
-            }}
-          >
-            <div className="monster-modal-card shop-card">
-              <button autoFocus className="modal-close" onClick={() => setShowShop(false)} aria-label="Close">×</button>
-              <h2 id="shop-title">SHOP</h2>
-              <div className="shop-item">
-                <MonsterArt tier={4} size={72} />
-                <div>
-                  <strong>Pulse</strong>
-                  <span>
-                    {persistentMetaEnabled
-                      ? 'Loosens a crowded pile and creates new merge chances.'
-                      : 'Purchases are available in Endless Lab.'}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="buy-button"
-                  onClick={buyPower}
-                  disabled={!persistentMetaEnabled || ui.coins < POWER_COST}
-                >
-                  ● {POWER_COST}
-                </button>
-              </div>
-              <p className="shop-stock">Owned: {ui.powerCharges}</p>
-            </div>
-          </div>
+          <ShopModal
+            persistentMetaEnabled={persistentMetaEnabled}
+            coins={ui.coins}
+            powerCharges={ui.powerCharges}
+            powerCost={POWER_COST}
+            onBuyPower={buyPower}
+            onClose={() => setShowShop(false)}
+          />
         )}
 
         {showLab && (
-          <div
-            className="monster-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="lab-title"
-            onClick={(event) => {
-              if (event.target === event.currentTarget) setShowLab(false);
-            }}
-          >
-            <div className="monster-modal-card lab-card">
-              <button autoFocus className="modal-close" onClick={() => setShowLab(false)} aria-label="Close">×</button>
-              <h2 id="lab-title">LAB</h2>
-              <div className="mode-grid" role="group" aria-label="Game modes">
-                {MODE_OPTIONS.map((option) => {
-                  const active =
-                    option.id === preset.mode &&
-                    !(option.id === 'experiments' && ui.experimentComplete);
-                  return (
-                    <button
-                      type="button"
-                      className={'mode-card' + (active ? ' is-active' : '')}
-                      key={option.id}
-                      disabled={active}
-                      onClick={() => startMode(option.id)}
-                    >
-                      <strong>{option.title}</strong>
-                      <span>
-                        {option.id === 'experiments' && !active
-                          ? experimentsCompleted >= EXPERIMENTS.length
-                            ? 'All 12 complete. Replay from Experiment 1.'
-                            : experimentsCompleted > 0
-                              ? 'Continue with Experiment ' +
-                                String(experimentsCompleted + 1) +
-                                ' of ' +
-                                String(EXPERIMENTS.length) +
-                                '.'
-                              : option.description
-                          : option.description}
-                      </span>
-                      <b>
-                        {active
-                          ? 'ACTIVE'
-                          : option.id === 'experiments' &&
-                              experimentsCompleted >= EXPERIMENTS.length
-                            ? 'REPLAY'
-                            : option.id === 'experiments' &&
-                                experimentsCompleted > 0
-                              ? 'CONTINUE'
-                              : 'START'}
-                      </b>
-                    </button>
-                  );
-                })}
-              </div>
-              <dl className="lab-stats">
-                <div><dt>Current mode</dt><dd>{preset.title}</dd></div>
-                <div>
-                  <dt>Experiments completed</dt>
-                  <dd>{experimentsCompleted}/{EXPERIMENTS.length}</dd>
-                </div>
-                <div><dt>Best score</dt><dd>{ui.bestScore}</dd></div>
-                <div><dt>Orders completed</dt><dd>{persistentOrdersCompleted}</dd></div>
-                <div><dt>Highest evolution</dt><dd>{TIER_DEFS[Math.min(ui.bestTier, MAX_TIER)]!.name}</dd></div>
-                <div><dt>Coins</dt><dd>{ui.coins}</dd></div>
-              </dl>
-            </div>
-          </div>
+          <LabModal
+            preset={preset}
+            experimentComplete={ui.experimentComplete}
+            experimentsCompleted={experimentsCompleted}
+            bestScore={ui.bestScore}
+            persistentOrdersCompleted={persistentOrdersCompleted}
+            bestTier={ui.bestTier}
+            coins={ui.coins}
+            onStartMode={startMode}
+            onClose={() => setShowLab(false)}
+          />
         )}
       </section>
     </main>
