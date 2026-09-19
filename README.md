@@ -22,3 +22,6 @@ npm run audit:prod
 
 The app is configured as a Cloudflare Worker with static assets via `wrangler.jsonc`.
 Deployment is performed from GitHub Actions on pushes to `main`.
+
+
+Deployment trigger: production Cloudflare sync.
