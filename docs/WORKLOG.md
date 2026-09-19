@@ -195,4 +195,6 @@ This file is updated after each major production step.
 - App.tsx reduced from 1957 to 1925 lines.
 - Existing E2E covers Experiment Complete/Next and Experiment Failed terminal flows.
 - No physics, timing, persistence, storage, telemetry or gameplay-rule changes.
-- Next: PR → full parallel CI → Aggregate Gate → code review → merge if green.
+- PR #32 run #142 Audit caught an `exactOptionalPropertyTypes` prop-contract mismatch before merge; runtime/browser jobs were not the source.
+- Fix: props that App always passes now explicitly accept `undefined` rather than being optional/omittable.
+- Next: rerun full parallel CI → Aggregate Gate → code review → merge if green.
