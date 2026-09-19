@@ -108,12 +108,27 @@ This file is updated after each major production step.
 - Production live smoke ✓.
 
 
-### Canonical telemetry and run metrics — IN PROGRESS
-- Normalizing internal telemetry to the original production vocabulary.
+### Canonical telemetry and run metrics — DONE
 - Canonical events: run_started, first_drop, first_merge, hold_used, power_used, overdrive_started, danger_started, rescued, experiment_started, experiment_completed, experiment_failed.
 - Low-level drop/merge/chain/order_complete/danger_end/overdrive_end remain available where useful.
 - Terminal events include run duration, first-decision time, drops, merges, highest tier, HOLD/Power usage, Overdrive starts, danger starts and rescues.
 - Active run timing excludes background time.
 - Optional telemetry timing/counters persist across reload without breaking existing v1 snapshots.
 - No external analytics SDK, persistence service, network calls or PII.
-- Next: PR → parallel CI → Aggregate Gate → merge → deploy → final production gate.
+- PR #26: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Post-merge main run #127: all five jobs ✓ Aggregate Gate ✓ Deploy ✓.
+- Production live smoke ✓.
+
+
+### Final production sign-off — IN PROGRESS
+- No new features.
+- Final audit found no release-blocking runtime defect.
+- Updated stale production documentation for:
+  - active-run persistence;
+  - background gameplay clocks;
+  - WebKit coverage;
+  - PWA/offline support;
+  - parallel CI and Aggregate Gate;
+  - canonical internal telemetry.
+- Remaining architectural debt is limited to the size/responsibility of App.tsx and is non-blocking.
+- Final gate: PR CI → Aggregate Gate → merge → main Deploy → production live smoke.
