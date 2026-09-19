@@ -31,6 +31,11 @@ test('manifest and service worker provide an offline app shell', async ({
     )
     .toBe(true);
 
+  // Warm Vite's hashed JS/CSS through the active service worker once.
+  // The first page load happens before service-worker control is established.
+  await page.reload({ waitUntil: 'networkidle' });
+  await expect(page.getByLabel(/Monster tank/)).toBeVisible();
+
   const manifest = await page.request.get('/manifest.webmanifest');
   expect(manifest.ok()).toBe(true);
   expect((await manifest.json()).start_url).toBe('/');
