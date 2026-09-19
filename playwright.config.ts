@@ -26,6 +26,20 @@ export default defineConfig({
         viewport: { width: 1280, height: 720 },
       },
     },
+    {
+      name: 'mobile-webkit',
+      use: {
+        ...devices['iPhone 13'],
+        browserName: 'webkit',
+      },
+    },
+    {
+      name: 'desktop-webkit',
+      use: {
+        browserName: 'webkit',
+        viewport: { width: 1280, height: 720 },
+      },
+    },
   ],
   webServer: {
     command: 'npm run preview -- --port 4173',

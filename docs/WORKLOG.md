@@ -63,11 +63,36 @@ This file is updated after each major production step.
 - Reload E2E: Experiment body restore ✓ Daily queue continuity ✓ corrupt snapshot fallback ✓.
 
 
-### Background transient gameplay timers — VERIFIED IN PR
+### Background transient gameplay timers — MERGED, DEPLOY PENDING
 - Confirmed remaining pause bug after PR #21: drop cooldown, chain reset, drop-limit settle and body age could keep advancing while the document was hidden.
 - Added explicit deadlines for drop cooldown, combo reset and drop-limit settle.
 - Hidden state clears active timers without consuming their remaining game time.
 - Resume shifts/re-arms deadlines, body bornAt, chain timestamp and merge-burst timestamps.
 - Added unit coverage plus browser visibility-pause regression.
-- PR #23 CI: typecheck ✓ lint ✓ unit ✓ physics/bundle budgets ✓ build/audit ✓ browser E2E ✓ responsive/accessibility ✓.
-- Next: final-head CI → merge → post-merge CI → Cloudflare deploy → live smoke.
+- PR #23 code run #106: full CI ✓.
+- Documentation-only follow-up runs failed before checkout with no steps/logs.
+- PR #23 merged as controlled CI infrastructure exception.
+- Post-merge run hit the same pre-job failure, so deploy was skipped.
+- Next successful main CI/deploy will carry PR #23 into production.
+
+
+### Parallel CI gates — VERIFIED IN PR
+- Replaced monolithic verify job with independent parallel gates:
+  - Chromium
+  - WebKit
+  - Offline/PWA
+  - Performance
+  - Audit
+- Added mobile + desktop WebKit Playwright projects.
+- Added a real PWA manifest, service worker and offline app-shell E2E.
+- Performance owns the verified production artifact.
+- Aggregate Gate requires all five jobs to succeed before Deploy.
+- Deploy remains main-only and consumes the verified production-dist artifact.
+- Making the repository public restored GitHub-hosted runners.
+- PR #24 run #116: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Fixes made during validation:
+  - Vite import-meta type definitions;
+  - non-fatal service-worker registration;
+  - service-worker syntax check in Audit;
+  - offline smoke warms hashed Vite assets through active SW before offline reload.
+- Next: final docs-only CI → merge → main aggregate-gated deploy → production live smoke.

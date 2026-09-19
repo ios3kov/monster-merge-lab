@@ -1,0 +1,11 @@
+{
+  "name": "Monster Merge Lab",
+  "short_name": "Merge Lab",
+  "description": "A physics merge game with living round monsters.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#2a1b12",
+  "theme_color": "#2a1b12",
+  "orientation": "any"
+}
