@@ -1,0 +1,43 @@
+import { expect, test } from '@playwright/test';
+
+test('manifest and service worker provide an offline app shell', async ({
+  page,
+  context,
+}) => {
+  await page.goto('/');
+
+  await expect(page.getByLabel(/Monster tank/)).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        if (!('serviceWorker' in navigator)) return false;
+        await navigator.serviceWorker.ready;
+        return true;
+      }),
+    )
+    .toBe(true);
+
+  if (
+    !(await page.evaluate(() => Boolean(navigator.serviceWorker.controller)))
+  ) {
+    await page.reload();
+  }
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+    )
+    .toBe(true);
+
+  const manifest = await page.request.get('/manifest.webmanifest');
+  expect(manifest.ok()).toBe(true);
+  expect((await manifest.json()).start_url).toBe('/');
+
+  await context.setOffline(true);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+
+  await expect(page.getByLabel(/Monster tank/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Drop monster' })).toBeVisible();
+
+  await context.setOffline(false);
+});
