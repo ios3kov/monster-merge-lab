@@ -1,0 +1,38 @@
+name: Vendor runtime art
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Download runtime art into the app
+        run: |
+          mkdir -p public/assets
+          curl --fail --location --retry 3             "https://gcdn.picsart.com/editing-temp/8db29b1a-de97-4a14-b4cc-d45ecccbd1e0.webp"             --output public/assets/lab-bg-v1.webp
+          curl --fail --location --retry 3             "https://gcdn.picsart.com/editing-temp/f69fe466-c03a-4502-b5c1-7c5dfce62c4c.webp"             --output public/assets/monster-atlas-v1.webp
+          test "$(wc -c < public/assets/lab-bg-v1.webp)" -gt 50000
+          test "$(wc -c < public/assets/monster-atlas-v1.webp)" -gt 50000
+
+      - name: Commit vendored art if needed
+        run: |
+          if [ -z "$(git status --porcelain -- public/assets)" ]; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/assets/lab-bg-v1.webp public/assets/monster-atlas-v1.webp
+          git commit -m "Audit: vendor runtime art into production"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
