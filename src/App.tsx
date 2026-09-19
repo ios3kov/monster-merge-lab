@@ -1594,10 +1594,10 @@ function App() {
     let activeLayer: HTMLElement | null = dialog;
 
     while (activeLayer && activeLayer !== shell) {
-      const parent = activeLayer.parentElement;
-      if (!parent) break;
+      const container = activeLayer.parentElement;
+      if (!container) break;
 
-      for (const sibling of Array.from(parent.children)) {
+      for (const sibling of Array.from(container.children)) {
         if (sibling === activeLayer || !(sibling instanceof HTMLElement)) {
           continue;
         }
@@ -1605,7 +1605,7 @@ function App() {
         sibling.setAttribute('aria-hidden', 'true');
         inertTargets.push(sibling);
       }
-      activeLayer = parent;
+      activeLayer = container;
     }
 
     const onModalKeyDown = (event: KeyboardEvent) => {
