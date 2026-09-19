@@ -69,4 +69,18 @@ test('initial screen has no serious automated accessibility violations', async (
     ['serious', 'critical'].includes(violation.impact ?? ''),
   );
   expect(serious).toEqual([]);
+
+  await page.getByRole('button', { name: 'Shop' }).click();
+  await expect(page.getByRole('dialog', { name: 'SHOP' })).toBeVisible();
+
+  const modalResult = await new AxeBuilder({ page })
+    .disableRules(['color-contrast'])
+    .analyze();
+  const modalSerious = modalResult.violations.filter((violation) =>
+    ['serious', 'critical'].includes(violation.impact ?? ''),
+  );
+  expect(modalSerious).toEqual([]);
+
+  await page.keyboard.press('Shift+Tab');
+  await expect(page.getByRole('button', { name: 'Close' })).toBeFocused();
 });
