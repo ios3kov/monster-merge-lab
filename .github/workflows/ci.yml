@@ -199,7 +199,7 @@ jobs:
         env:
           CHROMIUM_RESULT: ${{ needs.chromium.result }}
           WEBKIT_RESULT: ${{ needs.webkit.result }}
-          OFFLINE_PWA_RESULT: ${{ needs.offline-pwa.result }}
+          OFFLINE_PWA_RESULT: ${{ needs['offline-pwa'].result }}
           PERFORMANCE_RESULT: ${{ needs.performance.result }}
           AUDIT_RESULT: ${{ needs.audit.result }}
         run: |
