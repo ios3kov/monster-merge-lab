@@ -112,7 +112,10 @@ test('designed Experiments exercise the real goal system and limits', () => {
   assert.equal(getExperiment('exp-08').goal.kind, 'create-merges');
   assert.equal(getExperiment('exp-09').goal.kind, 'pile-below-danger');
   assert.deepEqual(getExperiment('exp-10').limits, { powerUses: 1 });
-  assert.deepEqual(getExperiment('exp-11').limits, { holdUses: 2 });
+  assert.deepEqual(getExperiment('exp-11').limits, {
+    holdUses: 2,
+    powerUses: 1,
+  });
   assert.deepEqual(getExperiment('exp-12').limits, {
     drops: 14,
     holdUses: 3,
