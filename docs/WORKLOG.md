@@ -173,11 +173,13 @@ This file is updated after each major production step.
 - Production endpoint renders the expected game shell/HUD ✓.
 - Interactive live smoke remains waived by explicit user decision.
 
-### Game toolbar extraction — IN PROGRESS
+### Game toolbar extraction — DONE
 - Goal: reduce App.tsx presentation responsibility further without changing controls.
-- Scope: move SHOP, MONSTERS, DROP, POWER and LAB toolbar markup into src/game-toolbar.tsx.
+- Scope: moved SHOP, MONSTERS, DROP, POWER and LAB toolbar markup into src/game-toolbar.tsx.
 - App.tsx keeps all callbacks, gameplay state and power/drop rules.
 - App.tsx reduced from 2004 to 1957 lines.
 - Existing E2E covers all five primary controls and Power availability by mode.
+- Code review: labels/classes, DROP disabled state, POWER limit/aria-label logic and callbacks preserved.
+- PR #31 run #139: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
 - No physics, timing, persistence, storage, telemetry or gameplay-rule changes.
-- Next: PR → full parallel CI → Aggregate Gate → code review → merge if green.
+- Final documentation head must pass the same gate before merge.
