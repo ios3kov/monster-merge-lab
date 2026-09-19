@@ -45,6 +45,9 @@ done only after collecting several stable CI runs.
 - Merge burst storage is compacted in place instead of allocating every frame.
 - Static canvas gradients are created once per renderer lifecycle.
 - Rendering pauses while the document is hidden.
+- Danger and active Overdrive clocks are shifted by the hidden duration so backgrounding cannot silently consume gameplay time.
+- Active runs use a versioned, validated local snapshot and restore after reload/mobile process eviction.
+- Daily restore preserves the deterministic queue and seeded RNG state; stale/corrupt/wrong-day snapshots are discarded safely.
 - Reduced-motion preference suppresses decorative breathing/tilt motion.
 - Critical background and monster atlas art are vendored into the app and served
   by Cloudflare with immutable caching.
@@ -77,7 +80,9 @@ orchestration live together. Pure spawn/order rules have been extracted into
 `src/gameplay.ts`, but a future feature-heavy phase should extract the canvas
 renderer and game-loop controller before adding substantially more modes.
 
-Current-run persistence across a browser process eviction is also not implemented.
-Meta progress (coins, best score, best tier, orders, sound and power charges) is
-persisted. Session persistence should be added if background-resume continuity
-becomes a product requirement.
+Meta progress (coins, best score, best tier, orders, sound, power charges and
+Experiment progression) is persisted. Active run state is also persisted locally
+for up to 24 hours and restored after reload/process eviction when the snapshot is
+valid. The main remaining structural debt is the size of `App.tsx`; defer a renderer/
+controller split until the next feature-heavy phase rather than refactoring a
+stable production path without a concrete need.
