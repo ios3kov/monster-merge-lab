@@ -603,10 +603,12 @@ function App() {
     worldRef.current.bodies.push(spawnBody(tier, x, 82, performance.now()));
     state.currentTier = state.nextTier;
     state.nextTier = state.afterNextTier;
+    const spawnProgressTier =
+      presetRef.current.mode === 'endless' ? state.bestTier : 0;
     state.afterNextTier = drawRunTier(
       fixedQueueRef.current,
       spawnBagRef.current,
-      state.bestTier,
+      spawnProgressTier,
       randomRef.current,
     );
     state.canHold = true;
@@ -652,22 +654,23 @@ function App() {
     state.progress = 0;
     state.combo = 0;
     state.bestCombo = 0;
+    const spawnProgressTier = mode === 'endless' ? state.bestTier : 0;
     state.currentTier = drawRunTier(
       fixedQueueRef.current,
       spawnBagRef.current,
-      state.bestTier,
+      spawnProgressTier,
       randomRef.current,
     );
     state.nextTier = drawRunTier(
       fixedQueueRef.current,
       spawnBagRef.current,
-      state.bestTier,
+      spawnProgressTier,
       randomRef.current,
     );
     state.afterNextTier = drawRunTier(
       fixedQueueRef.current,
       spawnBagRef.current,
-      state.bestTier,
+      spawnProgressTier,
       randomRef.current,
     );
     state.holdTier = null;
@@ -714,10 +717,12 @@ function App() {
       state.holdTier = state.currentTier;
       state.currentTier = state.nextTier;
       state.nextTier = state.afterNextTier;
+      const spawnProgressTier =
+        presetRef.current.mode === 'endless' ? state.bestTier : 0;
       state.afterNextTier = drawRunTier(
         fixedQueueRef.current,
         spawnBagRef.current,
-        state.bestTier,
+        spawnProgressTier,
         randomRef.current,
       );
     } else {
