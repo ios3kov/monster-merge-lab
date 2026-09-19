@@ -209,3 +209,23 @@ This file is updated after each major production step.
 - Terminal run overlays extracted to src/run-overlays.tsx.
 - App.tsx reduced from 2506 to 1925 lines while retaining intentional state/gameplay orchestration.
 - Stop after PR #32 post-merge verification unless a concrete feature or defect exposes a new architecture boundary.
+
+
+## 2026-09-20 — Global audit & polish
+
+### Pass 1 — IN PROGRESS
+- Full scope recorded in `docs/GLOBAL_AUDIT_2026-09-20.md`.
+- P0 release blockers found: none.
+- P1 confirmed:
+  - landscape HUD readability at 5–6 px;
+  - weak visual disabled state on illustrated bottom controls;
+  - first-run coach omitted the core merge rule;
+  - Performance gate profiled browser idle only.
+- Baseline: physics 0.154 ms/step; idle 16.55 ms average / 16.80 ms p95; JS 89 KB gzip; total first-load 354 KB.
+- Remediation implemented on branch:
+  - landscape typography floor raised;
+  - visible disabled control treatment;
+  - concise merge rule added to coach;
+  - deterministic 48-body crowded-board browser profile;
+  - Performance CI now runs idle + crowded browser profiles.
+- Gate: full parallel CI → Aggregate Gate → code review → merge → main Deploy.
