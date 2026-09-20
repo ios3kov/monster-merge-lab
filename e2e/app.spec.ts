@@ -232,6 +232,22 @@ test('mode hub starts functional Experiment and Daily runs', async ({
     .getByRole('dialog')
     .filter({ hasText: 'EXPERIMENT COMPLETE' });
   await expect(completionDialog).toBeVisible({ timeout: 4000 });
+  await expect(
+    completionDialog.getByRole('button', { name: 'Retry' }),
+  ).toBeFocused();
+  await expect(page.locator('.concept-toolbar')).toHaveAttribute('inert', '');
+  await expect(page.getByLabel(/Monster tank/)).toHaveAttribute('inert', '');
+
+  await completionDialog.getByRole('button', { name: 'Lab' }).click();
+  const layeredLab = page.getByRole('dialog', { name: 'LAB' });
+  await expect(layeredLab).toBeVisible();
+  await expect(layeredLab.getByRole('button', { name: 'Close' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(layeredLab).toHaveCount(0);
+  await expect(
+    completionDialog.getByRole('button', { name: 'Retry' }),
+  ).toBeFocused();
+  await expect(page.locator('.concept-toolbar')).toHaveAttribute('inert', '');
 
   await expect(
     completionDialog.getByRole('button', { name: 'Next Experiment' }),
@@ -242,6 +258,7 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await expect(page.getByLabel('Experiment 2 objective')).toContainText(
     'Create a Puff',
   );
+  await expect(page.locator('.concept-toolbar')).not.toHaveAttribute('inert', '');
 
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Daily Experiment/ }).click();
@@ -587,6 +604,43 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       geometry.viewportHeight + 1,
     );
   }
+});
+
+test('Experiment objective hints wrap in portrait and stay compact in landscape', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.addInitScript(() => localStorage.clear());
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Lab and game modes' }).click();
+  await page.getByRole('button', { name: /^Experiments\b/ }).click();
+
+  const hint = page.locator('.mode-objective span');
+  await expect(hint).toBeVisible();
+  await expect(hint).toContainText('Merge two Sprouts');
+
+  const portraitStyle = await hint.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      whiteSpace: style.whiteSpace,
+      lineClamp: style.getPropertyValue('-webkit-line-clamp'),
+    };
+  });
+  expect(portraitStyle.whiteSpace).toBe('normal');
+  expect(portraitStyle.lineClamp).toBe('2');
+
+  await page.setViewportSize({ width: 844, height: 390 });
+  const landscapeStyle = await hint.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      whiteSpace: style.whiteSpace,
+      lineClamp: style.getPropertyValue('-webkit-line-clamp'),
+    };
+  });
+  expect(landscapeStyle.whiteSpace).toBe('nowrap');
+  expect(landscapeStyle.lineClamp).toBe('1');
 });
 
 test('initial screen has no serious automated accessibility violations', async ({
