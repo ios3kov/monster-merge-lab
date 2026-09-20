@@ -1174,3 +1174,6 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .canvas-wrap::before {
   background:radial-gradient(circle at 50% 24%,rgba(255,214,147,.08),transparent 36%);
 }
+
+/* The committed concept modules replace the old combined UI sheet. */
+.game-frame { background-image:url('/assets/concept/tank-frame.webp'); }
