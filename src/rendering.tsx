@@ -10,7 +10,7 @@ import {
   type Body,
 } from './physics';
 
-const HYBRID_ATLAS_URL = '/assets/monster-ui-assets.webp';
+const HYBRID_ATLAS_URL = '/assets/concept/monster-tiers.webp';
 const HYBRID_TIER_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 7];
 const HYBRID_IRIS = [
   '#245ee8',
