@@ -932,52 +932,6 @@ function App() {
     haptic('order');
   }, [flash, sync]);
 
-  const nudge = useCallback(() => {
-    const state = uiRef.current;
-    if (!presetRef.current.allowPower) {
-      flash('Power unavailable in this mode');
-      return;
-    }
-    if (state.gameOver || state.experimentComplete || state.experimentFailed) return;
-    const powerLimit = presetRef.current.limits?.powerUses;
-    if (powerLimit !== undefined && state.runPowerUses >= powerLimit) {
-      flash('Pulse limit reached');
-      return;
-    }
-    const consumesInventory = usesPersistentMetaProgress(
-      presetRef.current.mode,
-    );
-    if (consumesInventory && state.powerCharges <= 0) {
-      setShowShop(true);
-      flash('Get a Pulse in Shop');
-      return;
-    }
-    if (worldRef.current.bodies.length === 0) {
-      flash('Drop a monster first');
-      return;
-    }
-    if (consumesInventory) {
-      state.powerCharges -= 1;
-      storageSet(POWER_KEY, String(state.powerCharges));
-    }
-    state.runPowerUses += 1;
-    markFirstDecision();
-    emitTelemetry({
-      name: 'power_used',
-      ...getTelemetryContext(presetRef.current),
-      uses: state.runPowerUses,
-    });
-    sync();
-    for (const body of worldRef.current.bodies) {
-      const direction = body.x < WIDTH / 2 ? -1 : 1;
-      body.vx += direction * (26 + Math.random() * 24);
-      body.vy -= 24 + Math.random() * 18;
-      body.impact = Math.max(body.impact, 0.28);
-    }
-    playSound('bounce');
-    haptic('merge');
-  }, [flash, markFirstDecision, sync]);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -1723,12 +1677,6 @@ function App() {
     preset.goal,
     getRunGoalContext(ui, isPileBelowDanger()),
   );
-  const powerUsesRemaining = !preset.allowPower
-    ? 0
-    : preset.mode === 'experiments' && preset.limits?.powerUses !== undefined
-      ? Math.max(0, preset.limits.powerUses - ui.runPowerUses)
-      : ui.powerCharges;
-
   return (
     <main className="app-shell">
       <section className={'game-shell reference-game-shell' + (ui.overdriveActive ? ' is-overdrive' : '')}>
