@@ -277,7 +277,7 @@ This file is updated after each major production step.
 
 ## 2026-09-20 — Direct field drop UX
 
-### Remove redundant DROP button — IN PROGRESS
+### Remove redundant DROP button — DONE
 - Goal: remove the redundant bottom DROP action because drag/tap release on the game field already performs the primary drop.
 - Bottom toolbar now contains only Shop, Monsters, Power-ups and Lab.
 - Toolbar rebuilt as a visible four-action panel instead of transparent hit zones relying on the baked five-button artwork.
@@ -294,4 +294,7 @@ This file is updated after each major production step.
 - Fix: landscape toolbar moved lower.
 - PR #37 run #178: Offline/PWA ✓ Performance ✓ Audit ✓; Chromium caught sub-44px toolbar targets in short landscape when forcing exact field width.
 - Fix: portrait keeps exact field-width alignment; short landscape expands only to the minimum 198px centered width needed to preserve real 44px touch targets after padding, borders and grid gaps.
-- Gate: rerun full PR CI → Aggregate Gate → merge → main Deploy → production interaction smoke.
+- PR #37 run #182: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Portrait toolbar matches the game-field width/edges; short landscape uses the documented centered accessibility-safe minimum.
+- Field drop, cooldown, Experiments, Daily restore, offline reload and production-smoke scenario are covered without a DROP button.
+- Final documentation head must pass the same gate before merge.
