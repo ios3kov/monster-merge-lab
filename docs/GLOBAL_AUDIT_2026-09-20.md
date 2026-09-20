@@ -113,11 +113,12 @@ Measured after implementation:
 
 ## P2 — follow-up findings
 
-### Reduced-motion runtime preference
+### Reduced-motion runtime preference — RESOLVED
 
-Canvas reduced-motion preference is read when the rendering module loads. CSS responds dynamically, but canvas behavior will not react if the OS preference changes while the page remains open.
-
-Status: non-blocking. Candidate for a later accessibility polish PR if needed.
+Canvas rendering now reads a live cached `MediaQueryList.matches` value. The
+browser updates that value when the OS preference changes, so canvas motion
+responds without a page reload. The query object is reused to avoid repeated
+`matchMedia` allocation in the render loop.
 
 ### PWA install icon completeness
 
@@ -125,11 +126,13 @@ The manifest currently has no `icons` entries and the document has no Apple touc
 
 Status: non-blocking, but installed-app polish is incomplete. Schedule a dedicated asset/PWA pass rather than inventing production artwork inside this UX patch.
 
-### Service-worker cache lifecycle
+### Service-worker cache lifecycle — RESOLVED
 
-Runtime hashed assets use cache-first behavior and the cache name remains `monster-merge-lab-shell-v1`. Old hashed runtime assets can accumulate across deployments for long-lived users.
-
-Status: non-blocking storage/maintenance issue. Offline behavior is currently verified and production navigation is network-first.
+Service-worker storage now separates shell and hashed runtime caches with v2
+generations. Activation removes obsolete cache generations. On each successful
+online navigation, the current HTML is parsed for active `/assets/` references
+and stale hashed runtime entries are pruned. Offline navigation behavior remains
+unchanged and covered by Playwright.
 
 ### WebKit worst-frame spike under synthetic crowd
 
@@ -252,3 +255,47 @@ the 400 KB budget.
 Final documentation head must pass the same PR gate before merge.
 
 Status: DONE.
+
+
+## Final global audit / polish closure
+
+P0: none.
+
+P1: resolved in PR #34 and PR #35:
+- critical HUD readability;
+- disabled-control feedback;
+- first-run core-rule clarity;
+- crowded-board performance profiling;
+- terminal dialog focus/inert isolation;
+- portrait objective hint readability;
+- automated live production interaction smoke.
+
+Final safe P2 remediation:
+- dynamic canvas reduced-motion response;
+- service-worker cache-generation and stale-runtime cleanup.
+
+Accepted / deferred P2:
+- PWA install icons: requires deliberate production artwork;
+- runtime art recompression: requires visual pixel-level QA;
+- isolated WebKit max-frame spike: monitor p95 before optimizing;
+- dependency major upgrades: dedicated compatibility work only.
+
+### Final stop criterion
+
+PR #36 implementation run #171 passed Chromium, WebKit, Offline/PWA,
+Performance, Audit and Aggregate Gate.
+
+Final P2 measured result:
+
+- physics: 0.204 ms/step;
+- crowded Chromium: 16.63 ms average / 16.70 ms p95;
+- idle Chromium: 16.62 ms average / 16.80 ms p95;
+- total first-load: 355 KB;
+- raw dist: 561 KB.
+
+After the final documentation head, main Deploy, and production interaction
+smoke pass, the 2026-09-20 global technical/UX polish phase is DONE.
+
+Do not continue refactoring, asset recompression, dependency upgrades, or visual
+redesign without a concrete product requirement, measured regression, or
+reported defect.

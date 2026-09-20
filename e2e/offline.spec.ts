@@ -48,3 +48,43 @@ test('manifest and service worker provide an offline app shell', async ({
 
   await context.setOffline(false);
 });
+
+
+test('service worker prunes stale runtime assets after online navigation', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('chromium'));
+
+  await page.goto('/');
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        if (!('serviceWorker' in navigator)) return false;
+        await navigator.serviceWorker.ready;
+        return Boolean(navigator.serviceWorker.controller);
+      }),
+    )
+    .toBe(true);
+
+  await page.evaluate(async () => {
+    const runtime = await caches.open('monster-merge-lab-runtime-v2');
+    await runtime.put(
+      '/assets/stale-build.js',
+      new Response('stale', {
+        headers: { 'content-type': 'text/javascript' },
+      }),
+    );
+  });
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await expect(page.getByLabel(/Monster tank/)).toBeVisible();
+
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        const runtime = await caches.open('monster-merge-lab-runtime-v2');
+        return Boolean(await runtime.match('/assets/stale-build.js'));
+      }),
+    )
+    .toBe(false);
+});
