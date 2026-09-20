@@ -2281,6 +2281,11 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     overflow: hidden;
   }
 
+  .reference-hud__meta {
+    padding: 1px;
+    gap: 1px;
+  }
+
   .reference-score strong {
     font-size: 13px;
   }
