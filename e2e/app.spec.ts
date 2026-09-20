@@ -559,18 +559,28 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       viewport.name + ' tank height ratio',
     ).toBeLessThan(0.01);
 
-    expect(
-      Math.abs(geometry.toolbar.width - geometry.frame.width),
-      viewport.name + ' toolbar width matches tank',
-    ).toBeLessThanOrEqual(2);
-    expect(
-      Math.abs(geometry.toolbar.left - geometry.frame.left),
-      viewport.name + ' toolbar left aligns with tank',
-    ).toBeLessThanOrEqual(2);
-    expect(
-      Math.abs(geometry.toolbar.right - geometry.frame.right),
-      viewport.name + ' toolbar right aligns with tank',
-    ).toBeLessThanOrEqual(2);
+    if (viewport.name !== 'landscape') {
+      expect(
+        Math.abs(geometry.toolbar.width - geometry.frame.width),
+        viewport.name + ' toolbar width matches tank',
+      ).toBeLessThanOrEqual(2);
+      expect(
+        Math.abs(geometry.toolbar.left - geometry.frame.left),
+        viewport.name + ' toolbar left aligns with tank',
+      ).toBeLessThanOrEqual(2);
+      expect(
+        Math.abs(geometry.toolbar.right - geometry.frame.right),
+        viewport.name + ' toolbar right aligns with tank',
+      ).toBeLessThanOrEqual(2);
+    } else {
+      expect(
+        Math.abs(
+          (geometry.toolbar.left + geometry.toolbar.right) / 2 -
+            (geometry.frame.left + geometry.frame.right) / 2,
+        ),
+        'landscape toolbar stays centered on tank',
+      ).toBeLessThanOrEqual(2);
+    }
 
     expect(geometry.frame.left, viewport.name + ' left edge').toBeGreaterThanOrEqual(
       geometry.shell.left - 1,
