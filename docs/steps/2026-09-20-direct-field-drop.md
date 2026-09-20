@@ -1,0 +1,127 @@
+# Direct Field Drop UX
+
+Date: 2026-09-20
+
+## Goal
+
+Remove the redundant dedicated DROP button and make the game field itself the
+unambiguous primary drop control.
+
+## Interaction model
+
+- pointer/touch: drag or tap on the field, release to drop;
+- desktop keyboard: Left/Right aim, Space/Enter drop, H hold;
+- bottom toolbar: Shop / Monsters / Power-ups / Lab only.
+
+## Layout
+
+The four-action bottom toolbar is aligned to the same modular grid as the game
+field:
+
+- left: 12.8%;
+- right: 12.8%;
+- width matches the game frame;
+- four equal action columns.
+
+The toolbar is rendered visibly in DOM/CSS rather than depending on transparent
+hit zones for the old five-button artwork.
+
+## Accessibility / testability
+
+The canvas now publishes `aria-disabled` when a drop is temporarily unavailable
+because of cooldown or a terminal state.
+
+This preserves explicit readiness feedback for browser tests and assistive
+technology even though there is no separate drop button.
+
+## Regression coverage
+
+- no accessible DROP button exists;
+- field is the actual drop surface;
+- cooldown survives background pause;
+- Experiment completion/progression works through field drops;
+- restored drop-limit state disables field drop;
+- Daily queue persistence works through field drops;
+- toolbar width and left/right edges match the game field across target viewports;
+- production smoke performs a real field drop and sees `first_drop` telemetry.
+
+## Risk controls
+
+No changes to:
+
+- physics;
+- scoring;
+- merge rules;
+- queue generation;
+- economy;
+- persistence/session schema;
+- telemetry schema.
+
+## Verification
+
+Required before merge:
+
+- TypeScript
+- ESLint
+- unit tests
+- Chromium
+- WebKit
+- Offline/PWA
+- Performance
+- dependency audit
+- Aggregate Gate
+- main Deploy
+- production interaction smoke
+
+## Verification catch
+
+PR #37 run #174 found one stale Offline/PWA assertion that still expected the
+removed DROP button after an offline reload.
+
+The product behavior was correct; the regression test was outdated. The test
+now verifies:
+
+- the game field is visible and drop-ready;
+- no accessible DROP button exists.
+
+### Landscape clearance catch
+
+PR #37 run #176 caught a small landscape overlap between the bottom of the
+game field and the rebuilt toolbar. The geometry assertion remained strict.
+
+Fix: move the landscape toolbar lower while preserving the same field-aligned
+left/right edges and width.
+
+### Accessibility-safe landscape exception
+
+PR #37 run #178 caught that four actions cannot physically remain 44px wide
+inside the short-landscape game-field width.
+
+Final rule:
+
+- portrait: toolbar width and edges match the game field exactly;
+- short landscape: toolbar remains centered on the field but may expand to a
+  minimum 198px so every action remains at least 44px wide after panel padding, borders and grid gaps.
+
+Accessibility wins over strict width matching only in this constrained layout.
+
+## Verification result
+
+PR #37 run #182:
+
+- TypeScript ✓
+- ESLint ✓
+- unit tests ✓
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- dependency audit ✓
+- Aggregate Gate ✓
+- field-drop interaction regressions ✓
+- portrait field/toolbar alignment ✓
+- short-landscape 44px touch targets ✓
+
+The final documentation-only head must pass the same PR gate before merge.
+
+Status: DONE.

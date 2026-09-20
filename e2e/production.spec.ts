@@ -22,15 +22,17 @@ test('production supports Lab navigation and a real first drop', async ({ page }
 
   await page.goto('/', { waitUntil: 'networkidle' });
   await expect(page).toHaveTitle('Monster Merge Lab');
-  await expect(page.getByLabel(/Monster tank/)).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Drop monster' })).toBeVisible();
+  const field = page.getByLabel(/Monster tank/);
+  await expect(field).toBeVisible();
+  await expect(field).toHaveAttribute('aria-disabled', 'false');
+  await expect(page.getByRole('button', { name: 'Drop monster' })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await expect(page.getByRole('dialog', { name: 'LAB' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'LAB' })).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Drop monster' }).click();
+  await field.click();
   await expect
     .poll(() =>
       page.evaluate(

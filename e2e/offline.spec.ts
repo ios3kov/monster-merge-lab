@@ -43,8 +43,10 @@ test('manifest and service worker provide an offline app shell', async ({
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
 
-  await expect(page.getByLabel(/Monster tank/)).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Drop monster' })).toBeVisible();
+  const field = page.getByLabel(/Monster tank/);
+  await expect(field).toBeVisible();
+  await expect(field).toHaveAttribute('aria-disabled', 'false');
+  await expect(page.getByRole('button', { name: 'Drop monster' })).toHaveCount(0);
 
   await context.setOffline(false);
 });

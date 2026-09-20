@@ -1,5 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+async function dropOnField(page: Page) {
+  await page.getByLabel(/Monster tank/).click();
+}
+
+function dropSurface(page: Page) {
+  return page.getByLabel(/Monster tank/);
+}
 
 test('core UI is usable and responsive', async ({ page }, testInfo) => {
   const errors = [];
@@ -12,7 +20,8 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await expect(page.getByLabel(/Monster tank/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Shop' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Monsters' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Drop monster' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Drop monster' })).toHaveCount(0);
+  await expect(dropSurface(page)).toHaveAttribute('aria-disabled', 'false');
   await expect(page.getByRole('button', { name: 'Lab and game modes' })).toBeVisible();
 
   const overflow = await page.evaluate(() => ({
@@ -53,13 +62,13 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
     await page.keyboard.press(' ');
   } else {
     await page.getByRole('button', { name: /Hold current monster/ }).click();
-    await page.getByRole('button', { name: 'Drop monster' }).click();
+    await dropOnField(page);
   }
 
-  const dropButton = page.getByRole('button', { name: 'Drop monster' });
-  await expect(dropButton).toBeDisabled();
+  const field = dropSurface(page);
+  await expect(field).toHaveAttribute('aria-disabled', 'true');
   await page.waitForTimeout(550);
-  await expect(dropButton).toBeEnabled();
+  await expect(field).toHaveAttribute('aria-disabled', 'false');
   await expect(
     page.getByRole('button', { name: /Hold current monster|Swap current/ }),
   ).toBeEnabled();
@@ -72,9 +81,9 @@ test('background pause freezes active gameplay timers', async ({
   test.skip(!testInfo.project.name.includes('desktop'));
 
   await page.goto('/');
-  const dropButton = page.getByRole('button', { name: 'Drop monster' });
-  await dropButton.click();
-  await expect(dropButton).toBeDisabled();
+  const field = dropSurface(page);
+  await dropOnField(page);
+  await expect(field).toHaveAttribute('aria-disabled', 'true');
 
   await page.evaluate(() => {
     Object.defineProperty(document, 'hidden', {
@@ -94,9 +103,9 @@ test('background pause freezes active gameplay timers', async ({
     document.dispatchEvent(new Event('visibilitychange'));
   });
 
-  await expect(dropButton).toBeDisabled();
+  await expect(field).toHaveAttribute('aria-disabled', 'true');
   await page.waitForTimeout(450);
-  await expect(dropButton).toBeEnabled();
+  await expect(field).toHaveAttribute('aria-disabled', 'false');
 });
 
 test('meta shop and saved Order stats stay isolated from non-Endless modes', async ({
@@ -165,7 +174,7 @@ test('telemetry bridge emits real gameplay events', async ({
     )
     .toContain('run_started');
 
-  await page.getByRole('button', { name: 'Drop monster' }).click();
+  await dropOnField(page);
 
   await expect
     .poll(() =>
@@ -224,10 +233,9 @@ test('mode hub starts functional Experiment and Daily runs', async ({
     )
     .toContain('experiment_started');
 
-  const dropButton = page.getByRole('button', { name: 'Drop monster' });
-  await dropButton.click();
+  await dropOnField(page);
   await page.waitForTimeout(500);
-  await dropButton.click();
+  await dropOnField(page);
   const completionDialog = page
     .getByRole('dialog')
     .filter({ hasText: 'EXPERIMENT COMPLETE' });
@@ -283,10 +291,9 @@ test('Experiment progress persists and resumes after reload', async ({
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Experiments/ }).click();
 
-  const dropButton = page.getByRole('button', { name: 'Drop monster' });
-  await dropButton.click();
+  await dropOnField(page);
   await page.waitForTimeout(500);
-  await dropButton.click();
+  await dropOnField(page);
 
   const completionDialog = page
     .getByRole('dialog')
@@ -332,8 +339,7 @@ test('active Experiment run restores its physics state after reload', async ({
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Experiments/ }).click();
 
-  const dropButton = page.getByRole('button', { name: 'Drop monster' });
-  await dropButton.click();
+  await dropOnField(page);
   await page.waitForTimeout(550);
 
   await page.reload();
@@ -348,7 +354,7 @@ test('active Experiment run restores its physics state after reload', async ({
   expect(restoredSession?.mode).toBe('experiments');
   expect(restoredSession?.bodies?.length).toBe(1);
 
-  await page.getByRole('button', { name: 'Drop monster' }).click();
+  await dropOnField(page);
   const completionDialog = page
     .getByRole('dialog')
     .filter({ hasText: 'EXPERIMENT COMPLETE' });
@@ -404,9 +410,7 @@ test('restored Experiment at drop limit resolves without an extra drop', async (
   await expect(page.getByLabel('Experiment 12 objective')).toContainText(
     'Create a Beast',
   );
-  await expect(
-    page.getByRole('button', { name: 'Drop monster' }),
-  ).toBeDisabled();
+  await expect(dropSurface(page)).toHaveAttribute('aria-disabled', 'true');
 
   const failedDialog = page
     .getByRole('dialog')
@@ -432,7 +436,7 @@ test('Daily restores the same visible queue position after reload', async ({
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Daily Experiment/ }).click();
 
-  await page.getByRole('button', { name: 'Drop monster' }).click();
+  await dropOnField(page);
   await page.waitForTimeout(550);
   const expectedNext = await page
     .getByRole('group', { name: /Next monster tier/ })
@@ -554,6 +558,29 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       Math.abs(geometry.frame.height / geometry.shell.height - 0.649),
       viewport.name + ' tank height ratio',
     ).toBeLessThan(0.01);
+
+    if (viewport.name !== 'landscape') {
+      expect(
+        Math.abs(geometry.toolbar.width - geometry.frame.width),
+        viewport.name + ' toolbar width matches tank',
+      ).toBeLessThanOrEqual(2);
+      expect(
+        Math.abs(geometry.toolbar.left - geometry.frame.left),
+        viewport.name + ' toolbar left aligns with tank',
+      ).toBeLessThanOrEqual(2);
+      expect(
+        Math.abs(geometry.toolbar.right - geometry.frame.right),
+        viewport.name + ' toolbar right aligns with tank',
+      ).toBeLessThanOrEqual(2);
+    } else {
+      expect(
+        Math.abs(
+          (geometry.toolbar.left + geometry.toolbar.right) / 2 -
+            (geometry.frame.left + geometry.frame.right) / 2,
+        ),
+        'landscape toolbar stays centered on tank',
+      ).toBeLessThanOrEqual(2);
+    }
 
     expect(geometry.frame.left, viewport.name + ' left edge').toBeGreaterThanOrEqual(
       geometry.shell.left - 1,
