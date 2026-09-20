@@ -814,7 +814,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   .concept-toolbar {
     left: 12.8%;
     right: 12.8%;
-    bottom: 5%;
+    bottom: 4%;
     height: 48px;
     min-height: 48px;
     gap: 1%;
