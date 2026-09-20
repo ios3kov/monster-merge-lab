@@ -57,4 +57,32 @@ and 2, without introducing visual redesign or gameplay changes.
 - main Deploy
 - production interaction smoke
 
-Status: IN PROGRESS.
+## Verification result
+
+PR #36 implementation run #171:
+
+- TypeScript ✓
+- ESLint ✓
+- unit tests ✓
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- dependency audit ✓
+- Aggregate Gate ✓
+
+Measured performance:
+
+- physics: 0.204 ms/step;
+- crowded: 16.63 ms average / 16.70 ms p95 / 16.80 ms max;
+- idle: 16.62 ms average / 16.80 ms p95 / 16.80 ms max;
+- JS: 89 KB gzip;
+- CSS: 4 KB gzip;
+- total first-load: 355 KB;
+- raw dist: 561 KB.
+
+No material performance regression.
+
+The final documentation-only head must pass the same PR gate before merge.
+
+Status: DONE.
