@@ -59,15 +59,30 @@ Runtime references are same-origin under `/assets/concept/`.
 - No new visual concept.
 - No replacement of the approved reference with a new art direction.
 
-## Acceptance gate
-- typecheck
-- lint
-- unit tests
-- build + bundle budget
-- Chromium responsive/accessibility
-- WebKit responsive/accessibility
-- Offline/PWA
-- Performance
-- production interaction smoke after merge
+## Verification
+Implementation-head CI #261 is fully green:
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- Audit ✓
+- Aggregate Gate ✓
 
-Target portrait viewports remain 320×568, 390×844 and 430×932.
+Responsive geometry passes at 320×568, 390×844, 430×932 and 844×390.
+
+CI-driven fixes closed:
+- compact HUD/field grid alignment
+- 44×44 Hold and Sound targets
+- 8px readability floor
+- compact Orders height
+- compact coin row fit
+- regular-phone Orders height
+- short-landscape meta/order/coin width
+
+A CI screenshot also exposed two visual defects not caught by geometry alone:
+- baked sample score content bleeding through the HUD crop
+- baked monsters leaking through thick top/bottom tank-frame bands
+
+Both were removed by fully opaque live HUD interiors and a narrow perimeter-only tank chrome mask.
+
+Final documentation-only head must pass the same gate before merge. Production interaction smoke remains required after merge/deploy.
