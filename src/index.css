@@ -2347,8 +2347,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     right: auto;
     top: 0;
     width: min(520px, calc(100vw - 24px));
-    height: 54px;
-    min-height: 54px;
+    height: 56px;
+    min-height: 56px;
     grid-template-columns: minmax(110px,1.1fr) 52px 64px minmax(190px,1.6fr);
     gap: 4px;
     padding: 3px;
