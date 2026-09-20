@@ -2304,12 +2304,14 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   }
 
   .reference-hud__meta {
-    grid-template-rows: 50% minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 2px;
     overflow: hidden;
   }
 
   .reference-orders {
-    padding-top: 20%;
+    padding: 10px 3px 3px;
   }
 
   .reference-objective span {
