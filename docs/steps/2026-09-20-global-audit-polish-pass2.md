@@ -63,4 +63,30 @@ No changes to:
 - post-merge Deploy
 - production interaction smoke
 
-Status: IN PROGRESS.
+## Verification result
+
+PR #35 implementation run #166:
+
+- TypeScript ✓
+- ESLint ✓
+- unit tests ✓
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- dependency audit ✓
+- Aggregate Gate ✓
+
+Measured performance:
+
+- physics 0.162 ms/step;
+- crowded Chromium 16.61 ms average / 16.70 ms p95;
+- idle Chromium 16.61 ms average / 16.80 ms p95;
+- JS 90.45 KB gzip;
+- total 355 KB;
+- raw dist 560 KB.
+
+Final documentation head must pass the same gate before merge. The live
+production interaction smoke is a post-merge Deploy requirement.
+
+Status: DONE.
