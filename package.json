@@ -25,7 +25,10 @@
     "test:e2e:performance": "playwright test e2e/app.spec.ts --project=desktop-chromium --grep \"stays inside a safe frame budget\"",
     "verify:audit": "npm run typecheck && npm run lint && npm run test && node --check public/sw.js && npm run audit:prod",
     "verify:performance": "npm run profile:physics && npm run build && npm run profile:bundle",
-    "test:e2e:production": "playwright test --config=playwright.production.config.ts"
+    "test:e2e:production": "playwright test --config=playwright.production.config.ts",
+    "assets:concept": "node scripts/materialize-concept-assets.mjs",
+    "prebuild": "npm run assets:concept",
+    "predev": "npm run assets:concept"
   },
   "dependencies": {
     "lucide-react": "^0.469.0",
