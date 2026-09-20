@@ -105,4 +105,23 @@ Final rule:
 
 Accessibility wins over strict width matching only in this constrained layout.
 
-Status: IN PROGRESS.
+## Verification result
+
+PR #37 run #182:
+
+- TypeScript ✓
+- ESLint ✓
+- unit tests ✓
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- dependency audit ✓
+- Aggregate Gate ✓
+- field-drop interaction regressions ✓
+- portrait field/toolbar alignment ✓
+- short-landscape 44px touch targets ✓
+
+The final documentation-only head must pass the same PR gate before merge.
+
+Status: DONE.
