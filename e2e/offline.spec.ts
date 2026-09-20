@@ -48,3 +48,48 @@ test('manifest and service worker provide an offline app shell', async ({
 
   await context.setOffline(false);
 });
+
+
+test('service worker removes obsolete cache generations', async ({
+  page,
+}, testInfo) => {
+  test.skip(!testInfo.project.name.includes('chromium'));
+
+  await page.goto('/');
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        if (!('serviceWorker' in navigator)) return false;
+        await navigator.serviceWorker.ready;
+        return true;
+      }),
+    )
+    .toBe(true);
+
+  await page.evaluate(async () => {
+    await caches.open('monster-merge-lab-shell-v1');
+    await caches.open('monster-merge-lab-runtime-v1');
+  });
+
+  await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready;
+    await registration.update();
+  });
+
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        const keys = await caches.keys();
+        return {
+          oldShell: keys.includes('monster-merge-lab-shell-v1'),
+          oldRuntime: keys.includes('monster-merge-lab-runtime-v1'),
+          newShell: keys.includes('monster-merge-lab-shell-v2'),
+        };
+      }),
+    )
+    .toEqual({
+      oldShell: false,
+      oldRuntime: false,
+      newShell: true,
+    });
+});
