@@ -273,3 +273,19 @@ This file is updated after each major production step.
 - Explicitly deferred: PWA install icons, art recompression, WebKit one-off max-frame watch.
 - No gameplay rules, physics constants, economy, persistence/session schema or telemetry schema changes.
 - Final documentation head must pass the same gate before merge.
+
+
+## 2026-09-20 — Direct field drop UX
+
+### Remove redundant DROP button — IN PROGRESS
+- Goal: remove the redundant bottom DROP action because drag/tap release on the game field already performs the primary drop.
+- Bottom toolbar now contains only Shop, Monsters, Power-ups and Lab.
+- Toolbar rebuilt as a visible four-action panel instead of transparent hit zones relying on the baked five-button artwork.
+- Toolbar left/right edges are locked to the game-field frame at 12.8% / 12.8%.
+- Game field exposes `aria-disabled` during drop cooldown and terminal states so readiness remains testable and accessible after removing the button.
+- Desktop keyboard drop (Space/Enter) remains supported.
+- Mobile/pointer drop remains pointer down/move → pointer up.
+- Browser tests are migrated from clicking a DROP button to interacting with the field itself.
+- Production smoke now verifies a real field drop and `first_drop` telemetry without a DROP button.
+- No physics, scoring, spawn queue, economy, persistence/session schema or telemetry schema changes.
+- Gate: full PR CI → Aggregate Gate → merge → main Deploy → production interaction smoke.
