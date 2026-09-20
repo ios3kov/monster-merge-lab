@@ -1954,7 +1954,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .reference-orders {
   position: relative;
   overflow: hidden;
-  padding: 23% 5% 8%;
+  padding: 10px 5% 4px;
   border-radius: 6px;
   color: #5a311b;
   background:
@@ -1965,7 +1965,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   position: absolute;
   left: 0;
   right: 0;
-  top: 7%;
+  top: 2px;
   margin: 0;
   color: #5d321b;
   font-size: clamp(8px, 2vw, 11px);
