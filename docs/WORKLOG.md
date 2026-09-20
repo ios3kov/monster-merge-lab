@@ -302,7 +302,7 @@ This file is updated after each major production step.
 
 ## 2026-09-20 — Modular HUD + larger field
 
-### HUD grid and field enlargement — IN PROGRESS
+### HUD grid and field enlargement — DONE
 - Goal: make the playfield the dominant visual area and align top HUD / field / bottom toolbar to one modular grid.
 - Top HUD is now one `hud-grid` rather than five independently positioned overlays.
 - Portrait HUD uses four modules: Score+Overdrive / Hold / Next / Coins+Sound+Orders.
@@ -316,4 +316,8 @@ This file is updated after each major production step.
 - No gameplay, physics, scoring, economy, persistence/session schema or telemetry changes.
 - PR #38 run #186: Audit ✓ Performance ✓ Offline/PWA ✓; Chromium geometry gate caught a 24px landscape Sound target.
 - Fix: landscape meta module is now horizontal; Sound remains 44×44 while Coins and Orders stay inside the same 54px HUD row.
-- Gate: rerun full PR CI → Aggregate Gate → code review → merge → main Deploy → production interaction smoke.
+- PR #38 corrected-head run #188: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Measured: physics 0.159 ms/step; crowded 16.54 ms avg / 16.80 ms p95; first-load 356 KB; raw dist 565 KB.
+- Geometry gates confirm the enlarged field, portrait HUD/field/toolbar alignment, landscape centering, clearances and 44px targets.
+- Code review: UI composition changed only; gameplay/state/physics/economy/persistence/telemetry behavior unchanged.
+- Final documentation head must pass the same PR gate before merge.
