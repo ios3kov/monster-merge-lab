@@ -1249,3 +1249,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     overflow: hidden;
   }
 }
+
+@media (orientation: landscape) and (max-height: 640px) {
+  .hud-grid { top: 0; }
+  .concept-top-actions { transform: translateY(-2px); }
+}
