@@ -491,6 +491,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       const shell = document.querySelector<HTMLElement>('.game-shell');
       const frame = document.querySelector<HTMLElement>('.game-frame');
       const toolbar = document.querySelector<HTMLElement>('.concept-toolbar');
+      const hudGrid = document.querySelector<HTMLElement>('.hud-grid');
       const rectOf = (element: HTMLElement) => {
         const rect = element.getBoundingClientRect();
         return {
@@ -531,12 +532,13 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         .filter((element): element is HTMLElement => element !== null)
         .map((element) => parseFloat(getComputedStyle(element).fontSize));
 
-      if (!shell || !frame || !toolbar) return null;
+      if (!shell || !frame || !toolbar || !hudGrid) return null;
 
       return {
         shell: rectOf(shell),
         frame: rectOf(frame),
         toolbar: rectOf(toolbar),
+        hudGrid: rectOf(hudGrid),
         hud,
         touchTargets,
         readableTextSizes,
@@ -555,8 +557,14 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       viewport.name + ' tank width ratio',
     ).toBeLessThan(0.01);
     expect(
-      Math.abs(geometry.frame.height / geometry.shell.height - 0.649),
+      Math.abs(geometry.frame.height / geometry.shell.height - 0.674),
       viewport.name + ' tank height ratio',
+    ).toBeLessThan(0.01);
+    expect(
+      Math.abs(
+        (geometry.frame.top - geometry.shell.top) / geometry.shell.height - 0.166,
+      ),
+      viewport.name + ' tank top ratio',
     ).toBeLessThan(0.01);
 
     if (viewport.name !== 'landscape') {
@@ -572,6 +580,18 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         Math.abs(geometry.toolbar.right - geometry.frame.right),
         viewport.name + ' toolbar right aligns with tank',
       ).toBeLessThanOrEqual(2);
+      expect(
+        Math.abs(geometry.hudGrid.width - geometry.frame.width),
+        viewport.name + ' HUD width matches tank',
+      ).toBeLessThanOrEqual(2);
+      expect(
+        Math.abs(geometry.hudGrid.left - geometry.frame.left),
+        viewport.name + ' HUD left aligns with tank',
+      ).toBeLessThanOrEqual(2);
+      expect(
+        Math.abs(geometry.hudGrid.right - geometry.frame.right),
+        viewport.name + ' HUD right aligns with tank',
+      ).toBeLessThanOrEqual(2);
     } else {
       expect(
         Math.abs(
@@ -579,6 +599,13 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
             (geometry.frame.left + geometry.frame.right) / 2,
         ),
         'landscape toolbar stays centered on tank',
+      ).toBeLessThanOrEqual(2);
+      expect(
+        Math.abs(
+          (geometry.hudGrid.left + geometry.hudGrid.right) / 2 -
+            (geometry.frame.left + geometry.frame.right) / 2,
+        ),
+        'landscape HUD stays centered on tank',
       ).toBeLessThanOrEqual(2);
     }
 
@@ -591,6 +618,10 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
     expect(geometry.frame.top, viewport.name + ' top edge').toBeGreaterThanOrEqual(
       geometry.shell.top - 1,
     );
+    expect(
+      geometry.hudGrid.bottom,
+      viewport.name + ' HUD clearance above tank',
+    ).toBeLessThanOrEqual(geometry.frame.top + 1);
     expect(geometry.frame.bottom, viewport.name + ' toolbar clearance').toBeLessThanOrEqual(
       geometry.toolbar.top + 1,
     );
