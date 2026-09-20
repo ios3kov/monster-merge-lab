@@ -377,9 +377,12 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   overflow: hidden;
   color: #7b5638;
   font-size: 8px;
-  line-height: 1.1;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .monster-art {
@@ -751,7 +754,11 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     padding: 10px 3px 3px;
   }
   .mode-objective strong { font-size: 8px; }
-  .mode-objective span { font-size: 8px; }
+  .mode-objective span {
+    font-size: 8px;
+    -webkit-line-clamp: 1;
+    white-space: nowrap;
+  }
   .order-row.current {
     min-height: 20px;
     grid-template-columns: 18px minmax(0,1fr) auto;
