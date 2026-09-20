@@ -323,3 +323,5 @@ This file is updated after each major production step.
 - Final documentation head must pass the same PR gate before merge.
 
 - 2026-09-20: Replaced oversized generated PNG workshop art with optimized local WebP assets, switched CSS to same-origin WebP paths, removed superseded PNGs and the one-shot conversion workflow. Verification: full CI rerun pending.
+
+- 2026-09-20: Concept UI rebuild in PR #43. Extracted the approved master concept into independent local WebP modules (logo, HUD/frame panels, tank, navigation), widened the tank to concept proportions, replaced the full-height dashed aim line with a short subtle guide, introduced a compact concept-derived monster tier atlas, strengthened visual tier scaling while keeping physics radii authoritative, removed the superseded combined UI sheet, and kept Performance/Offline/Audit gates green. Responsive verification is still in progress: the remaining blocker is a single compact-phone HUD child overlap being isolated with selector-level E2E diagnostics. Do not merge/deploy until Chromium + WebKit + Aggregate Gate are green.
