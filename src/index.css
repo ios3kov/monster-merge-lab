@@ -2192,11 +2192,6 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 
 @media (max-width: 340px) {
-  .reference-hud {
-    left: 3.3%;
-    right: 3.3%;
-  }
-
   .reference-hud__score {
     left: 2.4%;
     width: 25.5%;
