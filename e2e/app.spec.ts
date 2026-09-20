@@ -511,9 +511,9 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         '.hold-board',
         '.orders-board',
       ]
-        .map((selector) => document.querySelector<HTMLElement>(selector))
-        .filter((element): element is HTMLElement => element !== null)
-        .map(rectOf);
+        .map((selector) => ({ selector, element: document.querySelector<HTMLElement>(selector) }))
+        .filter((item): item is { selector: string; element: HTMLElement } => item.element !== null)
+        .map(({ selector, element }) => ({ selector, ...rectOf(element) }));
 
       const touchTargets = Array.from(
         document.querySelectorAll<HTMLElement>(
@@ -553,16 +553,16 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
     if (!geometry) continue;
 
     expect(
-      Math.abs(geometry.frame.width / geometry.shell.width - 0.744),
+      Math.abs(geometry.frame.width / geometry.shell.width - 0.92),
       viewport.name + ' tank width ratio',
     ).toBeLessThan(0.01);
     expect(
-      Math.abs(geometry.frame.height / geometry.shell.height - 0.674),
+      Math.abs(geometry.frame.height / geometry.shell.height - 0.654),
       viewport.name + ' tank height ratio',
     ).toBeLessThan(0.01);
     expect(
       Math.abs(
-        (geometry.frame.top - geometry.shell.top) / geometry.shell.height - 0.166,
+        (geometry.frame.top - geometry.shell.top) / geometry.shell.height - 0.184,
       ),
       viewport.name + ' tank top ratio',
     ).toBeLessThan(0.01);
@@ -643,7 +643,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         rect.right > geometry.frame.left + 1 &&
         rect.top < geometry.frame.bottom - 1 &&
         rect.bottom > geometry.frame.top + 1;
-      expect(overlapsTank, viewport.name + ' HUD must not overlap tank').toBe(false);
+      expect(overlapsTank, viewport.name + ' HUD must not overlap tank: ' + rect.selector + ' ' + JSON.stringify(rect)).toBe(false);
     }
 
     for (const rect of geometry.touchTargets) {

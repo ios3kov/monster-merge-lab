@@ -1133,3 +1133,124 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   }
   .overdrive-panel.is-active > i > b { animation: none !important; }
 }
+
+/* Master-concept modular layout */
+.game-shell::before {
+  content:"";
+  position:absolute; z-index:20; left:18%; right:18%; top:.25%; height:7.2%;
+  background:url('/assets/concept/logo.webp') center/contain no-repeat;
+  pointer-events:none;
+}
+.hud-grid {
+  left:4%; right:4%; top:7.2%; height:10.9%;
+  grid-template-columns: 26% 14% 22% 38%;
+  gap:0;
+  padding:1.4% 1.6%;
+  background:url('/assets/concept/hud-frame.webp') center/100% 100% no-repeat;
+}
+.hud-score-cell { background:url('/assets/concept/score-panel.webp') center/100% 100% no-repeat; padding:8% 8% 6%; }
+.hud-hold-cell { background:url('/assets/concept/hold-panel.webp') center/100% 100% no-repeat; }
+.hud-next-cell { background:url('/assets/concept/next-panel.webp') center/100% 100% no-repeat; }
+.hud-meta-cell { background:url('/assets/concept/orders-panel.webp') center/100% 100% no-repeat; padding:2.5% 4%; }
+.hud-score-cell .status-cluster,
+.hold-board,
+.next-board,
+.orders-board,
+.coin-pill,
+.icon-button { background-color:transparent; }
+.game-frame {
+  left:4%; top:18.4%; width:92%; height:65.4%; padding:5.2% 6.2% 5.5%;
+  background-image:url('/assets/concept/tank-frame.webp');
+  background-size:100% 100%;
+  background-position:center;
+  box-shadow:none;
+}
+.concept-toolbar {
+  left:4%; right:4%; bottom:5.1%; height:9.2%;
+  padding:1.2% 2.1%;
+  background:url('/assets/concept/nav-frame.webp') center/100% 100% no-repeat;
+  border:0; box-shadow:none; gap:1.2%;
+}
+.canvas-wrap::before {
+  background:radial-gradient(circle at 50% 24%,rgba(255,214,147,.08),transparent 36%);
+}
+
+/* The committed concept modules replace the old combined UI sheet. */
+.game-frame { background-image:url('/assets/concept/tank-frame.webp'); }
+
+/* Keep live HUD contents inside the concept skin on compact phones. */
+.hud-grid > * { min-height: 0; overflow: hidden; }
+.hud-meta-cell { overflow: hidden; }
+.status-cluster,
+.concept-top-actions,
+.next-board,
+.hold-board,
+.orders-board { max-height: 100%; min-height: 0; }
+@media (max-width: 340px) {
+  .hud-grid { height: 10.5%; }
+  .hud-meta-cell { grid-template-rows: 40px minmax(0,1fr); gap: 2px; }
+  .concept-top-actions { grid-template-columns: minmax(0,1fr) 40px; gap: 2px; }
+  .coin-pill, .icon-button { height: 44px; min-height: 44px; }
+}
+
+@media (max-width: 340px) {
+  .orders-board {
+    align-self: start;
+    height: calc(100% - 9px);
+    max-height: calc(100% - 9px);
+    padding-top: 1px;
+    padding-bottom: 1px;
+    overflow: hidden;
+  }
+  .orders-board .order-row { min-height: 0; line-height: 1; }
+}
+
+/* Orders is the only HUD child whose intrinsic content can exceed the concept frame.
+   Contain it at all portrait phone widths, not only 320px. */
+@media (max-width: 480px) {
+  .orders-board {
+    align-self: start;
+    height: calc(100% - 10px);
+    max-height: calc(100% - 10px);
+    padding-block: 1px;
+    overflow: hidden;
+  }
+  .orders-board .order-row { min-height: 0; line-height: 1; }
+}
+
+/* Master-concept overrides must preserve the landscape centering contract. */
+@media (orientation: landscape) and (max-height: 640px) {
+  .concept-toolbar {
+    left: 50%;
+    right: auto;
+    width: 92%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 640px) {
+  .hud-grid {
+    left: 50%;
+    right: auto;
+    width: 92%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 640px) {
+  .concept-toolbar { bottom: 1.5%; }
+}
+
+@media (orientation: landscape) and (max-height: 640px) {
+  .concept-top-actions {
+    height: 44px;
+    min-height: 44px;
+    align-self: start;
+    overflow: hidden;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 640px) {
+  .hud-grid { top: 0; }
+  .concept-top-actions { transform: translateY(-2px); }
+}

@@ -1301,14 +1301,13 @@ function App() {
         const y = body.y - offset - 2;
         if (y > 95) guideY = Math.min(guideY, y);
       }
-      ctx.strokeStyle = 'rgba(255,255,255,.93)';
-      ctx.setLineDash([7, 7]);
-      ctx.lineWidth = 1.6;
+      // Keep aiming readable without painting a permanent dashed stripe over the concept art.
+      ctx.strokeStyle = 'rgba(255,245,214,.48)';
+      ctx.lineWidth = 1.15;
       ctx.beginPath();
       ctx.moveTo(aimXRef.current, 86 + def.radius);
-      ctx.lineTo(aimXRef.current, guideY);
+      ctx.lineTo(aimXRef.current, Math.min(guideY, 86 + def.radius + 42));
       ctx.stroke();
-      ctx.setLineDash([]);
 
       const bodies = worldRef.current.bodies;
       for (const bucket of tierBuckets) bucket.length = 0;

@@ -10,7 +10,7 @@ import {
   type Body,
 } from './physics';
 
-const HYBRID_ATLAS_URL = '/assets/monster-atlas-v1.webp';
+const HYBRID_ATLAS_URL = '/assets/concept/monster-tiers.webp';
 const HYBRID_TIER_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 7];
 const HYBRID_IRIS = [
   '#245ee8',
@@ -365,8 +365,9 @@ export function drawMonster(
     !reducedMotion && pressure > 0.46
       ? Math.sin(time * 0.025 + body.id) * 0.018
       : 0;
-  const radius = body.r * (body.tier >= 5 ? 1.08 : 1.12);
-  const size = radius * 2.46;
+  const CONCEPT_VISUAL_SCALE = [1.0, 1.05, 1.09, 1.13, 1.18, 1.23, 1.28, 1.34, 1.4] as const;
+  const radius = body.r;
+  const size = radius * 2.32 * (CONCEPT_VISUAL_SCALE[Math.min(MAX_TIER, body.tier)] ?? 1);
 
   ctx.save();
   ctx.globalAlpha = alpha;
