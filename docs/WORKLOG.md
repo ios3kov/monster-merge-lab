@@ -258,8 +258,8 @@ This file is updated after each major production step.
 - Final documentation head must pass the same gate before merge.
 
 
-### Final P2 cleanup — IN PROGRESS
-- Scope is intentionally limited to two safe technical P2 items from the global audit.
+### Final P2 cleanup — DONE
+- Scope intentionally limited to two safe technical P2 items from the global audit.
 - Canvas reduced-motion now reads the live `prefers-reduced-motion` media query without requiring reload.
 - The MediaQueryList is reused; draw paths read its current `.matches` state dynamically.
 - Service worker cache generation bumped to v2.
@@ -267,6 +267,9 @@ This file is updated after each major production step.
 - Successful online navigation prunes stale hashed runtime entries no longer referenced by the current index.
 - Old cache generations are deleted during service-worker activation.
 - Added unit coverage for dynamic reduced-motion state and Offline/PWA coverage for stale runtime cache pruning.
+- PR #36 implementation run #171: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Measured: physics 0.204 ms/step; crowded 16.63 ms avg / 16.70 ms p95; idle 16.62 ms avg / 16.80 ms p95; first-load 355 KB; raw dist 561 KB.
+- Performance remains materially unchanged and comfortably inside budgets.
 - Explicitly deferred: PWA install icons, art recompression, WebKit one-off max-frame watch.
 - No gameplay rules, physics constants, economy, persistence/session schema or telemetry schema changes.
-- Gate: full PR CI → Aggregate Gate → code review → merge → main Deploy → production interaction smoke.
+- Final documentation head must pass the same gate before merge.
