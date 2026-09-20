@@ -227,4 +227,28 @@ This replaces the previous static-only post-deploy confidence gap.
 - main Deploy
 - live production interaction smoke
 
-Status: IN PROGRESS.
+### Pass 2 measured result
+
+PR #35 implementation run #166:
+
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- Audit ✓
+- Aggregate Gate ✓
+- physics: 0.162 ms/step;
+- crowded Chromium: 16.61 ms average / 16.70 ms p95 / 16.80 ms max;
+- idle Chromium: 16.61 ms average / 16.80 ms p95 / 16.80 ms max;
+- JS: 90.45 KB gzip;
+- CSS: 4.59 KB gzip;
+- total first-load budget reading: 355 KB;
+- raw dist: 560 KB.
+
+Compared with baseline, runtime performance is effectively unchanged. The
+1 KB total-transfer increase is within expected build noise and remains below
+the 400 KB budget.
+
+Final documentation head must pass the same PR gate before merge.
+
+Status: DONE.
