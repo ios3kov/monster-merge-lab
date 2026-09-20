@@ -101,7 +101,7 @@ Final rule:
 
 - portrait: toolbar width and edges match the game field exactly;
 - short landscape: toolbar remains centered on the field but may expand to a
-  minimum 192px so every action remains at least 44px wide.
+  minimum 198px so every action remains at least 44px wide after panel padding, borders and grid gaps.
 
 Accessibility wins over strict width matching only in this constrained layout.
 
