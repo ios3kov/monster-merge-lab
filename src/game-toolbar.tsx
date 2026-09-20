@@ -1,9 +1,8 @@
-import { RotateCcw } from 'lucide-react';
+import { FlaskConical, Hammer, PawPrint, Store } from 'lucide-react';
 import type { RunPreset } from './modes';
 
 export function GameToolbar({
   preset,
-  canDrop,
   gameOver,
   experimentComplete,
   experimentFailed,
@@ -12,12 +11,10 @@ export function GameToolbar({
   powerUsesRemaining,
   onShop,
   onMonsters,
-  onDrop,
   onPower,
   onLab,
 }: {
   preset: RunPreset;
-  canDrop: boolean;
   gameOver: boolean;
   experimentComplete: boolean;
   experimentFailed: boolean;
@@ -26,7 +23,6 @@ export function GameToolbar({
   powerUsesRemaining: number;
   onShop: () => void;
   onMonsters: () => void;
-  onDrop: () => void;
   onPower: () => void;
   onLab: () => void;
 }) {
@@ -38,7 +34,8 @@ export function GameToolbar({
         className="wood-button shop-hit"
         aria-label="Shop"
       >
-        SHOP
+        <Store size={23} />
+        <span>SHOP</span>
       </button>
       <button
         type="button"
@@ -46,16 +43,8 @@ export function GameToolbar({
         className="wood-button monsters-hit"
         aria-label="Monsters"
       >
-        MONSTERS
-      </button>
-      <button
-        type="button"
-        onClick={onDrop}
-        className="concept-drop-button drop-hit"
-        disabled={!canDrop || gameOver || experimentFailed}
-        aria-label="Drop monster"
-      >
-        DROP
+        <PawPrint size={23} />
+        <span>MONSTERS</span>
       </button>
       <button
         type="button"
@@ -79,7 +68,7 @@ export function GameToolbar({
             : 'Power-up unavailable in this mode'
         }
       >
-        <RotateCcw size={22} />
+        <Hammer size={23} />
         <span>POWER</span>
         {powerUsesRemaining > 0 && (
           <b className="power-charge" aria-hidden="true">
@@ -93,7 +82,8 @@ export function GameToolbar({
         className="wood-button lab-hit"
         aria-label="Lab and game modes"
       >
-        LAB
+        <FlaskConical size={23} />
+        <span>LAB</span>
       </button>
     </div>
   );
