@@ -812,13 +812,15 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     height: 3px;
   }
   .concept-toolbar {
-    left: 12.8%;
-    right: 12.8%;
+    left: 50%;
+    right: auto;
+    width: max(74.4%, 192px);
     bottom: 4%;
     height: 48px;
     min-height: 48px;
     gap: 1%;
     padding: 4px;
+    transform: translateX(-50%);
   }
   .wood-button > span { font-size: 7px; }
 }
