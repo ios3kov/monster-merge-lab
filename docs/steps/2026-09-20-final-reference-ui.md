@@ -30,12 +30,14 @@ The final interface uses a new isolated presentation namespace:
 This prevents legacy HUD/layout CSS from leaking into the final composition. Gameplay, physics, scoring, economy, storage/session and telemetry logic are unchanged.
 
 ## Verification
-Pending branch CI:
-- Chromium
-- WebKit
-- Offline/PWA
-- Performance
-- Audit
-- Aggregate Gate
+Implementation head CI #242 is fully green:
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- Audit ✓
+- Aggregate Gate ✓
 
-Responsive geometry remains covered at 320×568, 390×844, 430×932 and 844×390.
+Responsive geometry passes at 320×568, 390×844, 430×932 and 844×390. The compact-phone and short-landscape edge cases found by CI were fixed without reducing the 44×44 px interactive target contract.
+
+Final documentation-only head must pass the same gate before merge.
