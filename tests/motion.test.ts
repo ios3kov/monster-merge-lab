@@ -10,7 +10,7 @@ test('prefersReducedMotion reads the current media-query state each time', () =>
   Object.defineProperty(globalThis, 'window', {
     configurable: true,
     value: {
-      matchMedia: () => ({ matches }),
+      matchMedia: () => ({ get matches() { return matches; } }),
     },
   });
 
