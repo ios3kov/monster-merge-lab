@@ -2270,13 +2270,15 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 
 @media (max-width: 340px) {
   .reference-hud {
-    grid-template-columns:
-      minmax(0, 1fr)
-      48px
-      minmax(0, .82fr)
-      minmax(96px, 1.38fr);
+    grid-template-columns: 70px 48px 64px minmax(90px, 1fr);
     gap: 3px;
     padding: 4px;
+  }
+
+  .reference-score-card,
+  .reference-overdrive {
+    min-width: 0;
+    overflow: hidden;
   }
 
   .reference-score strong {
@@ -2304,6 +2306,25 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   .reference-next > .monster-art {
     width: 34px !important;
     height: 34px !important;
+  }
+
+  .reference-orders {
+    display: flex;
+    align-items: center;
+    padding: 0 1px 2px;
+  }
+
+  .reference-orders h2,
+  .reference-order-row:not(.current) {
+    display: none;
+  }
+
+  .reference-order-row.current {
+    width: 100%;
+  }
+
+  .reference-order-track {
+    height: 1px;
   }
 }
 
