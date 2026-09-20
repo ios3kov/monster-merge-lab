@@ -32,7 +32,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   aspect-ratio: 941 / 1672;
   flex: none;
   overflow: hidden;
-  background-image: linear-gradient(rgba(24,14,8,.04),rgba(24,14,8,.10)), url('https://gcdn.picsart.com/editing-temp/0b9eed0f-d8b0-4ca1-b4bf-fd1f9afcf24c.png');
+  background-image: linear-gradient(rgba(24,14,8,.04),rgba(24,14,8,.10)), url('/assets/monster-workshop-background.png');
   background-size: cover;
   background-position: center;
   box-shadow: 0 0 48px rgba(0,0,0,.45);
@@ -530,7 +530,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   padding: 4.4%;
   border: 0;
   border-radius: 15px;
-  background-image: url('https://gcdn.picsart.com/editing-temp/ab4d4d16-4815-486d-a500-c34931420134.png');
+  background-image: url('/assets/monster-ui-assets.png');
   background-size: 171% 181%;
   background-position: left 17%;
   background-repeat: no-repeat;
