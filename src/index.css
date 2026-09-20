@@ -1142,7 +1142,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   pointer-events:none;
 }
 .hud-grid {
-  left:4%; right:4%; top:7.2%; height:11.7%;
+  left:4%; right:4%; top:7.2%; height:10.9%;
   grid-template-columns: 26% 14% 22% 38%;
   gap:0;
   padding:1.4% 1.6%;
