@@ -199,7 +199,9 @@ This file is updated after each major production step.
 - Fix: props that App always passes now explicitly accept `undefined` rather than being optional/omittable.
 - PR #32 corrected-head run #143: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
 - Code review: terminal visibility rules, copy, Retry/Next/Lab callbacks and game-over score/best/daily/title presentation preserved.
-- Final documentation head must pass the same gate before merge.
+- Final PR head run #168: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- PR #35 merged as f47b6c2.
+- Post-merge main run #169: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓ Deploy ✓ Production interaction smoke ✓.
 
 ### Architecture extraction phase — STOP CRITERION
 - Renderer extracted to src/rendering.tsx.
@@ -254,3 +256,17 @@ This file is updated after each major production step.
 - No material performance regression.
 - No gameplay rules, physics constants, economy, persistence schema or telemetry schema changed.
 - Final documentation head must pass the same gate before merge.
+
+
+### Final P2 cleanup — IN PROGRESS
+- Scope is intentionally limited to two safe technical P2 items from the global audit.
+- Canvas reduced-motion now reads the live `prefers-reduced-motion` media query without requiring reload.
+- The MediaQueryList is reused; draw paths read its current `.matches` state dynamically.
+- Service worker cache generation bumped to v2.
+- Hashed runtime assets use a dedicated runtime cache.
+- Successful online navigation prunes stale hashed runtime entries no longer referenced by the current index.
+- Old cache generations are deleted during service-worker activation.
+- Added unit coverage for dynamic reduced-motion state and Offline/PWA coverage for stale runtime cache pruning.
+- Explicitly deferred: PWA install icons, art recompression, WebKit one-off max-frame watch.
+- No gameplay rules, physics constants, economy, persistence/session schema or telemetry schema changes.
+- Gate: full PR CI → Aggregate Gate → code review → merge → main Deploy → production interaction smoke.
