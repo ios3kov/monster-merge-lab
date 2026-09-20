@@ -291,10 +291,9 @@ test('Experiment progress persists and resumes after reload', async ({
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Experiments/ }).click();
 
-  const dropButton = page.getByRole('button', { name: 'Drop monster' });
-  await dropButton.click();
+  await dropOnField(page);
   await page.waitForTimeout(500);
-  await dropButton.click();
+  await dropOnField(page);
 
   const completionDialog = page
     .getByRole('dialog')
@@ -559,6 +558,19 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       Math.abs(geometry.frame.height / geometry.shell.height - 0.649),
       viewport.name + ' tank height ratio',
     ).toBeLessThan(0.01);
+
+    expect(
+      Math.abs(geometry.toolbar.width - geometry.frame.width),
+      viewport.name + ' toolbar width matches tank',
+    ).toBeLessThanOrEqual(2);
+    expect(
+      Math.abs(geometry.toolbar.left - geometry.frame.left),
+      viewport.name + ' toolbar left aligns with tank',
+    ).toBeLessThanOrEqual(2);
+    expect(
+      Math.abs(geometry.toolbar.right - geometry.frame.right),
+      viewport.name + ' toolbar right aligns with tank',
+    ).toBeLessThanOrEqual(2);
 
     expect(geometry.frame.left, viewport.name + ' left edge').toBeGreaterThanOrEqual(
       geometry.shell.left - 1,
