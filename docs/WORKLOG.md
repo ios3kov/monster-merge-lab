@@ -288,4 +288,6 @@ This file is updated after each major production step.
 - Browser tests are migrated from clicking a DROP button to interacting with the field itself.
 - Production smoke now verifies a real field drop and `first_drop` telemetry without a DROP button.
 - No physics, scoring, spawn queue, economy, persistence/session schema or telemetry schema changes.
-- Gate: full PR CI → Aggregate Gate → merge → main Deploy → production interaction smoke.
+- PR #37 run #174: Audit ✓ Performance ✓; Offline/PWA correctly caught one stale assertion that still expected a DROP button.
+- Fix: offline smoke now validates the field as the drop surface and explicitly verifies there is no DROP button.
+- Gate: rerun full PR CI → Aggregate Gate → merge → main Deploy → production interaction smoke.
