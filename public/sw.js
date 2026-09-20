@@ -1,11 +1,9 @@
-const CACHE_NAME = 'monster-merge-lab-shell-v2';
-const RUNTIME_CACHE = 'monster-merge-lab-runtime-v2';
+const CACHE_NAME = 'monster-merge-lab-shell-v3';
+const RUNTIME_CACHE = 'monster-merge-lab-runtime-v3';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/assets/lab-bg-v1.webp',
-  '/assets/monster-atlas-v1.webp',
 ];
 
 function currentRuntimeAssetPaths(html) {
