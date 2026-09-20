@@ -686,23 +686,34 @@ test('game screen keeps artwork clean and UI content live', async ({ page }, tes
       next: backgroundImage('.hud-next-cell'),
       meta: backgroundImage('.hud-meta-cell'),
       toolbar: backgroundImage('.concept-toolbar'),
+      button: backgroundImage('.concept-toolbar .wood-button'),
     };
   });
 
   expect(layers.shell).toContain('monster-workshop-background.webp');
   expect(layers.frame).toContain('tank-frame.webp');
+  expect(layers.hud).not.toContain('url(');
+  expect(layers.score).toContain('panel-frame.svg');
+  expect(layers.hold).toContain('panel-frame.svg');
+  expect(layers.next).toContain('panel-frame.svg');
+  expect(layers.meta).toContain('panel-frame.svg');
+  expect(layers.toolbar).toContain('toolbar-frame.svg');
+  expect(layers.button).toContain('button-frame.svg');
 
-  for (const key of ['hud', 'score', 'hold', 'next', 'meta', 'toolbar'] as const) {
-    expect(layers[key], key + ' must not use baked UI artwork').not.toContain('url(');
+  const deprecatedArtwork = [
+    'monster-ui-assets.webp',
+    'hud-frame.webp',
+    'score-panel.webp',
+    'hold-panel.webp',
+    'next-panel.webp',
+    'orders-panel.webp',
+    'nav-frame.webp',
+  ];
+  for (const asset of deprecatedArtwork) {
+    for (const layer of Object.values(layers)) {
+      expect(layer, asset + ' must not be used').not.toContain(asset);
+    }
   }
-
-  expect(layers.shell).not.toContain('monster-ui-assets.webp');
-  expect(layers.hud).not.toContain('hud-frame.webp');
-  expect(layers.score).not.toContain('score-panel.webp');
-  expect(layers.hold).not.toContain('hold-panel.webp');
-  expect(layers.next).not.toContain('next-panel.webp');
-  expect(layers.meta).not.toContain('orders-panel.webp');
-  expect(layers.toolbar).not.toContain('nav-frame.webp');
 });
 
 test('Experiment objective hints wrap in portrait and stay compact in landscape', async ({
