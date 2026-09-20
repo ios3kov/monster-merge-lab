@@ -1711,7 +1711,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   width: 26.5%;
   height: 84%;
   display: grid;
-  grid-template-rows: 42% minmax(0, 1fr);
+  grid-template-rows: 48% minmax(0, 1fr);
   gap: 3px;
   overflow: hidden;
 }
