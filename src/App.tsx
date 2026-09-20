@@ -1870,19 +1870,6 @@ function App() {
           <span className="frame-lamp frame-lamp-left" aria-hidden="true" />
           <span className="frame-lamp frame-lamp-right" aria-hidden="true" />
           <div className="canvas-wrap">
-            <div className="field-art" aria-hidden="true">
-              <div className="field-banner field-banner-left">
-                <b>MERGE</b><b>GROW</b><b>EVOLVE</b><b>BELONG</b><span>♡</span>
-              </div>
-              <div className="field-emblem">
-                <span className="field-emblem-face">●</span>
-                <strong>BETTER MONSTERS</strong>
-                <small>BRIGHTER DAYS</small>
-              </div>
-              <div className="field-banner field-banner-right">
-                <b>GOOD MONSTERS</b><b>MAKE A</b><b>BRIGHTER WORLD</b><span>♡</span>
-              </div>
-            </div>
             <canvas
               ref={canvasRef}
               className="physics-canvas"
