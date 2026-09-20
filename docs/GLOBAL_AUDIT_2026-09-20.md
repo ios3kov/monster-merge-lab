@@ -282,8 +282,19 @@ Accepted / deferred P2:
 
 ### Final stop criterion
 
-After the final P2 PR passes all PR gates, main Deploy, and production
-interaction smoke, the 2026-09-20 global technical/UX polish phase is DONE.
+PR #36 implementation run #171 passed Chromium, WebKit, Offline/PWA,
+Performance, Audit and Aggregate Gate.
+
+Final P2 measured result:
+
+- physics: 0.204 ms/step;
+- crowded Chromium: 16.63 ms average / 16.70 ms p95;
+- idle Chromium: 16.62 ms average / 16.80 ms p95;
+- total first-load: 355 KB;
+- raw dist: 561 KB.
+
+After the final documentation head, main Deploy, and production interaction
+smoke pass, the 2026-09-20 global technical/UX polish phase is DONE.
 
 Do not continue refactoring, asset recompression, dependency upgrades, or visual
 redesign without a concrete product requirement, measured regression, or
