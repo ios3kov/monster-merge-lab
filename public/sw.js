@@ -8,6 +8,37 @@ const APP_SHELL = [
   '/assets/monster-atlas-v1.webp',
 ];
 
+function currentRuntimeAssetPaths(html) {
+  const paths = new Set();
+  for (const match of html.matchAll(/(?:src|href)=["'](\/assets\/[^"']+)["']/g)) {
+    paths.add(match[1]);
+  }
+  return paths;
+}
+
+async function cacheNavigationResponse(response) {
+  const html = await response.clone().text();
+  const currentAssets = currentRuntimeAssetPaths(html);
+
+  const [shellCache, runtimeCache] = await Promise.all([
+    caches.open(CACHE_NAME),
+    caches.open(RUNTIME_CACHE),
+  ]);
+
+  await shellCache.put('/index.html', response.clone());
+
+  const runtimeRequests = await runtimeCache.keys();
+  await Promise.all(
+    runtimeRequests.map((request) => {
+      const path = new URL(request.url).pathname;
+      if (path.startsWith('/assets/') && !currentAssets.has(path)) {
+        return runtimeCache.delete(request);
+      }
+      return Promise.resolve(false);
+    }),
+  );
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
@@ -44,8 +75,7 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           if (response.ok) {
-            const copy = response.clone();
-            void caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
+            void cacheNavigationResponse(response.clone());
           }
           return response;
         })
