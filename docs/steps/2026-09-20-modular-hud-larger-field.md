@@ -103,4 +103,33 @@ Fix:
 
 The 44px interaction target requirement remains strict.
 
-Status: IN PROGRESS.
+## Verification result
+
+PR #38 corrected-head run #188:
+
+- TypeScript ✓
+- ESLint ✓
+- unit tests ✓
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- dependency audit ✓
+- Aggregate Gate ✓
+- portrait HUD / field / toolbar alignment ✓
+- enlarged-field ratios ✓
+- landscape HUD centering ✓
+- 44px interaction targets ✓
+
+Measured performance:
+
+- physics: 0.159 ms/step;
+- crowded: 16.54 ms average / 16.80 ms p95;
+- first-load: 356 KB;
+- raw dist: 565 KB.
+
+No material performance regression.
+
+The final documentation-only head must pass the same PR gate before merge.
+
+Status: DONE.
