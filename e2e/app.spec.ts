@@ -643,7 +643,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         rect.right > geometry.frame.left + 1 &&
         rect.top < geometry.frame.bottom - 1 &&
         rect.bottom > geometry.frame.top + 1;
-      expect(overlapsTank, viewport.name + ' HUD must not overlap tank').toBe(false);
+      expect(overlapsTank, viewport.name + ' HUD must not overlap tank: ' + JSON.stringify(rect)).toBe(false);
     }
 
     for (const rect of geometry.touchTargets) {
