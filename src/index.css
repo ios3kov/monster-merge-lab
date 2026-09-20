@@ -1192,3 +1192,15 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   .concept-top-actions { grid-template-columns: minmax(0,1fr) 40px; gap: 2px; }
   .coin-pill, .icon-button { height: 40px; }
 }
+
+@media (max-width: 340px) {
+  .orders-board {
+    align-self: start;
+    height: calc(100% - 9px);
+    max-height: calc(100% - 9px);
+    padding-top: 1px;
+    padding-bottom: 1px;
+    overflow: hidden;
+  }
+  .orders-board .order-row { min-height: 0; line-height: 1; }
+}
