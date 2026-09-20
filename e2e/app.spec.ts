@@ -524,6 +524,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       const readableTextSizes = [
         '.hold-board > span',
         '.score-plaque span',
+        '.overdrive-panel > span',
         '.orders-board h2',
         '.order-row.current span',
         '.order-row.current b',
@@ -531,6 +532,28 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         .map((selector) => document.querySelector<HTMLElement>(selector))
         .filter((element): element is HTMLElement => element !== null)
         .map((element) => parseFloat(getComputedStyle(element).fontSize));
+
+      const contentFit = [
+        '.status-cluster',
+        '.hud-meta-cell',
+        '.orders-board',
+        '.coin-pill',
+      ]
+        .map((selector) => ({
+          selector,
+          element: document.querySelector<HTMLElement>(selector),
+        }))
+        .filter(
+          (item): item is { selector: string; element: HTMLElement } =>
+            item.element !== null,
+        )
+        .map(({ selector, element }) => ({
+          selector,
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+          clientHeight: element.clientHeight,
+          scrollHeight: element.scrollHeight,
+        }));
 
       if (!shell || !frame || !toolbar || !hudGrid) return null;
 
@@ -542,6 +565,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         hud,
         touchTargets,
         readableTextSizes,
+        contentFit,
         scrollWidth: document.documentElement.scrollWidth,
         scrollHeight: document.documentElement.scrollHeight,
         viewportWidth: window.innerWidth,
@@ -661,6 +685,17 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
 
     for (const fontSize of geometry.readableTextSizes) {
       expect(fontSize, viewport.name + ' HUD readable text size').toBeGreaterThanOrEqual(8);
+    }
+
+    for (const item of geometry.contentFit) {
+      expect(
+        item.scrollWidth,
+        viewport.name + ' HUD content width: ' + item.selector,
+      ).toBeLessThanOrEqual(item.clientWidth + 1);
+      expect(
+        item.scrollHeight,
+        viewport.name + ' HUD content height: ' + item.selector,
+      ).toBeLessThanOrEqual(item.clientHeight + 1);
     }
 
     expect(geometry.scrollWidth, viewport.name + ' horizontal overflow').toBeLessThanOrEqual(
