@@ -1937,17 +1937,10 @@ function App() {
         </div>
 
         <GameToolbar
-          preset={preset}
-          gameOver={ui.gameOver}
-          experimentComplete={ui.experimentComplete}
-          experimentFailed={ui.experimentFailed}
-          runPowerUses={ui.runPowerUses}
-          powerCharges={ui.powerCharges}
-          powerUsesRemaining={powerUsesRemaining}
           onShop={() => setShowShop(true)}
-          onMonsters={() => setShowMonsters(true)}
-          onPower={nudge}
           onLab={() => setShowLab(true)}
+          onBook={() => setShowMonsters(true)}
+          onRestart={restart}
         />
 
         {showMonsters && (
