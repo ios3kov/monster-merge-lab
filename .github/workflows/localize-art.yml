@@ -5,6 +5,7 @@ on:
     branches: [fix/local-art-assets]
     paths:
       - .github/workflows/localize-art.yml
+      - .localize-art-trigger
 
 permissions:
   contents: write
