@@ -2357,8 +2357,10 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 
   .reference-hud__meta {
     grid-template-columns: minmax(105px,.95fr) minmax(90px,1.05fr);
-    grid-template-rows: 1fr;
-    gap: 3px;
+    grid-template-rows: minmax(0,1fr);
+    gap: 2px;
+    padding: 0;
+    overflow: hidden;
   }
 
   .reference-meta-actions {
