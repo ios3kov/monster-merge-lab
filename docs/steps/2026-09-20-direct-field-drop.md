@@ -92,4 +92,17 @@ game field and the rebuilt toolbar. The geometry assertion remained strict.
 Fix: move the landscape toolbar lower while preserving the same field-aligned
 left/right edges and width.
 
+### Accessibility-safe landscape exception
+
+PR #37 run #178 caught that four actions cannot physically remain 44px wide
+inside the short-landscape game-field width.
+
+Final rule:
+
+- portrait: toolbar width and edges match the game field exactly;
+- short landscape: toolbar remains centered on the field but may expand to a
+  minimum 192px so every action remains at least 44px wide.
+
+Accessibility wins over strict width matching only in this constrained layout.
+
 Status: IN PROGRESS.
