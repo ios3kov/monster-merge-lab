@@ -19,7 +19,8 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await page.goto('/');
   await expect(page.getByLabel(/Monster tank/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Shop' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Monsters' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Monster book' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Restart run' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Drop monster' })).toHaveCount(0);
   await expect(dropSurface(page)).toHaveAttribute('aria-disabled', 'false');
   await expect(page.getByRole('button', { name: 'Lab and game modes' })).toBeVisible();
@@ -39,11 +40,14 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'SHOP' })).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Monsters' }).click();
+  await page.getByRole('button', { name: 'Monster book' }).click();
   await expect(
     page.getByRole('dialog', { name: 'MONSTER EVOLUTION' }),
   ).toBeVisible();
   await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: 'Restart run' }).click();
+  await expect(dropSurface(page)).toHaveAttribute('aria-disabled', 'false');
 
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await expect(page.getByRole('dialog', { name: 'LAB' })).toBeVisible();
