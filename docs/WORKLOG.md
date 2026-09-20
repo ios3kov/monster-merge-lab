@@ -321,3 +321,5 @@ This file is updated after each major production step.
 - Geometry gates confirm the enlarged field, portrait HUD/field/toolbar alignment, landscape centering, clearances and 44px targets.
 - Code review: UI composition changed only; gameplay/state/physics/economy/persistence/telemetry behavior unchanged.
 - Final documentation head must pass the same PR gate before merge.
+
+- 2026-09-20: Replaced oversized generated PNG workshop art with optimized local WebP assets, switched CSS to same-origin WebP paths, removed superseded PNGs and the one-shot conversion workflow. Verification: full CI rerun pending.
