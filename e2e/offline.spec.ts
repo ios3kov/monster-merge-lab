@@ -69,7 +69,7 @@ test('service worker prunes stale runtime assets after online navigation', async
     .toBe(true);
 
   await page.evaluate(async () => {
-    const runtime = await caches.open('monster-merge-lab-runtime-v2');
+    const runtime = await caches.open('monster-merge-lab-runtime-v3');
     await runtime.put(
       '/assets/stale-build.js',
       new Response('stale', {
@@ -84,7 +84,7 @@ test('service worker prunes stale runtime assets after online navigation', async
   await expect
     .poll(() =>
       page.evaluate(async () => {
-        const runtime = await caches.open('monster-merge-lab-runtime-v2');
+        const runtime = await caches.open('monster-merge-lab-runtime-v3');
         return Boolean(await runtime.match('/assets/stale-build.js'));
       }),
     )
