@@ -2328,6 +2328,21 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     display: none;
   }
 
+  .reference-coins {
+    gap: 0;
+    padding: 0 20px 0 2px;
+  }
+
+  .reference-coin {
+    display: none;
+  }
+
+  .reference-coins strong {
+    font-size: 8px;
+    line-height: 1;
+    text-align: left;
+  }
+
   .reference-objective span {
     white-space: nowrap;
     -webkit-line-clamp: 1;
