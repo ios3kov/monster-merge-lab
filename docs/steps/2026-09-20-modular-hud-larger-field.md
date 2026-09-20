@@ -89,4 +89,18 @@ No changes to:
 - main Deploy
 - production interaction smoke
 
+## Verification catch
+
+PR #38 run #186 caught that the first compact landscape layout reduced the
+Sound button to 24px height.
+
+Fix:
+
+- keep the landscape HUD at 54px high;
+- arrange the meta module horizontally;
+- keep Sound at 44x44px;
+- keep Coins and Orders inside the same modular row.
+
+The 44px interaction target requirement remains strict.
+
 Status: IN PROGRESS.
