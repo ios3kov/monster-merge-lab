@@ -2314,6 +2314,20 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     padding: 10px 3px 3px;
   }
 
+  .reference-order-row.current {
+    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 1px;
+  }
+
+  .reference-order-row.current .monster-art {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .reference-order-row.current b {
+    display: none;
+  }
+
   .reference-objective span {
     white-space: nowrap;
     -webkit-line-clamp: 1;
