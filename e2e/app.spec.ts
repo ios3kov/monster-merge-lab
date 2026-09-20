@@ -557,12 +557,12 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       viewport.name + ' tank width ratio',
     ).toBeLessThan(0.01);
     expect(
-      Math.abs(geometry.frame.height / geometry.shell.height - 0.654),
+      Math.abs(geometry.frame.height / geometry.shell.height - 0.67),
       viewport.name + ' tank height ratio',
     ).toBeLessThan(0.01);
     expect(
       Math.abs(
-        (geometry.frame.top - geometry.shell.top) / geometry.shell.height - 0.184,
+        (geometry.frame.top - geometry.shell.top) / geometry.shell.height - 0.18,
       ),
       viewport.name + ' tank top ratio',
     ).toBeLessThan(0.01);
@@ -662,6 +662,47 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       geometry.viewportHeight + 1,
     );
   }
+});
+
+test('game screen keeps artwork clean and UI content live', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+
+  await expect(page.locator('.field-art')).toHaveCount(0);
+
+  const layers = await page.evaluate(() => {
+    const backgroundImage = (selector: string) => {
+      const element = document.querySelector<HTMLElement>(selector);
+      return element ? getComputedStyle(element).backgroundImage : '';
+    };
+
+    return {
+      shell: backgroundImage('.game-shell'),
+      frame: backgroundImage('.game-frame'),
+      hud: backgroundImage('.hud-grid'),
+      score: backgroundImage('.hud-score-cell'),
+      hold: backgroundImage('.hud-hold-cell'),
+      next: backgroundImage('.hud-next-cell'),
+      meta: backgroundImage('.hud-meta-cell'),
+      toolbar: backgroundImage('.concept-toolbar'),
+    };
+  });
+
+  expect(layers.shell).toContain('monster-workshop-background.webp');
+  expect(layers.frame).toContain('tank-frame.webp');
+
+  for (const key of ['hud', 'score', 'hold', 'next', 'meta', 'toolbar'] as const) {
+    expect(layers[key], key + ' must not use baked UI artwork').not.toContain('url(');
+  }
+
+  expect(layers.shell).not.toContain('monster-ui-assets.webp');
+  expect(layers.hud).not.toContain('hud-frame.webp');
+  expect(layers.score).not.toContain('score-panel.webp');
+  expect(layers.hold).not.toContain('hold-panel.webp');
+  expect(layers.next).not.toContain('next-panel.webp');
+  expect(layers.meta).not.toContain('orders-panel.webp');
+  expect(layers.toolbar).not.toContain('nav-frame.webp');
 });
 
 test('Experiment objective hints wrap in portrait and stay compact in landscape', async ({
