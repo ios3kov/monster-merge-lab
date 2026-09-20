@@ -1177,3 +1177,18 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 
 /* The committed concept modules replace the old combined UI sheet. */
 .game-frame { background-image:url('/assets/concept/tank-frame.webp'); }
+
+/* Keep live HUD contents inside the concept skin on compact phones. */
+.hud-grid > * { min-height: 0; overflow: hidden; }
+.hud-meta-cell { overflow: hidden; }
+.status-cluster,
+.concept-top-actions,
+.next-board,
+.hold-board,
+.orders-board { max-height: 100%; min-height: 0; }
+@media (max-width: 340px) {
+  .hud-grid { height: 10.5%; }
+  .hud-meta-cell { grid-template-rows: 40px minmax(0,1fr); gap: 2px; }
+  .concept-top-actions { grid-template-columns: minmax(0,1fr) 40px; gap: 2px; }
+  .coin-pill, .icon-button { height: 40px; }
+}
