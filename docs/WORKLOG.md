@@ -314,4 +314,6 @@ This file is updated after each major production step.
 - Short landscape keeps the same centered modular composition but may use a wider accessibility-safe HUD/toolbar arrangement.
 - E2E now locks HUD width/edges, field top/height ratios, HUD-to-field clearance, field-to-toolbar clearance and 44px touch targets.
 - No gameplay, physics, scoring, economy, persistence/session schema or telemetry changes.
-- Gate: full PR CI → Aggregate Gate → code review → merge → main Deploy → production interaction smoke.
+- PR #38 run #186: Audit ✓ Performance ✓ Offline/PWA ✓; Chromium geometry gate caught a 24px landscape Sound target.
+- Fix: landscape meta module is now horizontal; Sound remains 44×44 while Coins and Orders stay inside the same 54px HUD row.
+- Gate: rerun full PR CI → Aggregate Gate → code review → merge → main Deploy → production interaction smoke.
