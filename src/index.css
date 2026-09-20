@@ -1661,7 +1661,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   height: 12.5%;
   min-height: 70px;
   background:
-    url('https://gcdn.picsart.com/editing-temp/599dd9fa-2fea-4980-aeb0-3202a2400617.webp')
+    url('/assets/concept/hud-reference.webp')
     center / 100% 100% no-repeat;
   filter: drop-shadow(0 5px 10px rgba(36, 19, 10, .28));
 }
@@ -2165,7 +2165,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   gap: 0;
   padding: 3.7% 4.1% 4.3%;
   background:
-    url('https://gcdn.picsart.com/editing-temp/8d8bf0d7-eb50-4a4b-932d-eb90536ed4f9.webp')
+    url('/assets/concept/bottom-bar-reference.webp')
     center / 100% 100% no-repeat;
   filter: drop-shadow(0 5px 10px rgba(36, 19, 10, .28));
   pointer-events: none;
