@@ -1204,3 +1204,16 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   }
   .orders-board .order-row { min-height: 0; line-height: 1; }
 }
+
+/* Orders is the only HUD child whose intrinsic content can exceed the concept frame.
+   Contain it at all portrait phone widths, not only 320px. */
+@media (max-width: 480px) {
+  .orders-board {
+    align-self: start;
+    height: calc(100% - 10px);
+    max-height: calc(100% - 10px);
+    padding-block: 1px;
+    overflow: hidden;
+  }
+  .orders-board .order-row { min-height: 0; line-height: 1; }
+}
