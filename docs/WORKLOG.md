@@ -298,3 +298,20 @@ This file is updated after each major production step.
 - Portrait toolbar matches the game-field width/edges; short landscape uses the documented centered accessibility-safe minimum.
 - Field drop, cooldown, Experiments, Daily restore, offline reload and production-smoke scenario are covered without a DROP button.
 - Final documentation head must pass the same gate before merge.
+
+
+## 2026-09-20 — Modular HUD + larger field
+
+### HUD grid and field enlargement — IN PROGRESS
+- Goal: make the playfield the dominant visual area and align top HUD / field / bottom toolbar to one modular grid.
+- Top HUD is now one `hud-grid` rather than five independently positioned overlays.
+- Portrait HUD uses four modules: Score+Overdrive / Hold / Next / Coins+Sound+Orders.
+- Portrait HUD left/right edges are locked to the game field at 12.8% / 12.8%.
+- Bottom toolbar remains locked to the same field width.
+- Game field top moves from 18.5% to 16.6%.
+- Game field height increases from 64.9% to 67.4%.
+- NEXT is contained inside its own module; its second preview no longer hangs outside the grid.
+- Short landscape keeps the same centered modular composition but may use a wider accessibility-safe HUD/toolbar arrangement.
+- E2E now locks HUD width/edges, field top/height ratios, HUD-to-field clearance, field-to-toolbar clearance and 44px touch targets.
+- No gameplay, physics, scoring, economy, persistence/session schema or telemetry changes.
+- Gate: full PR CI → Aggregate Gate → code review → merge → main Deploy → production interaction smoke.
