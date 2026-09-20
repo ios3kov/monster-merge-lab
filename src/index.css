@@ -1131,8 +1131,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 
 /* Clean concept layout
-   Artwork is limited to the clean workshop background, logo, tank frame and
-   dynamic monster atlas. HUD labels, icons and monsters remain live UI. */
+   Artwork is limited to the clean workshop background, logo, tank frame,
+   clean frame/button shells and dynamic monster atlas. Text, icons and monsters remain live UI. */
 .game-shell {
   background-color: #2b1a10;
   background-image: url('/assets/monster-workshop-background.webp');
