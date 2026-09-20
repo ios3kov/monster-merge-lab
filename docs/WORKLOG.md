@@ -346,4 +346,9 @@ This file is updated after each major production step.
 - Responsive/content-fit checks pass at 320×568, 390×844, 430×932 and 844×390; no clipped HUD content, geometry overlap, viewport overflow or sub-44px tested touch targets.
 - Performance remains healthy: physics 0.194 ms/step; crowded board 16.55 ms average / 16.70 ms p95; idle 16.54 ms average / 16.80 ms p95.
 - Bundle profile: JS 90 KB gzip, CSS 6 KB gzip, total first-load 252 KB gzip, raw dist 467 KB.
-- Final documentation-only head must pass the same required PR gate before merge.
+- Final PR head CI #236: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- PR #44 squash-merged to `main` as `bde60e43e8580c5f54eb9fcb069205a5764d4e33`.
+- Post-merge main CI #237: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Production deploy succeeded to `https://monster-merge-lab.os3kov.workers.dev`; Cloudflare Worker version `25b0e7b7-4896-44f7-914b-3c948509fe5a`.
+- Production Playwright smoke: Lab navigation + a real first drop ✓ (1/1 passed).
+- Independent live fetch confirmed the deployed app shell and current HUD/action labels are served successfully.
