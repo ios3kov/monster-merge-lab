@@ -1,4 +1,5 @@
-const CACHE_NAME = 'monster-merge-lab-shell-v1';
+const CACHE_NAME = 'monster-merge-lab-shell-v2';
+const RUNTIME_CACHE = 'monster-merge-lab-runtime-v2';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -23,7 +24,7 @@ self.addEventListener('activate', (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key !== CACHE_NAME)
+            .filter((key) => key !== CACHE_NAME && key !== RUNTIME_CACHE)
             .map((key) => caches.delete(key)),
         ),
       )
@@ -66,7 +67,10 @@ self.addEventListener('fetch', (event) => {
       return fetch(request).then((response) => {
         if (response.ok) {
           const copy = response.clone();
-          void caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          const cacheName = url.pathname.startsWith('/assets/')
+            ? RUNTIME_CACHE
+            : CACHE_NAME;
+          void caches.open(cacheName).then((cache) => cache.put(request, copy));
         }
         return response;
       });
