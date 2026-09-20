@@ -2223,14 +2223,14 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   }
 
   .reference-coin {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     border-width: 1px;
   }
 
   .reference-coins strong {
-    font-size: 10px;
-    line-height: 1;
+    font-size: 9px;
+    line-height: .95;
   }
 
   .reference-orders {
