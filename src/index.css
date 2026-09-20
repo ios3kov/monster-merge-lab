@@ -38,18 +38,49 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   box-shadow: 0 0 48px rgba(0,0,0,.45);
 }
 
-.concept-top-actions {
+.hud-grid {
   position: absolute;
-  z-index: 30;
-  top: 2.55%;
-  right: 3.2%;
-  display: flex;
-  gap: 5px;
-  align-items: center;
+  z-index: 32;
+  left: 12.8%;
+  right: 12.8%;
+  top: 2.1%;
+  height: 13.2%;
+  display: grid;
+  grid-template-columns: 1.18fr .72fr 1.05fr 1.55fr;
+  gap: 4px;
+}
+.hud-score-cell,
+.hud-hold-cell,
+.hud-next-cell,
+.hud-meta-cell {
+  min-width: 0;
+  min-height: 0;
+}
+.hud-score-cell,
+.hud-hold-cell,
+.hud-next-cell {
+  display: grid;
+}
+.hud-meta-cell {
+  display: grid;
+  grid-template-rows: 42px minmax(0,1fr);
+  gap: 4px;
+}
+
+.concept-top-actions {
+  position: static;
+  z-index: auto;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 44px;
+  gap: 4px;
+  align-items: stretch;
 }
 .coin-pill {
-  min-width: 112px;
-  height: 38px;
+  min-width: 0;
+  width: 100%;
+  height: 42px;
   padding: 0 9px;
   border-radius: 12px;
   display: flex;
@@ -84,20 +115,37 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 
 .next-board {
-  position: absolute;
-  z-index: 24;
-  left: 50%;
-  top: 7.2%;
-  transform: translateX(-50%);
-  width: 15%;
-  height: 9.5%;
+  position: relative;
+  z-index: auto;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: 100%;
+  height: 100%;
   min-width: 0;
   display: grid;
   place-items: center;
-  padding-top: 12px;
+  padding: 17px 4px 4px;
+  overflow: visible;
+  border: 2px solid #925c30;
+  border-radius: 9px;
+  background: linear-gradient(#f5dda9,#e5bd7b);
+  box-shadow: 0 4px 8px rgba(55,29,13,.24), inset 0 1px rgba(255,255,255,.55);
   pointer-events: none;
 }
-.next-board strong { display: none; }
+.next-board strong {
+  display: block;
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #5d351b;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 1000;
+  letter-spacing: .08em;
+}
 .next-board > .monster-art { width: 48px !important; height: 48px !important; }
 .after-next {
   position: absolute;
@@ -132,12 +180,12 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 
 .hold-board {
-  position: absolute;
-  z-index: 26;
-  left: 3.2%;
-  top: 8.2%;
-  width: 15.5%;
-  height: 8.2%;
+  position: relative;
+  z-index: auto;
+  left: auto;
+  top: auto;
+  width: 100%;
+  height: 100%;
   min-width: 44px;
   min-height: 44px;
   display: grid;
@@ -194,12 +242,13 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 
 .status-cluster {
-  position: absolute;
-  z-index: 28;
-  left: 3.2%;
-  top: 2.1%;
-  width: 44%;
-  min-height: 30px;
+  position: relative;
+  z-index: auto;
+  left: auto;
+  top: auto;
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
   padding: 3px 6px;
   display: grid;
   gap: 2px;
@@ -273,13 +322,13 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 
 .orders-board {
-  position: absolute;
-  z-index: 25;
-  top: 8.2%;
-  right: 1.7%;
-  width: 28.6%;
-  height: 8.8%;
-  min-height: 48px;
+  position: relative;
+  z-index: auto;
+  top: auto;
+  right: auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   padding: 14px 4px 5px;
   overflow: hidden;
   border: 2px solid rgba(143,89,47,.8);
@@ -472,9 +521,9 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   position: absolute;
   z-index: 12;
   left: 12.8%;
-  top: 18.5%;
+  top: 16.6%;
   width: 74.4%;
-  height: 64.9%;
+  height: 67.4%;
   min-height: 0;
 }
 .canvas-wrap {
@@ -566,8 +615,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   z-index: 30;
   left: 12.8%;
   right: 12.8%;
-  bottom: 6.9%;
-  height: 8.4%;
+  bottom: 6.2%;
+  height: 8.2%;
   min-height: 52px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -741,24 +790,42 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     width: min(100%, calc(100svh * 0.5628));
     overflow: visible;
   }
-  .status-cluster {
-    left: -154px;
-    top: 2.55%;
-    width: 145px;
+  .hud-grid {
+    left: 50%;
+    right: auto;
+    top: 2.2%;
+    width: min(520px, calc(100vw - 24px));
+    height: 54px;
+    grid-template-columns: 1.1fr .72fr 1fr 1.55fr;
+    gap: 3px;
+    transform: translateX(-50%);
   }
-  .concept-top-actions {
-    right: -168px;
-    top: 2.55%;
+  .hud-meta-cell {
+    grid-template-rows: 24px minmax(0,1fr);
+    gap: 2px;
+  }
+  .coin-pill {
+    height: 24px;
+    padding: 0 5px;
+  }
+  .coin {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+  }
+  .coin-pill strong { font-size: 12px; }
+  .icon-button {
+    width: 44px;
+    height: 24px;
+    min-height: 24px;
   }
   .hold-board {
-    top: 6.8%;
-    width: 20%;
-    height: 44px;
+    height: 54px;
+    padding-top: 16px;
   }
   .next-board {
-    top: 6%;
-    height: 10%;
-    padding-top: 4px;
+    height: 54px;
+    padding: 15px 2px 2px;
   }
   .next-board > .monster-art {
     width: 32px !important;
@@ -770,10 +837,9 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     transform: scale(.72);
   }
   .orders-board {
-    top: 6.8%;
-    height: 10%;
+    height: 28px;
     min-height: 0;
-    padding: 11px 3px 3px;
+    padding: 10px 3px 2px;
   }
   .orders-board h2 { left: 3px; top: 2px; font-size: 8px; }
   .mode-objective-board {
@@ -815,7 +881,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     left: 50%;
     right: auto;
     width: max(74.4%, 198px);
-    bottom: 4%;
+    bottom: 2.8%;
     height: 48px;
     min-height: 48px;
     gap: 1%;
@@ -825,14 +891,15 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   .wood-button > span { font-size: 7px; }
 }
 @media (max-width: 390px) {
-  .status-cluster { left: 2.2%; width: 45%; }
-  .orders-board { right: 1%; width: 30%; }
+  .hud-grid {
+    gap: 3px;
+    grid-template-columns: 1.14fr .72fr 1fr 1.58fr;
+  }
+  .coin-pill { min-width: 0; height: 42px; padding: 0 5px; }
+  .coin-pill strong { font-size: 14px; }
+  .icon-button { width: 44px; height: 42px; }
   .next-board > .monster-art { width: 42px !important; height: 42px !important; }
-  .after-next { right: -28%; transform: scale(.9); }
-  .hold-board { left: 2.2%; width: 16.5%; }
-  .concept-top-actions { right: 2%; }
-  .coin-pill { min-width: 100px; height: 40px; }
-  .icon-button { width: 44px; height: 44px; }
+  .after-next { right: -22%; transform: scale(.82); }
   .concept-toolbar { left: 12.8%; right: 12.8%; }
 }
 
