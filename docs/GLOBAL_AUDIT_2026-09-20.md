@@ -175,3 +175,80 @@ This PR is complete only when:
 - post-merge main Deploy ✓
 
 No additional refactor is included unless a failing gate identifies a concrete defect.
+
+
+## Pass 2 — remaining P1 remediation
+
+After merged PR #34, three P1 items remained:
+
+### Terminal dialog isolation
+
+Terminal Complete / Failed / Game Over dialogs now participate in the same
+keyboard-focus isolation model as top-level Shop / Monsters / Lab dialogs.
+
+Expected behavior:
+
+- first dialog control receives focus;
+- background layers become inert and aria-hidden;
+- Tab / Shift+Tab stay inside the active dialog;
+- a top-level Lab modal opened above a terminal dialog takes priority;
+- closing the top layer returns focus to the underlying terminal dialog;
+- closing the final dialog restores the last background control.
+
+### Experiment hint clarity
+
+Portrait Experiment objective hints now use up to two lines instead of forcing a
+single-line ellipsis. Short landscape stays intentionally compact at one line.
+
+### Automated production interaction smoke
+
+Main Deploy now runs a Chromium check against live production after deployment:
+
+- load the production URL;
+- verify the game shell and DROP control;
+- open and close LAB;
+- perform a real DROP;
+- verify the canonical `first_drop` telemetry event;
+- fail on console/page runtime errors.
+
+This replaces the previous static-only post-deploy confidence gap.
+
+### Pass 2 verification gate
+
+- TypeScript
+- ESLint
+- unit tests
+- Chromium
+- WebKit
+- Offline/PWA
+- Performance
+- Audit
+- Aggregate Gate
+- main Deploy
+- live production interaction smoke
+
+### Pass 2 measured result
+
+PR #35 implementation run #166:
+
+- Chromium ✓
+- WebKit ✓
+- Offline/PWA ✓
+- Performance ✓
+- Audit ✓
+- Aggregate Gate ✓
+- physics: 0.162 ms/step;
+- crowded Chromium: 16.61 ms average / 16.70 ms p95 / 16.80 ms max;
+- idle Chromium: 16.61 ms average / 16.80 ms p95 / 16.80 ms max;
+- JS: 90.45 KB gzip;
+- CSS: 4.59 KB gzip;
+- total first-load budget reading: 355 KB;
+- raw dist: 560 KB.
+
+Compared with baseline, runtime performance is effectively unchanged. The
+1 KB total-transfer increase is within expected build noise and remains below
+the 400 KB budget.
+
+Final documentation head must pass the same PR gate before merge.
+
+Status: DONE.

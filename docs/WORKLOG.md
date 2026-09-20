@@ -213,7 +213,7 @@ This file is updated after each major production step.
 
 ## 2026-09-20 — Global audit & polish
 
-### Pass 1 — IN PROGRESS
+### Pass 1 — DONE
 - Full scope recorded in `docs/GLOBAL_AUDIT_2026-09-20.md`.
 - P0 release blockers found: none.
 - P1 confirmed:
@@ -234,3 +234,23 @@ This file is updated after each major production step.
 - Final-head Chromium readability guard caught one remaining 7 px landscape reward; test stayed strict and UI was raised to 8 px.
 - Related landscape objective hint was raised to the same 8 px floor.
 - Gate: rerun full parallel CI → Aggregate Gate → merge → main Deploy.
+
+
+### Global audit Pass 1 production verification — DONE
+- PR #34 merged as 30b5c69.
+- Post-merge main run #165: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓ Deploy ✓.
+- Crowded-board performance profiling is now part of the dedicated Performance gate.
+- No P0 blocker found.
+
+### Pass 2 — DONE
+- PR #33 closed as superseded because it mixed stale pre-#34 changes with remaining P1 work.
+- Clean PR #35 implements the remaining P1 scope:
+  - terminal Complete/Failed/Game Over focus trap + inert background;
+  - layered Lab-over-terminal focus behavior;
+  - two-line portrait Experiment objective hints;
+  - automated post-deploy live production interaction smoke.
+- PR #35 implementation run #166: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Performance after changes: physics 0.162 ms/step; crowded 16.61 ms avg / 16.70 ms p95; idle 16.61 ms avg / 16.80 ms p95; total 355 KB; raw dist 560 KB.
+- No material performance regression.
+- No gameplay rules, physics constants, economy, persistence schema or telemetry schema changed.
+- Final documentation head must pass the same gate before merge.

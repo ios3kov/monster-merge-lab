@@ -24,7 +24,8 @@
     "test:e2e:offline": "playwright test e2e/offline.spec.ts --project=desktop-chromium",
     "test:e2e:performance": "playwright test e2e/app.spec.ts --project=desktop-chromium --grep \"stays inside a safe frame budget\"",
     "verify:audit": "npm run typecheck && npm run lint && npm run test && node --check public/sw.js && npm run audit:prod",
-    "verify:performance": "npm run profile:physics && npm run build && npm run profile:bundle"
+    "verify:performance": "npm run profile:physics && npm run build && npm run profile:bundle",
+    "test:e2e:production": "playwright test --config=playwright.production.config.ts"
   },
   "dependencies": {
     "lucide-react": "^0.469.0",
