@@ -356,7 +356,7 @@ This file is updated after each major production step.
 
 ## 2026-09-20 — Final reference UI rebuild
 
-### Direct implementation from the approved second concept — IN PROGRESS
+### Direct implementation from the approved second concept — VERIFIED
 - No new UI mockup/image is being generated; work is applied directly to the live project.
 - Replaced the accumulated game-screen presentation classes with an isolated `reference-*` UI layer so legacy HUD/layout CSS cannot leak into the final composition.
 - The approved second concept is the sole visual source: clean workshop background, logo, tank frame and concept-derived button/frame styling.
@@ -364,4 +364,7 @@ This file is updated after each major production step.
 - DROP remains removed; pointer release on the playfield is the primary drop action.
 - Gameplay, physics, scoring, economy, persistence/session and telemetry behavior are unchanged.
 - Responsive/E2E selectors were migrated to the final presentation layer.
-- Full CI and responsive verification pending before merge/deploy.
+- CI #242: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Responsive geometry passes at 320×568, 390×844, 430×932 and 844×390, including 44×44 px interactive-target checks.
+- CI exposed and closed compact-phone HUD containment, Orders height, and short-landscape meta overflow before merge.
+- Final documentation-only head must pass the same gate before merge/deploy.
