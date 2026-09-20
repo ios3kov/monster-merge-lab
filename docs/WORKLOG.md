@@ -368,3 +368,11 @@ This file is updated after each major production step.
 - Responsive geometry passes at 320×568, 390×844, 430×932 and 844×390, including 44×44 px interactive-target checks.
 - CI exposed and closed compact-phone HUD containment, Orders height, and short-landscape meta overflow before merge.
 - Final documentation-only head must pass the same gate before merge/deploy.
+
+
+### Final reference UI production verification — DONE
+- PR #45 squash-merged to `main` as `3a4d2f8e3be6955b815d531a890c874f23f757f6`.
+- Post-merge main CI #244: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Verified production build deployed successfully.
+- Production interaction smoke ✓ after deploy.
+- Final UI is live with the approved second-concept presentation layer; no gameplay/physics/economy/persistence/telemetry behavior changed.
