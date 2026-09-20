@@ -534,7 +534,6 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         '.reference-score-card',
         '.reference-hud__meta',
         '.reference-orders',
-        '.reference-coins',
       ]
         .map((selector) => ({
           selector,
@@ -552,6 +551,14 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
           scrollHeight: element.scrollHeight,
         }));
 
+      const coinText = document.querySelector<HTMLElement>('.reference-coins strong');
+      const coinTextFit = coinText
+        ? {
+            clientWidth: coinText.clientWidth,
+            scrollWidth: coinText.scrollWidth,
+          }
+        : null;
+
       if (!shell || !frame || !toolbar || !hudGrid) return null;
 
       return {
@@ -563,6 +570,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         touchTargets,
         readableTextSizes,
         contentFit,
+        coinTextFit,
         scrollWidth: document.documentElement.scrollWidth,
         scrollHeight: document.documentElement.scrollHeight,
         viewportWidth: window.innerWidth,
@@ -693,6 +701,13 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         item.scrollHeight,
         viewport.name + ' HUD content height: ' + item.selector,
       ).toBeLessThanOrEqual(item.clientHeight + 1);
+    }
+
+    if (geometry.coinTextFit) {
+      expect(
+        geometry.coinTextFit.scrollWidth,
+        viewport.name + ' coin value must not truncate',
+      ).toBeLessThanOrEqual(geometry.coinTextFit.clientWidth + 1);
     }
 
     expect(geometry.scrollWidth, viewport.name + ' horizontal overflow').toBeLessThanOrEqual(
