@@ -1794,7 +1794,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .reference-overdrive > span,
 .reference-mode-status {
   color: #ffd567;
-  font-size: clamp(7px, 1.7vw, 10px);
+  font-size: clamp(8px, 1.7vw, 10px);
   line-height: 1;
   font-weight: 1000;
   white-space: nowrap;
@@ -1987,7 +1987,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 
 .reference-order-row.current span,
 .reference-order-row.current b {
-  font-size: clamp(7px, 1.7vw, 10px);
+  font-size: clamp(8px, 1.7vw, 10px);
   line-height: 1;
   font-weight: 1000;
 }
@@ -2038,7 +2038,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   max-width: 100%;
   overflow: hidden;
   color: #62381f;
-  font-size: clamp(7px, 1.6vw, 10px);
+  font-size: clamp(8px, 1.6vw, 10px);
   line-height: 1.08;
   font-weight: 900;
   text-overflow: ellipsis;
