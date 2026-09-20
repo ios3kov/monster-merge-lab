@@ -75,7 +75,7 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           if (response.ok) {
-            void cacheNavigationResponse(response.clone());
+            void cacheNavigationResponse(response.clone()).catch(() => {});
           }
           return response;
         })
