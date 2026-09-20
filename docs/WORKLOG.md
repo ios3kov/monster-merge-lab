@@ -328,3 +328,18 @@ This file is updated after each major production step.
 - 2026-09-20: Selector-level responsive diagnostics identified the remaining 320px HUD overlap as .orders-board (bottom 113.35px). Added a compact-phone-only containment rule for Orders so the module stays above the tank without shrinking the gameplay field. Full CI rerun required before merge/deploy.
 - 2026-09-20: Responsive CI progressed past portrait HUD overlap and touch-target checks. The next blocker was landscape toolbar centering: the later master-concept rule overrode the earlier landscape left:50%/transform contract. Added an explicit final landscape concept override (50% anchor, 92% tank width, translateX(-50%)). Performance, Audit and Offline/PWA remain green; Chromium/WebKit must rerun before merge/deploy.
 - 2026-09-20: CI #231 is fully green for the modular concept UI rebuild: Chromium, WebKit, Performance, Offline/PWA, Audit and Aggregate Gate all passed. Portrait and landscape geometry, 44px touch targets, tank/HUD/toolbar clearance, bundle/performance budgets and browser coverage are verified. Ready to merge PR #43; production deploy/smoke must be verified post-merge.
+
+## 2026-09-20 — Clean concept UI rebuild
+
+### Rebuild the live game screen from clean concept layers — CI PENDING
+- User rejected the previous PR #43 composition as visually incorrect; this pass replaces that presentation layer rather than stacking more overrides on top of it.
+- The second approved concept remains the visual source of truth.
+- Kept only the clean workshop background, logo, tank frame and dynamic monster tier artwork from the concept-derived raster set.
+- Added clean geometry-only UI assets: `panel-frame.svg`, `toolbar-frame.svg` and `button-frame.svg`. They contain no labels, icons, counters or monsters; all semantic content remains live React UI.
+- Removed the old hidden field-art marketing layer from `App.tsx` so no baked MERGE/GROW/EVOLVE/BELONG or BETTER MONSTERS copy remains in the playfield DOM.
+- Removed superseded baked concept modules: `hud-frame.webp`, `score-panel.webp`, `hold-panel.webp`, `next-panel.webp`, `orders-panel.webp` and `nav-frame.webp`. The earlier combined `monster-ui-assets.webp` sheet was already absent.
+- Rebuilt layout on one 92%-wide field grid: portrait HUD, tank and bottom toolbar share 4% side edges; tank is the dominant 67%-height element; toolbar remains four actions with no DROP button.
+- Landscape keeps the same centered composition with a compact 54px HUD and accessibility-safe 44px touch targets.
+- Added E2E regression coverage that rejects every deprecated baked UI asset and verifies the clean frame/button assets, responsive geometry, field/HUD/toolbar clearances and existing touch-target/readability constraints.
+- Gameplay rules, physics, scoring, economy, persistence/session schemas and telemetry are unchanged.
+- Verification gate: Chromium + WebKit + Offline/PWA + Performance + Audit + Aggregate Gate must all pass before merge/deploy.
