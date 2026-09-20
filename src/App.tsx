@@ -1733,92 +1733,94 @@ function App() {
     <main className="app-shell">
       <section className={'game-shell reference-game-shell' + (ui.overdriveActive ? ' is-overdrive' : '')}>
         <div className="reference-hud">
-          <div className="reference-hud__score">
-          <div className="reference-score-card">
-            <div className="reference-score">
-              <span>{preset.mode === 'daily' ? 'DAILY SCORE' : 'SCORE'}</span>
-              <strong>{ui.score}</strong>
-              {ui.bestCombo > 1 && <small>BEST ×{ui.bestCombo}</small>}
+          <section className="reference-hud__score" aria-label="Score and overdrive">
+            <div className="reference-score-card">
+              <div className="reference-score">
+                <span>{preset.mode === 'daily' ? 'DAILY SCORE' : 'SCORE'}</span>
+                <strong>{ui.score.toLocaleString()}</strong>
+                {ui.bestCombo > 1 && <small>BEST ×{ui.bestCombo}</small>}
+              </div>
+              {preset.allowOverdrive ? (
+                <div
+                  className={'reference-overdrive' + (ui.overdriveActive ? ' is-active' : '')}
+                  aria-label={
+                    ui.overdriveActive
+                      ? 'Lab Overdrive active, double score'
+                      : 'Lab Overdrive ' + String(ui.overdrive) + ' percent'
+                  }
+                >
+                  <span>{ui.overdriveActive ? 'OVERDRIVE ×2' : 'OVERDRIVE'}</span>
+                  <i>
+                    <b style={{ width: (ui.overdriveActive ? 100 : ui.overdrive) + '%' }} />
+                  </i>
+                </div>
+              ) : (
+                <div className="reference-mode-status" aria-label={preset.title + ', ' + preset.subtitle}>
+                  {preset.title} · {preset.subtitle}
+                </div>
+              )}
             </div>
-            {preset.allowOverdrive ? (
-              <div
-                className={'reference-overdrive' + (ui.overdriveActive ? ' is-active' : '')}
-                aria-label={
-                  ui.overdriveActive
-                    ? 'Lab Overdrive active, double score'
-                    : 'Lab Overdrive ' + String(ui.overdrive) + ' percent'
-                }
-              >
-                <span>{ui.overdriveActive ? 'OVERDRIVE ×2' : 'OVERDRIVE'}</span>
-                <i>
-                  <b style={{ width: (ui.overdriveActive ? 100 : ui.overdrive) + '%' }} />
-                </i>
-              </div>
-            ) : (
-              <div className="reference-mode-status" aria-label={preset.title + ', ' + preset.subtitle}>
-                {preset.title} · {preset.subtitle}
-              </div>
-            )}
-          </div>
-          </div>
+          </section>
 
-          <div className="reference-hud__hold">
-          <button
-            type="button"
-            className={
-              'reference-hold' +
-              (!ui.canHold ? ' is-used' : '') +
-              (ui.canHold &&
-              ui.holdTier !== null &&
-              ui.holdTier !== ui.currentTier
-                ? ' is-swap-ready'
-                : '')
-            }
-            onClick={hold}
-            disabled={
-              !preset.allowHold ||
-              !ui.canDrop ||
-              !ui.canHold ||
-              ui.gameOver ||
-              ui.experimentComplete ||
-              ui.experimentFailed ||
-              (preset.limits?.holdUses !== undefined &&
-                ui.runHoldUses >= preset.limits.holdUses)
-            }
-            aria-label={
-              !preset.allowHold
-                ? 'Hold unavailable in this mode'
-                : ui.holdTier === null
-                  ? 'Hold current monster'
-                  : 'Swap current monster with held monster'
-            }
-          >
-            <span>{!preset.allowHold ? 'LOCKED' : ui.canHold ? 'HOLD' : 'USED'}</span>
-            {ui.holdTier === null ? <b>+</b> : <MonsterArt tier={ui.holdTier} size={42} />}
-          </button>
-          </div>
+          <section className="reference-hud__hold">
+            <button
+              type="button"
+              className={
+                'reference-hold' +
+                (!ui.canHold ? ' is-used' : '') +
+                (ui.canHold &&
+                ui.holdTier !== null &&
+                ui.holdTier !== ui.currentTier
+                  ? ' is-swap-ready'
+                  : '')
+              }
+              onClick={hold}
+              disabled={
+                !preset.allowHold ||
+                !ui.canDrop ||
+                !ui.canHold ||
+                ui.gameOver ||
+                ui.experimentComplete ||
+                ui.experimentFailed ||
+                (preset.limits?.holdUses !== undefined &&
+                  ui.runHoldUses >= preset.limits.holdUses)
+              }
+              aria-label={
+                !preset.allowHold
+                  ? 'Hold unavailable in this mode'
+                  : ui.holdTier === null
+                    ? 'Hold current monster'
+                    : 'Swap current monster with held monster'
+              }
+            >
+              <span>{!preset.allowHold ? 'LOCKED' : ui.canHold ? 'HOLD' : 'USED'}</span>
+              {ui.holdTier === null ? <b>+</b> : <MonsterArt tier={ui.holdTier} size={42} />}
+            </button>
+          </section>
 
-          <div className="reference-hud__next">
-          <div
-            className="reference-next"
-            role="group"
-            aria-label={
-              'Next monster tier ' +
-              String(ui.nextTier + 1) +
-              ', then tier ' +
-              String(ui.afterNextTier + 1)
-            }
-          >
-            <strong>NEXT</strong>
-            <MonsterArt tier={ui.nextTier} size={60} />
-            <span className="reference-after-next" aria-hidden="true">
-              <small>+1</small>
-              <MonsterArt tier={ui.afterNextTier} size={30} />
-            </span>
-          </div>
-          </div>
+          <section className="reference-hud__next">
+            <div
+              className="reference-next"
+              role="group"
+              aria-label={'Next monster tier ' + String(ui.nextTier + 1)}
+            >
+              <strong>NEXT</strong>
+              <MonsterArt tier={ui.nextTier} size={60} />
+            </div>
+          </section>
 
-          <div className="reference-hud__meta">
+          <section className="reference-hud__after">
+            <div
+              className="reference-after"
+              role="group"
+              aria-label={'After next monster tier ' + String(ui.afterNextTier + 1)}
+            >
+              <strong>AFTER</strong>
+              <MonsterArt tier={ui.afterNextTier} size={36} />
+            </div>
+          </section>
+
+          <section className="reference-hud__meta">
             <div className="reference-meta-actions">
               <div className="reference-coins" aria-label={String(ui.coins) + ' coins'}>
                 <span className="reference-coin">●</span>
@@ -1863,7 +1865,7 @@ function App() {
                 </div>
               </section>
             )}
-          </div>
+          </section>
         </div>
 
         <div className="reference-field">
@@ -1941,13 +1943,10 @@ function App() {
           gameOver={ui.gameOver}
           experimentComplete={ui.experimentComplete}
           experimentFailed={ui.experimentFailed}
-          runPowerUses={ui.runPowerUses}
-          powerCharges={ui.powerCharges}
-          powerUsesRemaining={powerUsesRemaining}
           onShop={() => setShowShop(true)}
-          onMonsters={() => setShowMonsters(true)}
-          onPower={nudge}
           onLab={() => setShowLab(true)}
+          onBook={() => setShowMonsters(true)}
+          onRestart={restart}
         />
 
         {showMonsters && (
