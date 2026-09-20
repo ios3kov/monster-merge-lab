@@ -46,7 +46,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   top: 2.1%;
   height: 13.2%;
   display: grid;
-  grid-template-columns: 1.18fr .72fr 1.05fr 1.55fr;
+  grid-template-columns: minmax(0,1.15fr) 44px minmax(0,1fr) minmax(0,1.6fr);
   gap: 4px;
 }
 .hud-score-cell,
@@ -63,7 +63,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 }
 .hud-meta-cell {
   display: grid;
-  grid-template-rows: 42px minmax(0,1fr);
+  grid-template-rows: 44px minmax(0,1fr);
   gap: 4px;
 }
 
@@ -80,8 +80,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .coin-pill {
   min-width: 0;
   width: 100%;
-  height: 42px;
-  padding: 0 9px;
+  height: 44px;
+  padding: 0 7px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -124,8 +124,10 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   height: 100%;
   min-width: 0;
   display: grid;
-  place-items: center;
-  padding: 17px 4px 4px;
+  grid-template-columns: minmax(0,1fr) 28px;
+  align-items: center;
+  justify-items: center;
+  padding: 17px 3px 4px;
   overflow: visible;
   border: 2px solid #925c30;
   border-radius: 9px;
@@ -146,13 +148,13 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   font-weight: 1000;
   letter-spacing: .08em;
 }
-.next-board > .monster-art { width: 48px !important; height: 48px !important; }
+.next-board > .monster-art { width: 40px !important; height: 40px !important; }
 .after-next {
-  position: absolute;
-  right: -22%;
-  bottom: -5%;
-  width: 34px;
-  height: 34px;
+  position: relative;
+  right: auto;
+  bottom: auto;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -175,8 +177,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   font-weight: 1000;
 }
 .after-next .monster-art {
-  width: 27px !important;
-  height: 27px !important;
+  width: 23px !important;
+  height: 23px !important;
 }
 
 .hold-board {
@@ -893,13 +895,16 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 @media (max-width: 390px) {
   .hud-grid {
     gap: 3px;
-    grid-template-columns: 1.14fr .72fr 1fr 1.58fr;
+    grid-template-columns: minmax(0,1.12fr) 44px minmax(0,.95fr) minmax(0,1.62fr);
   }
-  .coin-pill { min-width: 0; height: 42px; padding: 0 5px; }
-  .coin-pill strong { font-size: 14px; }
-  .icon-button { width: 44px; height: 42px; }
-  .next-board > .monster-art { width: 42px !important; height: 42px !important; }
-  .after-next { right: -22%; transform: scale(.82); }
+  .coin-pill { min-width: 0; height: 44px; padding: 0 4px; }
+  .coin { width: 22px; height: 22px; border-width: 2px; }
+  .coin-pill strong { font-size: 13px; }
+  .icon-button { width: 44px; height: 44px; }
+  .next-board { grid-template-columns: minmax(0,1fr) 24px; padding-inline: 2px; }
+  .next-board > .monster-art { width: 34px !important; height: 34px !important; }
+  .after-next { width: 24px; height: 24px; }
+  .after-next .monster-art { width: 20px !important; height: 20px !important; }
   .concept-toolbar { left: 12.8%; right: 12.8%; }
 }
 
