@@ -376,3 +376,17 @@ This file is updated after each major production step.
 - Verified production build deployed successfully.
 - Production interaction smoke ✓ after deploy.
 - Final UI is live with the approved second-concept presentation layer; no gameplay/physics/economy/persistence/telemetry behavior changed.
+
+
+## 2026-09-20 — Concept decomposition rebuild
+
+### Phase 1 — live navigation contract
+- Approved second reference is the sole visual source of truth.
+- The concept is being decomposed into production layers/assets rather than approximated with another independent UI design.
+- Verified that the current workshop background asset is already clean: no gameplay monsters are baked into the scene.
+- Current combined monster atlas remains rejected because rectangular crop content can leak into gameplay/HUD; replacement is tracked as a separate asset phase.
+- Bottom navigation changed at source level from `Shop / Monsters / Power / Lab` to the exact concept order `Shop / Lab / Book / Restart`.
+- `Book` opens the existing Monster Evolution/collection UI; `Restart` calls the real run reset handler.
+- No fake relabeling: removed toolbar Power from this presentation because it does not exist in the approved concept; gameplay power logic remains untouched elsewhere.
+- E2E coverage updated for Book and real Restart behavior.
+- Next: decompose HUD/chrome proportions and replace the rejected monster atlas with clean transparent assets.
