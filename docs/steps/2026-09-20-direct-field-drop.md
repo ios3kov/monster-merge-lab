@@ -73,4 +73,15 @@ Required before merge:
 - main Deploy
 - production interaction smoke
 
+## Verification catch
+
+PR #37 run #174 found one stale Offline/PWA assertion that still expected the
+removed DROP button after an offline reload.
+
+The product behavior was correct; the regression test was outdated. The test
+now verifies:
+
+- the game field is visible and drop-ready;
+- no accessible DROP button exists.
+
 Status: IN PROGRESS.
