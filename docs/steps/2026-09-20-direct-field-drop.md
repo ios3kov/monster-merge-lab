@@ -84,4 +84,12 @@ now verifies:
 - the game field is visible and drop-ready;
 - no accessible DROP button exists.
 
+### Landscape clearance catch
+
+PR #37 run #176 caught a small landscape overlap between the bottom of the
+game field and the rebuilt toolbar. The geometry assertion remained strict.
+
+Fix: move the landscape toolbar lower while preserving the same field-aligned
+left/right edges and width.
+
 Status: IN PROGRESS.
