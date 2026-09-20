@@ -50,7 +50,7 @@ test('manifest and service worker provide an offline app shell', async ({
 });
 
 
-test('service worker removes obsolete cache generations', async ({
+test('service worker prunes stale runtime assets after online navigation', async ({
   page,
 }, testInfo) => {
   test.skip(!testInfo.project.name.includes('chromium'));
@@ -61,35 +61,30 @@ test('service worker removes obsolete cache generations', async ({
       page.evaluate(async () => {
         if (!('serviceWorker' in navigator)) return false;
         await navigator.serviceWorker.ready;
-        return true;
+        return Boolean(navigator.serviceWorker.controller);
       }),
     )
     .toBe(true);
 
   await page.evaluate(async () => {
-    await caches.open('monster-merge-lab-shell-v1');
-    await caches.open('monster-merge-lab-runtime-v1');
+    const runtime = await caches.open('monster-merge-lab-runtime-v2');
+    await runtime.put(
+      '/assets/stale-build.js',
+      new Response('stale', {
+        headers: { 'content-type': 'text/javascript' },
+      }),
+    );
   });
 
-  await page.evaluate(async () => {
-    const registration = await navigator.serviceWorker.ready;
-    await registration.update();
-  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await expect(page.getByLabel(/Monster tank/)).toBeVisible();
 
   await expect
     .poll(() =>
       page.evaluate(async () => {
-        const keys = await caches.keys();
-        return {
-          oldShell: keys.includes('monster-merge-lab-shell-v1'),
-          oldRuntime: keys.includes('monster-merge-lab-runtime-v1'),
-          newShell: keys.includes('monster-merge-lab-shell-v2'),
-        };
+        const runtime = await caches.open('monster-merge-lab-runtime-v2');
+        return Boolean(await runtime.match('/assets/stale-build.js'));
       }),
     )
-    .toEqual({
-      oldShell: false,
-      oldRuntime: false,
-      newShell: true,
-    });
+    .toBe(false);
 });
