@@ -291,5 +291,7 @@ This file is updated after each major production step.
 - PR #37 run #174: Audit ✓ Performance ✓; Offline/PWA correctly caught one stale assertion that still expected a DROP button.
 - Fix: offline smoke now validates the field as the drop surface and explicitly verifies there is no DROP button.
 - PR #37 run #176: Offline/PWA ✓ Performance ✓; Chromium geometry gate caught a small landscape overlap between the field and the rebuilt toolbar.
-- Fix: landscape toolbar moved lower without changing its field-aligned width.
+- Fix: landscape toolbar moved lower.
+- PR #37 run #178: Offline/PWA ✓ Performance ✓ Audit ✓; Chromium caught sub-44px toolbar targets in short landscape when forcing exact field width.
+- Fix: portrait keeps exact field-width alignment; short landscape expands only to the minimum 192px centered width needed to preserve 44px touch targets.
 - Gate: rerun full PR CI → Aggregate Gate → merge → main Deploy → production interaction smoke.
