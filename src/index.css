@@ -2221,12 +2221,33 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   }
 
   .reference-orders {
-    padding-left: 3%;
-    padding-right: 3%;
+    padding: 10px 3% 3px;
+  }
+
+  .reference-orders h2 {
+    top: 1px;
+  }
+
+  .reference-order-row.current {
+    min-height: 14px;
+    grid-template-columns: 14px minmax(0, 1fr) auto;
+    gap: 1px;
+  }
+
+  .reference-order-row.current .monster-art {
+    width: 14px !important;
+    height: 14px !important;
   }
 
   .reference-order-row.current b {
     display: none;
+  }
+
+  .reference-order-track {
+    left: 24%;
+    right: 4%;
+    bottom: 1px;
+    height: 3px;
   }
 }
 
