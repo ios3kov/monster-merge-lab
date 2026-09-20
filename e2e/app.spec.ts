@@ -511,9 +511,9 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         '.hold-board',
         '.orders-board',
       ]
-        .map((selector) => document.querySelector<HTMLElement>(selector))
-        .filter((element): element is HTMLElement => element !== null)
-        .map(rectOf);
+        .map((selector) => ({ selector, element: document.querySelector<HTMLElement>(selector) }))
+        .filter((item): item is { selector: string; element: HTMLElement } => item.element !== null)
+        .map(({ selector, element }) => ({ selector, ...rectOf(element) }));
 
       const touchTargets = Array.from(
         document.querySelectorAll<HTMLElement>(
@@ -643,7 +643,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         rect.right > geometry.frame.left + 1 &&
         rect.top < geometry.frame.bottom - 1 &&
         rect.bottom > geometry.frame.top + 1;
-      expect(overlapsTank, viewport.name + ' HUD must not overlap tank: ' + JSON.stringify(rect)).toBe(false);
+      expect(overlapsTank, viewport.name + ' HUD must not overlap tank: ' + rect.selector + ' ' + JSON.stringify(rect)).toBe(false);
     }
 
     for (const rect of geometry.touchTargets) {
