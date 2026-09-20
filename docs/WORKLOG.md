@@ -331,7 +331,7 @@ This file is updated after each major production step.
 
 ## 2026-09-20 — Clean concept UI rebuild
 
-### Rebuild the live game screen from clean concept layers — CI PENDING
+### Rebuild the live game screen from clean concept layers — VERIFIED
 - User rejected the previous PR #43 composition as visually incorrect; this pass replaces that presentation layer rather than stacking more overrides on top of it.
 - The second approved concept remains the visual source of truth.
 - Kept only the clean workshop background, logo, tank frame and dynamic monster tier artwork from the concept-derived raster set.
@@ -342,4 +342,8 @@ This file is updated after each major production step.
 - Landscape keeps the same centered composition with a compact 54px HUD and accessibility-safe 44px touch targets.
 - Added E2E regression coverage that rejects every deprecated baked UI asset and verifies the clean frame/button assets, responsive geometry, field/HUD/toolbar clearances and existing touch-target/readability constraints.
 - Gameplay rules, physics, scoring, economy, persistence/session schemas and telemetry are unchanged.
-- Verification gate: Chromium + WebKit + Offline/PWA + Performance + Audit + Aggregate Gate must all pass before merge/deploy.
+- PR #44 CI run #235: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Responsive/content-fit checks pass at 320×568, 390×844, 430×932 and 844×390; no clipped HUD content, geometry overlap, viewport overflow or sub-44px tested touch targets.
+- Performance remains healthy: physics 0.194 ms/step; crowded board 16.55 ms average / 16.70 ms p95; idle 16.54 ms average / 16.80 ms p95.
+- Bundle profile: JS 90 KB gzip, CSS 6 KB gzip, total first-load 252 KB gzip, raw dist 467 KB.
+- Final documentation-only head must pass the same required PR gate before merge.
