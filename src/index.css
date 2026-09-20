@@ -1737,7 +1737,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .reference-meta-actions {
   color: #fff3d2;
   background:
-    linear-gradient(180deg, rgba(78, 40, 20, .98), rgba(47, 22, 10, .98));
+    linear-gradient(180deg, #4e2814, #2f160a);
 }
 
 .reference-score-card {
@@ -1958,7 +1958,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   border-radius: 6px;
   color: #5a311b;
   background:
-    linear-gradient(180deg, rgba(255, 239, 204, .99), rgba(225, 190, 131, .99));
+    linear-gradient(180deg, #ffefcc, #e1be83);
 }
 
 .reference-orders h2 {
@@ -2094,15 +2094,15 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   background:
     url('/assets/concept/tank-frame.webp') center / 100% 100% no-repeat;
   -webkit-mask:
-    linear-gradient(#000 0 0) top / 100% 9% no-repeat,
-    linear-gradient(#000 0 0) bottom / 100% 9% no-repeat,
-    linear-gradient(#000 0 0) left / 7% 100% no-repeat,
-    linear-gradient(#000 0 0) right / 7% 100% no-repeat;
+    linear-gradient(#000 0 0) top / 100% 3% no-repeat,
+    linear-gradient(#000 0 0) bottom / 100% 3.5% no-repeat,
+    linear-gradient(#000 0 0) left / 6.5% 100% no-repeat,
+    linear-gradient(#000 0 0) right / 6.5% 100% no-repeat;
   mask:
-    linear-gradient(#000 0 0) top / 100% 9% no-repeat,
-    linear-gradient(#000 0 0) bottom / 100% 9% no-repeat,
-    linear-gradient(#000 0 0) left / 7% 100% no-repeat,
-    linear-gradient(#000 0 0) right / 7% 100% no-repeat;
+    linear-gradient(#000 0 0) top / 100% 3% no-repeat,
+    linear-gradient(#000 0 0) bottom / 100% 3.5% no-repeat,
+    linear-gradient(#000 0 0) left / 6.5% 100% no-repeat,
+    linear-gradient(#000 0 0) right / 6.5% 100% no-repeat;
 }
 
 .reference-field-lamp {
