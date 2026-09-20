@@ -243,7 +243,7 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await expect(
     completionDialog.getByRole('button', { name: 'Retry' }),
   ).toBeFocused();
-  await expect(page.locator('.concept-toolbar')).toHaveAttribute('inert', '');
+  await expect(page.locator('.reference-toolbar')).toHaveAttribute('inert', '');
   await expect(page.getByLabel(/Monster tank/)).toHaveAttribute('inert', '');
 
   await completionDialog.getByRole('button', { name: 'Lab' }).click();
@@ -255,7 +255,7 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await expect(
     completionDialog.getByRole('button', { name: 'Retry' }),
   ).toBeFocused();
-  await expect(page.locator('.concept-toolbar')).toHaveAttribute('inert', '');
+  await expect(page.locator('.reference-toolbar')).toHaveAttribute('inert', '');
 
   await expect(
     completionDialog.getByRole('button', { name: 'Next Experiment' }),
@@ -266,7 +266,7 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await expect(page.getByLabel('Experiment 2 objective')).toContainText(
     'Create a Puff',
   );
-  await expect(page.locator('.concept-toolbar')).not.toHaveAttribute('inert', '');
+  await expect(page.locator('.reference-toolbar')).not.toHaveAttribute('inert', '');
 
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Daily Experiment/ }).click();
@@ -489,9 +489,9 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
 
     const geometry = await page.evaluate(() => {
       const shell = document.querySelector<HTMLElement>('.game-shell');
-      const frame = document.querySelector<HTMLElement>('.game-frame');
-      const toolbar = document.querySelector<HTMLElement>('.concept-toolbar');
-      const hudGrid = document.querySelector<HTMLElement>('.hud-grid');
+      const frame = document.querySelector<HTMLElement>('.reference-field');
+      const toolbar = document.querySelector<HTMLElement>('.reference-toolbar');
+      const hudGrid = document.querySelector<HTMLElement>('.reference-hud');
       const rectOf = (element: HTMLElement) => {
         const rect = element.getBoundingClientRect();
         return {
@@ -505,11 +505,11 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       };
 
       const hud = [
-        '.status-cluster',
-        '.concept-top-actions',
-        '.next-board',
-        '.hold-board',
-        '.orders-board',
+        '.reference-score-card',
+        '.reference-meta-actions',
+        '.reference-next',
+        '.reference-hold',
+        '.reference-orders',
       ]
         .map((selector) => ({ selector, element: document.querySelector<HTMLElement>(selector) }))
         .filter((item): item is { selector: string; element: HTMLElement } => item.element !== null)
@@ -517,27 +517,27 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
 
       const touchTargets = Array.from(
         document.querySelectorAll<HTMLElement>(
-          '.hold-board, .concept-toolbar button, .icon-button',
+          '.reference-hold, .reference-toolbar button, .reference-sound',
         ),
       ).map(rectOf);
 
       const readableTextSizes = [
-        '.hold-board > span',
-        '.score-plaque span',
-        '.overdrive-panel > span',
-        '.orders-board h2',
-        '.order-row.current span',
-        '.order-row.current b',
+        '.reference-hold > span',
+        '.reference-score span',
+        '.reference-overdrive > span',
+        '.reference-orders h2',
+        '.reference-order-row.current span',
+        '.reference-order-row.current b',
       ]
         .map((selector) => document.querySelector<HTMLElement>(selector))
         .filter((element): element is HTMLElement => element !== null)
         .map((element) => parseFloat(getComputedStyle(element).fontSize));
 
       const contentFit = [
-        '.status-cluster',
-        '.hud-meta-cell',
-        '.orders-board',
-        '.coin-pill',
+        '.reference-score-card',
+        '.reference-hud__meta',
+        '.reference-orders',
+        '.reference-coins',
       ]
         .map((selector) => ({
           selector,
@@ -722,24 +722,20 @@ test('game screen keeps artwork clean and UI content live', async ({ page }, tes
 
     return {
       shell: backgroundImage('.game-shell'),
-      frame: backgroundImage('.game-frame'),
-      hud: backgroundImage('.hud-grid'),
-      score: backgroundImage('.hud-score-cell'),
-      hold: backgroundImage('.hud-hold-cell'),
-      next: backgroundImage('.hud-next-cell'),
-      meta: backgroundImage('.hud-meta-cell'),
-      toolbar: backgroundImage('.concept-toolbar'),
-      button: backgroundImage('.concept-toolbar .wood-button'),
+      frame: backgroundImage('.reference-field'),
+      hud: backgroundImage('.reference-hud'),
+      holdButton: backgroundImage('.reference-hold'),
+      soundButton: backgroundImage('.reference-sound'),
+      toolbar: backgroundImage('.reference-toolbar'),
+      button: backgroundImage('.reference-toolbar .reference-toolbar-button'),
     };
   });
 
   expect(layers.shell).toContain('monster-workshop-background.webp');
   expect(layers.frame).toContain('tank-frame.webp');
-  expect(layers.hud).not.toContain('url(');
-  expect(layers.score).toContain('panel-frame.svg');
-  expect(layers.hold).toContain('panel-frame.svg');
-  expect(layers.next).toContain('panel-frame.svg');
-  expect(layers.meta).toContain('panel-frame.svg');
+  expect(layers.hud).toContain('toolbar-frame.svg');
+  expect(layers.holdButton).toContain('button-frame.svg');
+  expect(layers.soundButton).toContain('button-frame.svg');
   expect(layers.toolbar).toContain('toolbar-frame.svg');
   expect(layers.button).toContain('button-frame.svg');
 
@@ -770,7 +766,7 @@ test('Experiment objective hints wrap in portrait and stay compact in landscape'
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /^Experiments\b/ }).click();
 
-  const hint = page.locator('.mode-objective span');
+  const hint = page.locator('.reference-objective span');
   await expect(hint).toBeVisible();
   await expect(hint).toContainText('Merge two Sprouts');
 

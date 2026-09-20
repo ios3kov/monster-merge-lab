@@ -1731,18 +1731,18 @@ function App() {
 
   return (
     <main className="app-shell">
-      <section className={'game-shell' + (ui.overdriveActive ? ' is-overdrive' : '')}>
-        <div className="hud-grid">
-          <div className="hud-score-cell">
-          <div className="status-cluster">
-            <div className="score-plaque">
+      <section className={'game-shell reference-game-shell' + (ui.overdriveActive ? ' is-overdrive' : '')}>
+        <div className="reference-hud">
+          <div className="reference-hud__score">
+          <div className="reference-score-card">
+            <div className="reference-score">
               <span>{preset.mode === 'daily' ? 'DAILY SCORE' : 'SCORE'}</span>
               <strong>{ui.score}</strong>
               {ui.bestCombo > 1 && <small>BEST ×{ui.bestCombo}</small>}
             </div>
             {preset.allowOverdrive ? (
               <div
-                className={'overdrive-panel' + (ui.overdriveActive ? ' is-active' : '')}
+                className={'reference-overdrive' + (ui.overdriveActive ? ' is-active' : '')}
                 aria-label={
                   ui.overdriveActive
                     ? 'Lab Overdrive active, double score'
@@ -1755,18 +1755,18 @@ function App() {
                 </i>
               </div>
             ) : (
-              <div className="mode-status" aria-label={preset.title + ', ' + preset.subtitle}>
+              <div className="reference-mode-status" aria-label={preset.title + ', ' + preset.subtitle}>
                 {preset.title} · {preset.subtitle}
               </div>
             )}
           </div>
           </div>
 
-          <div className="hud-hold-cell">
+          <div className="reference-hud__hold">
           <button
             type="button"
             className={
-              'hold-board' +
+              'reference-hold' +
               (!ui.canHold ? ' is-used' : '') +
               (ui.canHold &&
               ui.holdTier !== null &&
@@ -1798,9 +1798,9 @@ function App() {
           </button>
           </div>
 
-          <div className="hud-next-cell">
+          <div className="reference-hud__next">
           <div
-            className="next-board"
+            className="reference-next"
             role="group"
             aria-label={
               'Next monster tier ' +
@@ -1811,41 +1811,41 @@ function App() {
           >
             <strong>NEXT</strong>
             <MonsterArt tier={ui.nextTier} size={60} />
-            <span className="after-next" aria-hidden="true">
+            <span className="reference-after-next" aria-hidden="true">
               <small>+1</small>
               <MonsterArt tier={ui.afterNextTier} size={30} />
             </span>
           </div>
           </div>
 
-          <div className="hud-meta-cell">
-            <div className="top-actions concept-top-actions">
-              <div className="coin-pill" aria-label={String(ui.coins) + ' coins'}>
-                <span className="coin">●</span>
+          <div className="reference-hud__meta">
+            <div className="reference-meta-actions">
+              <div className="reference-coins" aria-label={String(ui.coins) + ' coins'}>
+                <span className="reference-coin">●</span>
                 <strong>{ui.coins.toLocaleString()}</strong>
               </div>
-              <button className="icon-button" onClick={toggleSound} aria-label={'Sound ' + (ui.sound ? 'on' : 'off')}>
+              <button className="reference-sound" onClick={toggleSound} aria-label={'Sound ' + (ui.sound ? 'on' : 'off')}>
                 {ui.sound ? <Volume2 size={19} /> : <VolumeX size={19} />}
               </button>
             </div>
             {preset.showOrders ? (
-              <section className="orders-board" aria-label="Orders">
+              <section className="reference-orders" aria-label="Orders">
                 <h2>ORDERS</h2>
                 {orders.map((order, index) => (
-                  <div className={'order-row ' + (index === 0 ? 'current' : '')} key={String(ui.orderNo) + '-' + String(index)}>
+                  <div className={'reference-order-row ' + (index === 0 ? 'current' : '')} key={String(ui.orderNo) + '-' + String(index)}>
                     <MonsterArt tier={order.tier} size={34} />
                     <span>{index === 0 ? ui.progress : 0}/{order.count}</span>
                     <b>● +{order.reward}</b>
                   </div>
                 ))}
-                <div className="order-track" aria-hidden="true">
+                <div className="reference-order-track" aria-hidden="true">
                   <i style={{ width: String(Math.min(100, (ui.progress / ui.order.count) * 100)) + '%' }} />
                 </div>
               </section>
             ) : (
-              <section className="orders-board mode-objective-board" aria-label={preset.title + ' objective'}>
+              <section className="reference-orders reference-orders--objective" aria-label={preset.title + ' objective'}>
                 <h2>{preset.mode === 'daily' ? 'DAILY' : 'GOAL'}</h2>
-                <div className="mode-objective">
+                <div className="reference-objective">
                   <strong>
                     {preset.mode === 'daily'
                       ? 'FAIR RUN'
@@ -1866,10 +1866,10 @@ function App() {
           </div>
         </div>
 
-        <div className="game-frame">
-          <span className="frame-lamp frame-lamp-left" aria-hidden="true" />
-          <span className="frame-lamp frame-lamp-right" aria-hidden="true" />
-          <div className="canvas-wrap">
+        <div className="reference-field">
+          <span className="reference-field-lamp reference-field-lamp--left" aria-hidden="true" />
+          <span className="reference-field-lamp reference-field-lamp--right" aria-hidden="true" />
+          <div className="reference-canvas">
             <canvas
               ref={canvasRef}
               className="physics-canvas"

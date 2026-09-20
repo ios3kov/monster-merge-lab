@@ -27,11 +27,11 @@ export function GameToolbar({
   onLab: () => void;
 }) {
   return (
-    <div className="concept-toolbar">
+    <div className="reference-toolbar">
       <button
         type="button"
         onClick={onShop}
-        className="wood-button shop-hit"
+        className="reference-toolbar-button shop-hit"
         aria-label="Shop"
       >
         <Store size={23} />
@@ -40,7 +40,7 @@ export function GameToolbar({
       <button
         type="button"
         onClick={onMonsters}
-        className="wood-button monsters-hit"
+        className="reference-toolbar-button monsters-hit"
         aria-label="Monsters"
       >
         <PawPrint size={23} />
@@ -49,7 +49,7 @@ export function GameToolbar({
       <button
         type="button"
         onClick={onPower}
-        className="wood-button power-hit"
+        className="reference-toolbar-button power-hit"
         disabled={
           !preset.allowPower ||
           gameOver ||
@@ -79,7 +79,7 @@ export function GameToolbar({
       <button
         type="button"
         onClick={onLab}
-        className="wood-button lab-hit"
+        className="reference-toolbar-button lab-hit"
         aria-label="Lab and game modes"
       >
         <FlaskConical size={23} />
