@@ -163,6 +163,7 @@ function drawRunTier(
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
   const worldRef = useRef<World>({ bodies: [] });
   const aimXRef = useRef(WIDTH / 2);
   const dropTimerRef = useRef<number | null>(null);
@@ -1550,6 +1551,17 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const rememberBackgroundFocus = (event: FocusEvent) => {
+      if (!(event.target instanceof HTMLElement)) return;
+      if (event.target.closest('[role="dialog"]')) return;
+      dialogReturnFocusRef.current = event.target;
+    };
+    document.addEventListener('focusin', rememberBackgroundFocus);
+    return () =>
+      document.removeEventListener('focusin', rememberBackgroundFocus);
+  }, []);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       setShowMonsters(false);
@@ -1561,37 +1573,57 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const modalOpen = showMonsters || showShop || showLab;
-    if (!modalOpen) return;
+    const dialogOpen =
+      showMonsters ||
+      showShop ||
+      showLab ||
+      ui.experimentComplete ||
+      ui.experimentFailed ||
+      ui.gameOver;
+    if (!dialogOpen) return;
 
     const shell = canvasRef.current?.closest('.game-shell');
-    const modal = shell?.querySelector<HTMLElement>(
-      '.monster-modal[role="dialog"]',
-    );
-    if (!shell || !modal) return;
+    const dialog =
+      shell?.querySelector<HTMLElement>('.monster-modal[role="dialog"]') ??
+      shell?.querySelector<HTMLElement>('.game-over[role="dialog"]') ??
+      null;
+    if (!shell || !dialog) return;
 
-    const previousFocus =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-    const inertTargets = Array.from(shell.children).filter(
-      (element) => element !== modal,
-    );
+    const previousFocus = dialogReturnFocusRef.current;
+    const inertTargets: HTMLElement[] = [];
+    let activeLayer: HTMLElement | null = dialog;
 
-    for (const element of inertTargets) {
-      element.setAttribute('inert', '');
-      element.setAttribute('aria-hidden', 'true');
+    while (activeLayer && activeLayer !== shell) {
+      const container: HTMLElement | null = activeLayer.parentElement;
+      if (!container) break;
+
+      for (const sibling of Array.from(container.children)) {
+        if (sibling === activeLayer || !(sibling instanceof HTMLElement)) {
+          continue;
+        }
+        sibling.setAttribute('inert', '');
+        sibling.setAttribute('aria-hidden', 'true');
+        inertTargets.push(sibling);
+      }
+      activeLayer = container;
+    }
+
+    const getFocusable = (root: HTMLElement) =>
+      Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => !element.hasAttribute('inert'));
+
+    const activeAtOpen = document.activeElement;
+    if (!activeAtOpen || !dialog.contains(activeAtOpen)) {
+      getFocusable(dialog)[0]?.focus();
     }
 
     const onModalKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return;
 
-      const focusable = Array.from(
-        modal.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter((element) => !element.hasAttribute('inert'));
-
+      const focusable = getFocusable(dialog);
       if (focusable.length === 0) {
         event.preventDefault();
         return;
@@ -1617,9 +1649,27 @@ function App() {
         element.removeAttribute('inert');
         element.removeAttribute('aria-hidden');
       }
-      previousFocus?.focus();
+
+      queueMicrotask(() => {
+        const remainingDialog =
+          shell.querySelector<HTMLElement>('.monster-modal[role="dialog"]') ??
+          shell.querySelector<HTMLElement>('.game-over[role="dialog"]');
+
+        if (remainingDialog) {
+          getFocusable(remainingDialog)[0]?.focus();
+        } else {
+          previousFocus?.focus();
+        }
+      });
     };
-  }, [showLab, showMonsters, showShop]);
+  }, [
+    showLab,
+    showMonsters,
+    showShop,
+    ui.experimentComplete,
+    ui.experimentFailed,
+    ui.gameOver,
+  ]);
 
   const handleCanvasKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLCanvasElement>) => {
