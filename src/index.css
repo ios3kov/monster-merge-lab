@@ -1217,3 +1217,13 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   }
   .orders-board .order-row { min-height: 0; line-height: 1; }
 }
+
+/* Master-concept overrides must preserve the landscape centering contract. */
+@media (orientation: landscape) and (max-height: 640px) {
+  .concept-toolbar {
+    left: 50%;
+    right: auto;
+    width: 92%;
+    transform: translateX(-50%);
+  }
+}
