@@ -1,30 +1,15 @@
-import { FlaskConical, Hammer, PawPrint, Store } from 'lucide-react';
-import type { RunPreset } from './modes';
+import { BookOpen, FlaskConical, RotateCcw, Store } from 'lucide-react';
 
 export function GameToolbar({
-  preset,
-  gameOver,
-  experimentComplete,
-  experimentFailed,
-  runPowerUses,
-  powerCharges,
-  powerUsesRemaining,
   onShop,
-  onMonsters,
-  onPower,
   onLab,
+  onBook,
+  onRestart,
 }: {
-  preset: RunPreset;
-  gameOver: boolean;
-  experimentComplete: boolean;
-  experimentFailed: boolean;
-  runPowerUses: number;
-  powerCharges: number;
-  powerUsesRemaining: number;
   onShop: () => void;
-  onMonsters: () => void;
-  onPower: () => void;
   onLab: () => void;
+  onBook: () => void;
+  onRestart: () => void;
 }) {
   return (
     <div className="reference-toolbar">
@@ -39,51 +24,30 @@ export function GameToolbar({
       </button>
       <button
         type="button"
-        onClick={onMonsters}
-        className="reference-toolbar-button monsters-hit"
-        aria-label="Monsters"
-      >
-        <PawPrint size={23} />
-        <span>MONSTERS</span>
-      </button>
-      <button
-        type="button"
-        onClick={onPower}
-        className="reference-toolbar-button power-hit"
-        disabled={
-          !preset.allowPower ||
-          gameOver ||
-          experimentComplete ||
-          experimentFailed ||
-          (preset.limits?.powerUses !== undefined &&
-            runPowerUses >= preset.limits.powerUses)
-        }
-        aria-label={
-          preset.allowPower
-            ? preset.mode === 'experiments'
-              ? 'Power-up. ' +
-                String(powerUsesRemaining) +
-                ' run uses remaining'
-              : 'Power-up. ' + String(powerCharges) + ' available'
-            : 'Power-up unavailable in this mode'
-        }
-      >
-        <Hammer size={23} />
-        <span>POWER</span>
-        {powerUsesRemaining > 0 && (
-          <b className="power-charge" aria-hidden="true">
-            {powerUsesRemaining}
-          </b>
-        )}
-      </button>
-      <button
-        type="button"
         onClick={onLab}
         className="reference-toolbar-button lab-hit"
         aria-label="Lab and game modes"
       >
         <FlaskConical size={23} />
         <span>LAB</span>
+      </button>
+      <button
+        type="button"
+        onClick={onBook}
+        className="reference-toolbar-button book-hit"
+        aria-label="Monster book"
+      >
+        <BookOpen size={23} />
+        <span>BOOK</span>
+      </button>
+      <button
+        type="button"
+        onClick={onRestart}
+        className="reference-toolbar-button restart-hit"
+        aria-label="Restart run"
+      >
+        <RotateCcw size={24} />
+        <span>RESTART</span>
       </button>
     </div>
   );
