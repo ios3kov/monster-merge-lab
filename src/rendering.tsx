@@ -71,10 +71,13 @@ export function drawMonster(
     Partial<Pick<Body, 'vx' | 'vy'>>,
   time: number,
   alpha = 1,
-  _gazeX = body.x,
-  _gazeY = body.y,
-  _attention = 0,
+  gazeX = body.x,
+  gazeY = body.y,
+  attention = 0,
 ) {
+  void gazeX;
+  void gazeY;
+  void attention;
   const reducedMotion = prefersReducedMotion();
   const { column, row } = spritePosition(body.tier);
   const speed = Math.hypot(body.vx ?? 0, body.vy ?? 0);
