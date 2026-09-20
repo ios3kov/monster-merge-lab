@@ -298,3 +298,26 @@ This file is updated after each major production step.
 - Portrait toolbar matches the game-field width/edges; short landscape uses the documented centered accessibility-safe minimum.
 - Field drop, cooldown, Experiments, Daily restore, offline reload and production-smoke scenario are covered without a DROP button.
 - Final documentation head must pass the same gate before merge.
+
+
+## 2026-09-20 — Modular HUD + larger field
+
+### HUD grid and field enlargement — DONE
+- Goal: make the playfield the dominant visual area and align top HUD / field / bottom toolbar to one modular grid.
+- Top HUD is now one `hud-grid` rather than five independently positioned overlays.
+- Portrait HUD uses four modules: Score+Overdrive / Hold / Next / Coins+Sound+Orders.
+- Portrait HUD left/right edges are locked to the game field at 12.8% / 12.8%.
+- Bottom toolbar remains locked to the same field width.
+- Game field top moves from 18.5% to 16.6%.
+- Game field height increases from 64.9% to 67.4%.
+- NEXT is contained inside its own module; its second preview no longer hangs outside the grid.
+- Short landscape keeps the same centered modular composition but may use a wider accessibility-safe HUD/toolbar arrangement.
+- E2E now locks HUD width/edges, field top/height ratios, HUD-to-field clearance, field-to-toolbar clearance and 44px touch targets.
+- No gameplay, physics, scoring, economy, persistence/session schema or telemetry changes.
+- PR #38 run #186: Audit ✓ Performance ✓ Offline/PWA ✓; Chromium geometry gate caught a 24px landscape Sound target.
+- Fix: landscape meta module is now horizontal; Sound remains 44×44 while Coins and Orders stay inside the same 54px HUD row.
+- PR #38 corrected-head run #188: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Measured: physics 0.159 ms/step; crowded 16.54 ms avg / 16.80 ms p95; first-load 356 KB; raw dist 565 KB.
+- Geometry gates confirm the enlarged field, portrait HUD/field/toolbar alignment, landscape centering, clearances and 44px targets.
+- Code review: UI composition changed only; gameplay/state/physics/economy/persistence/telemetry behavior unchanged.
+- Final documentation head must pass the same PR gate before merge.
