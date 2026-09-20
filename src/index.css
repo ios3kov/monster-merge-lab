@@ -803,23 +803,28 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     transform: translateX(-50%);
   }
   .hud-meta-cell {
-    grid-template-rows: 24px minmax(0,1fr);
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    grid-template-rows: 54px;
     gap: 2px;
   }
+  .concept-top-actions {
+    height: 54px;
+    align-items: center;
+  }
   .coin-pill {
-    height: 24px;
-    padding: 0 5px;
+    height: 44px;
+    padding: 0 4px;
   }
   .coin {
     width: 18px;
     height: 18px;
     border-width: 2px;
   }
-  .coin-pill strong { font-size: 12px; }
+  .coin-pill strong { font-size: 11px; }
   .icon-button {
     width: 44px;
-    height: 24px;
-    min-height: 24px;
+    height: 44px;
+    min-height: 44px;
   }
   .hold-board {
     height: 54px;
@@ -839,9 +844,9 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     transform: scale(.72);
   }
   .orders-board {
-    height: 28px;
+    height: 54px;
     min-height: 0;
-    padding: 10px 3px 2px;
+    padding: 11px 3px 3px;
   }
   .orders-board h2 { left: 3px; top: 2px; font-size: 8px; }
   .mode-objective-board {
