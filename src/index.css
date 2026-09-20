@@ -1227,3 +1227,12 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     transform: translateX(-50%);
   }
 }
+
+@media (orientation: landscape) and (max-height: 640px) {
+  .hud-grid {
+    left: 50%;
+    right: auto;
+    width: 92%;
+    transform: translateX(-50%);
+  }
+}
