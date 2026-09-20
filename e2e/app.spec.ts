@@ -553,16 +553,16 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
     if (!geometry) continue;
 
     expect(
-      Math.abs(geometry.frame.width / geometry.shell.width - 0.744),
+      Math.abs(geometry.frame.width / geometry.shell.width - 0.92),
       viewport.name + ' tank width ratio',
     ).toBeLessThan(0.01);
     expect(
-      Math.abs(geometry.frame.height / geometry.shell.height - 0.674),
+      Math.abs(geometry.frame.height / geometry.shell.height - 0.654),
       viewport.name + ' tank height ratio',
     ).toBeLessThan(0.01);
     expect(
       Math.abs(
-        (geometry.frame.top - geometry.shell.top) / geometry.shell.height - 0.166,
+        (geometry.frame.top - geometry.shell.top) / geometry.shell.height - 0.184,
       ),
       viewport.name + ' tank top ratio',
     ).toBeLessThan(0.01);
