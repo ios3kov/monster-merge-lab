@@ -380,7 +380,7 @@ This file is updated after each major production step.
 
 ## 2026-09-20 — Concept layer decomposition
 
-### Rebuild from master concept layers — IN PROGRESS
+### Rebuild from master concept layers — VERIFIED
 - Root cause confirmed: the old `tank-frame.webp` contained a baked monster pile/top monster, and `monster-tiers.webp` contained rectangular pile crops rather than clean alpha sprites.
 - Prepared a clean 3×3 transparent monster sheet with one isolated monster per tier.
 - Added verified build-time materialization for the new monster sheet, exact HUD reference crop and exact bottom navigation crop; runtime paths remain same-origin.
@@ -388,4 +388,8 @@ This file is updated after each major production step.
 - Rebuilt bottom navigation to Shop / Lab / Book / Restart with real handlers.
 - Field geometry now follows the approved reference; old tank art is visible only through a perimeter mask, so baked interior monsters cannot render.
 - Updated responsive/artwork E2E contracts for the decomposed layer model.
-- Full CI pending. Do not merge/deploy until Chromium, WebKit, Offline/PWA, Performance, Audit and Aggregate Gate are green.
+- CI #261: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Responsive geometry verified at 320×568, 390×844, 430×932 and 844×390.
+- CI screenshot review caught and closed baked HUD sample-value bleed and baked tank-monster leakage through the old frame raster.
+- Final live layer model: clean environment background + opaque live HUD content over exact concept chrome + perimeter-only tank chrome + clean transparent monster sheet + exact concept bottom bar.
+- Final documentation-only head must pass the same gate before merge/deploy.
