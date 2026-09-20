@@ -19,10 +19,11 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await page.goto('/');
   await expect(page.getByLabel(/Monster tank/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Shop' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Monsters' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Monster book' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Drop monster' })).toHaveCount(0);
   await expect(dropSurface(page)).toHaveAttribute('aria-disabled', 'false');
   await expect(page.getByRole('button', { name: 'Lab and game modes' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Restart/ })).toBeVisible();
 
   const overflow = await page.evaluate(() => ({
     width: document.documentElement.scrollWidth,
@@ -39,7 +40,7 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'SHOP' })).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Monsters' }).click();
+  await page.getByRole('button', { name: 'Monster book' }).click();
   await expect(
     page.getByRole('dialog', { name: 'MONSTER EVOLUTION' }),
   ).toBeVisible();
@@ -214,9 +215,6 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await expect(
     page.getByRole('button', { name: 'Hold unavailable in this mode' }),
   ).toBeDisabled();
-  await expect(
-    page.getByRole('button', { name: 'Power-up unavailable in this mode' }),
-  ).toBeDisabled();
   await expect(page.getByLabel('Experiment 1 objective')).toContainText(
     'Create a Peep',
   );
@@ -271,9 +269,6 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Daily Experiment/ }).click();
 
-  await expect(
-    page.getByRole('button', { name: 'Power-up unavailable in this mode' }),
-  ).toBeDisabled();
   await expect(
     page.getByRole('button', { name: /Hold current monster/ }),
   ).toBeEnabled();
@@ -508,6 +503,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         '.reference-score-card',
         '.reference-meta-actions',
         '.reference-next',
+        '.reference-after',
         '.reference-hold',
         '.reference-orders',
       ]
@@ -523,6 +519,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
 
       const readableTextSizes = [
         '.reference-hold > span',
+        '.reference-after > strong',
         '.reference-score span',
         '.reference-overdrive > span',
         '.reference-orders h2',
@@ -537,7 +534,6 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         '.reference-score-card',
         '.reference-hud__meta',
         '.reference-orders',
-        '.reference-coins',
       ]
         .map((selector) => ({
           selector,
@@ -555,6 +551,14 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
           scrollHeight: element.scrollHeight,
         }));
 
+      const coinText = document.querySelector<HTMLElement>('.reference-coins strong');
+      const coinTextFit = coinText
+        ? {
+            clientWidth: coinText.clientWidth,
+            scrollWidth: coinText.scrollWidth,
+          }
+        : null;
+
       if (!shell || !frame || !toolbar || !hudGrid) return null;
 
       return {
@@ -566,6 +570,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         touchTargets,
         readableTextSizes,
         contentFit,
+        coinTextFit,
         scrollWidth: document.documentElement.scrollWidth,
         scrollHeight: document.documentElement.scrollHeight,
         viewportWidth: window.innerWidth,
@@ -581,9 +586,9 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       viewport.name + ' tank width ratio',
     ).toBeLessThan(0.01);
     const expectedFrameHeight =
-      viewport.name === 'landscape' ? 0.69 : 0.67;
+      viewport.name === 'landscape' ? 0.69 : 0.612;
     const expectedFrameTop =
-      viewport.name === 'landscape' ? 0.154 : 0.18;
+      viewport.name === 'landscape' ? 0.154 : 0.203;
 
     expect(
       Math.abs(
@@ -698,6 +703,13 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       ).toBeLessThanOrEqual(item.clientHeight + 1);
     }
 
+    if (geometry.coinTextFit) {
+      expect(
+        geometry.coinTextFit.scrollWidth,
+        viewport.name + ' coin value must not truncate',
+      ).toBeLessThanOrEqual(geometry.coinTextFit.clientWidth + 1);
+    }
+
     expect(geometry.scrollWidth, viewport.name + ' horizontal overflow').toBeLessThanOrEqual(
       geometry.viewportWidth + 1,
     );
@@ -715,29 +727,25 @@ test('game screen keeps artwork clean and UI content live', async ({ page }, tes
   await expect(page.locator('.field-art')).toHaveCount(0);
 
   const layers = await page.evaluate(() => {
-    const backgroundImage = (selector: string) => {
+    const backgroundImage = (selector: string, pseudo?: string) => {
       const element = document.querySelector<HTMLElement>(selector);
-      return element ? getComputedStyle(element).backgroundImage : '';
+      return element ? getComputedStyle(element, pseudo).backgroundImage : '';
     };
 
     return {
       shell: backgroundImage('.game-shell'),
-      frame: backgroundImage('.reference-field'),
+      frameChrome: backgroundImage('.reference-field', '::after'),
       hud: backgroundImage('.reference-hud'),
-      holdButton: backgroundImage('.reference-hold'),
-      soundButton: backgroundImage('.reference-sound'),
       toolbar: backgroundImage('.reference-toolbar'),
-      button: backgroundImage('.reference-toolbar .reference-toolbar-button'),
+      sprite: backgroundImage('.monster-body--reference'),
     };
   });
 
   expect(layers.shell).toContain('monster-workshop-background.webp');
-  expect(layers.frame).toContain('tank-frame.webp');
-  expect(layers.hud).toContain('toolbar-frame.svg');
-  expect(layers.holdButton).toContain('button-frame.svg');
-  expect(layers.soundButton).toContain('button-frame.svg');
-  expect(layers.toolbar).toContain('toolbar-frame.svg');
-  expect(layers.button).toContain('button-frame.svg');
+  expect(layers.frameChrome).toContain('tank-frame.webp');
+  expect(layers.hud).toContain('hud-reference.webp');
+  expect(layers.toolbar).toContain('bottom-bar-reference.webp');
+  expect(layers.sprite).toContain('monster-sprites.webp');
 
   const deprecatedArtwork = [
     'monster-ui-assets.webp',
@@ -747,6 +755,7 @@ test('game screen keeps artwork clean and UI content live', async ({ page }, tes
     'next-panel.webp',
     'orders-panel.webp',
     'nav-frame.webp',
+    'monster-tiers.webp',
   ];
   for (const asset of deprecatedArtwork) {
     for (const layer of Object.values(layers)) {
