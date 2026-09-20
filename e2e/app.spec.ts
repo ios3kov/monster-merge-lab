@@ -524,6 +524,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       const readableTextSizes = [
         '.hold-board > span',
         '.score-plaque span',
+        '.overdrive-panel > span',
         '.orders-board h2',
         '.order-row.current span',
         '.order-row.current b',
@@ -531,6 +532,28 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         .map((selector) => document.querySelector<HTMLElement>(selector))
         .filter((element): element is HTMLElement => element !== null)
         .map((element) => parseFloat(getComputedStyle(element).fontSize));
+
+      const contentFit = [
+        '.status-cluster',
+        '.hud-meta-cell',
+        '.orders-board',
+        '.coin-pill',
+      ]
+        .map((selector) => ({
+          selector,
+          element: document.querySelector<HTMLElement>(selector),
+        }))
+        .filter(
+          (item): item is { selector: string; element: HTMLElement } =>
+            item.element !== null,
+        )
+        .map(({ selector, element }) => ({
+          selector,
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+          clientHeight: element.clientHeight,
+          scrollHeight: element.scrollHeight,
+        }));
 
       if (!shell || !frame || !toolbar || !hudGrid) return null;
 
@@ -542,6 +565,7 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
         hud,
         touchTargets,
         readableTextSizes,
+        contentFit,
         scrollWidth: document.documentElement.scrollWidth,
         scrollHeight: document.documentElement.scrollHeight,
         viewportWidth: window.innerWidth,
@@ -556,13 +580,21 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       Math.abs(geometry.frame.width / geometry.shell.width - 0.92),
       viewport.name + ' tank width ratio',
     ).toBeLessThan(0.01);
+    const expectedFrameHeight =
+      viewport.name === 'landscape' ? 0.69 : 0.67;
+    const expectedFrameTop =
+      viewport.name === 'landscape' ? 0.154 : 0.18;
+
     expect(
-      Math.abs(geometry.frame.height / geometry.shell.height - 0.654),
+      Math.abs(
+        geometry.frame.height / geometry.shell.height - expectedFrameHeight,
+      ),
       viewport.name + ' tank height ratio',
     ).toBeLessThan(0.01);
     expect(
       Math.abs(
-        (geometry.frame.top - geometry.shell.top) / geometry.shell.height - 0.184,
+        (geometry.frame.top - geometry.shell.top) / geometry.shell.height -
+          expectedFrameTop,
       ),
       viewport.name + ' tank top ratio',
     ).toBeLessThan(0.01);
@@ -655,12 +687,75 @@ test('enlarged tank and HUD stay clear across target viewports', async ({
       expect(fontSize, viewport.name + ' HUD readable text size').toBeGreaterThanOrEqual(8);
     }
 
+    for (const item of geometry.contentFit) {
+      expect(
+        item.scrollWidth,
+        viewport.name + ' HUD content width: ' + item.selector,
+      ).toBeLessThanOrEqual(item.clientWidth + 1);
+      expect(
+        item.scrollHeight,
+        viewport.name + ' HUD content height: ' + item.selector,
+      ).toBeLessThanOrEqual(item.clientHeight + 1);
+    }
+
     expect(geometry.scrollWidth, viewport.name + ' horizontal overflow').toBeLessThanOrEqual(
       geometry.viewportWidth + 1,
     );
     expect(geometry.scrollHeight, viewport.name + ' vertical overflow').toBeLessThanOrEqual(
       geometry.viewportHeight + 1,
     );
+  }
+});
+
+test('game screen keeps artwork clean and UI content live', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+
+  await expect(page.locator('.field-art')).toHaveCount(0);
+
+  const layers = await page.evaluate(() => {
+    const backgroundImage = (selector: string) => {
+      const element = document.querySelector<HTMLElement>(selector);
+      return element ? getComputedStyle(element).backgroundImage : '';
+    };
+
+    return {
+      shell: backgroundImage('.game-shell'),
+      frame: backgroundImage('.game-frame'),
+      hud: backgroundImage('.hud-grid'),
+      score: backgroundImage('.hud-score-cell'),
+      hold: backgroundImage('.hud-hold-cell'),
+      next: backgroundImage('.hud-next-cell'),
+      meta: backgroundImage('.hud-meta-cell'),
+      toolbar: backgroundImage('.concept-toolbar'),
+      button: backgroundImage('.concept-toolbar .wood-button'),
+    };
+  });
+
+  expect(layers.shell).toContain('monster-workshop-background.webp');
+  expect(layers.frame).toContain('tank-frame.webp');
+  expect(layers.hud).not.toContain('url(');
+  expect(layers.score).toContain('panel-frame.svg');
+  expect(layers.hold).toContain('panel-frame.svg');
+  expect(layers.next).toContain('panel-frame.svg');
+  expect(layers.meta).toContain('panel-frame.svg');
+  expect(layers.toolbar).toContain('toolbar-frame.svg');
+  expect(layers.button).toContain('button-frame.svg');
+
+  const deprecatedArtwork = [
+    'monster-ui-assets.webp',
+    'hud-frame.webp',
+    'score-panel.webp',
+    'hold-panel.webp',
+    'next-panel.webp',
+    'orders-panel.webp',
+    'nav-frame.webp',
+  ];
+  for (const asset of deprecatedArtwork) {
+    for (const layer of Object.values(layers)) {
+      expect(layer, asset + ' must not be used').not.toContain(asset);
+    }
   }
 });
 

@@ -530,10 +530,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   padding: 4.4%;
   border: 0;
   border-radius: 15px;
-  background-image: url('/assets/monster-ui-assets.webp');
-  background-size: 171% 181%;
-  background-position: left 17%;
-  background-repeat: no-repeat;
+  background: none;
   box-shadow: 0 10px 24px rgba(25,13,7,.42);
 }
 .game-frame::before {
@@ -561,7 +558,6 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
     inset 0 0 22px rgba(255,220,157,.08),
     inset 0 -16px 22px rgba(36,18,9,.14);
 }
-.field-art { display: none; }
 .canvas-wrap::before {
   content: "";
   pointer-events: none;
@@ -1134,123 +1130,485 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   .overdrive-panel.is-active > i > b { animation: none !important; }
 }
 
-/* Master-concept modular layout */
+/* Clean concept layout
+   Artwork is limited to the clean workshop background, logo, tank frame,
+   clean frame/button shells and dynamic monster atlas. Text, icons and monsters remain live UI. */
+.game-shell {
+  background-color: #2b1a10;
+  background-image: url('/assets/monster-workshop-background.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .game-shell::before {
-  content:"";
-  position:absolute; z-index:20; left:18%; right:18%; top:.25%; height:7.2%;
-  background:url('/assets/concept/logo.webp') center/contain no-repeat;
-  pointer-events:none;
+  content: "";
+  position: absolute;
+  z-index: 20;
+  left: 22%;
+  right: 22%;
+  top: .4%;
+  height: 4.2%;
+  background: url('/assets/concept/logo.webp') center / contain no-repeat;
+  pointer-events: none;
 }
+
 .hud-grid {
-  left:4%; right:4%; top:7.2%; height:10.9%;
-  grid-template-columns: 26% 14% 22% 38%;
-  gap:0;
-  padding:1.4% 1.6%;
-  background:url('/assets/concept/hud-frame.webp') center/100% 100% no-repeat;
+  left: 4%;
+  right: 4%;
+  top: 4.6%;
+  height: 13%;
+  grid-template-columns:
+    minmax(0, 1.05fr)
+    52px
+    minmax(0, .88fr)
+    minmax(104px, 1.52fr);
+  gap: 4px;
+  padding: 0;
+  background: none;
 }
-.hud-score-cell { background:url('/assets/concept/score-panel.webp') center/100% 100% no-repeat; padding:8% 8% 6%; }
-.hud-hold-cell { background:url('/assets/concept/hold-panel.webp') center/100% 100% no-repeat; }
-.hud-next-cell { background:url('/assets/concept/next-panel.webp') center/100% 100% no-repeat; }
-.hud-meta-cell { background:url('/assets/concept/orders-panel.webp') center/100% 100% no-repeat; padding:2.5% 4%; }
-.hud-score-cell .status-cluster,
+
+.hud-score-cell,
+.hud-hold-cell,
+.hud-next-cell,
+.hud-meta-cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 2px solid #70431f;
+  border-radius: 12px;
+  background: url('/assets/concept/panel-frame.svg') center / 100% 100% no-repeat;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .72),
+    inset 0 -3px rgba(101, 58, 25, .12),
+    0 4px 10px rgba(43, 24, 12, .3);
+}
+
+.hud-score-cell::after,
+.hud-hold-cell::after,
+.hud-next-cell::after,
+.hud-meta-cell::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(112, 67, 31, .2);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.hud-score-cell {
+  padding: 4px;
+}
+
+.hud-hold-cell,
+.hud-next-cell {
+  padding: 3px;
+}
+
+.hud-meta-cell {
+  grid-template-rows: 44px minmax(0, 1fr);
+  gap: 1px;
+  padding: 2px;
+}
+
+.status-cluster {
+  z-index: 1;
+  min-height: 0;
+  padding: 4px 5px;
+  gap: 3px;
+  color: #4b2b18;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 250, 226, .34);
+  box-shadow: none;
+}
+
+.score-plaque {
+  color: #4b2b18;
+}
+
+.score-plaque span,
+.score-plaque small {
+  font-size: 8px;
+}
+
+.score-plaque strong {
+  font-size: 15px;
+}
+
+.overdrive-panel > span,
+.mode-status {
+  color: #5a341d;
+  text-shadow: none;
+}
+
+.overdrive-panel > i {
+  background: rgba(69, 43, 27, .28);
+  border-color: rgba(84, 51, 28, .25);
+}
+
 .hold-board,
-.next-board,
-.orders-board,
-.coin-pill,
-.icon-button { background-color:transparent; }
+.next-board {
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hold-board {
+  padding: 17px 3px 2px;
+  color: #4f2f1c;
+}
+
+.hold-board > span,
+.next-board strong {
+  color: #4f2f1c;
+  font-size: 8px;
+}
+
+.hold-board.is-swap-ready {
+  box-shadow: inset 0 0 0 2px rgba(255, 231, 118, .86);
+}
+
+.next-board {
+  grid-template-columns: minmax(0, 1fr) 25px;
+  padding: 15px 1px 2px;
+  overflow: hidden;
+}
+
+.next-board > .monster-art {
+  width: 38px !important;
+  height: 38px !important;
+}
+
+.after-next {
+  width: 25px;
+  height: 25px;
+  border-color: rgba(112, 67, 31, .55);
+  background: rgba(255, 249, 224, .78);
+  box-shadow: 0 2px 5px rgba(63, 34, 16, .16);
+}
+
+.after-next .monster-art {
+  width: 21px !important;
+  height: 21px !important;
+}
+
+.concept-top-actions {
+  z-index: 1;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 3px;
+}
+
+.coin-pill {
+  height: 44px;
+  padding: 0 5px;
+  gap: 5px;
+  color: #4f2f1c;
+  border: 1px solid rgba(112, 67, 31, .45);
+  border-radius: 9px;
+  background: rgba(255, 248, 219, .62);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .62);
+}
+
+.coin {
+  width: 24px;
+  height: 24px;
+  border-width: 2px;
+}
+
+.coin-pill strong {
+  font-size: 13px;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  color: #fff7dc;
+  border: 2px solid #5f3920;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #8d603d, #543621);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .2),
+    0 2px 5px rgba(46, 26, 14, .25);
+}
+
+.orders-board {
+  z-index: 1;
+  align-self: stretch;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 7px 1px 2px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255, 248, 219, .42);
+  box-shadow: none;
+  transform: none;
+}
+
+.orders-board h2 {
+  left: 3px;
+  top: 1px;
+  font-size: 8px;
+  color: #4f2f1c;
+}
+
+.order-row.current {
+  min-height: 10px;
+  grid-template-columns: 11px minmax(0, 1fr) auto;
+  gap: 1px;
+  padding: 0;
+  background: rgba(255, 251, 232, .62);
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+.order-row.current .monster-art {
+  width: 11px !important;
+  height: 11px !important;
+}
+
+.order-row.current span,
+.order-row.current b {
+  font-size: 8px;
+}
+
+.order-row:not(.current) {
+  top: 0;
+  width: 10px;
+  height: 10px;
+  background: rgba(255, 249, 225, .7);
+}
+
+.order-row:nth-of-type(2) {
+  right: 18px;
+}
+
+.order-row:nth-of-type(3) {
+  right: 3px;
+}
+
+.order-row:not(.current) .monster-art {
+  width: 9px !important;
+  height: 9px !important;
+}
+
+.order-track {
+  left: 2px;
+  right: 2px;
+  bottom: 1px;
+  height: 2px;
+  border: 0;
+}
+
+.mode-objective-board {
+  padding: 9px 3px 2px;
+}
+
+.mode-objective {
+  gap: 1px;
+}
+
+.mode-objective strong,
+.mode-objective span {
+  font-size: 8px;
+}
+
 .game-frame {
-  left:4%; top:18.4%; width:92%; height:65.4%; padding:5.2% 6.2% 5.5%;
-  background-image:url('/assets/concept/tank-frame.webp');
-  background-size:100% 100%;
-  background-position:center;
-  box-shadow:none;
+  left: 4%;
+  top: 18%;
+  width: 92%;
+  height: 67%;
+  padding: 5.2% 6.2% 5.5%;
+  border: 0;
+  border-radius: 15px;
+  background-color: transparent;
+  background-image: url('/assets/concept/tank-frame.webp');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: none;
 }
-.concept-toolbar {
-  left:4%; right:4%; bottom:5.1%; height:9.2%;
-  padding:1.2% 2.1%;
-  background:url('/assets/concept/nav-frame.webp') center/100% 100% no-repeat;
-  border:0; box-shadow:none; gap:1.2%;
+
+.game-frame::before {
+  border-radius: 15px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 221, 158, .16),
+    inset 0 0 22px rgba(255, 192, 97, .07);
 }
+
+.canvas-wrap {
+  border-radius: 9px;
+  background: rgba(80, 45, 25, .09);
+  box-shadow:
+    inset 0 0 18px rgba(255, 220, 157, .06),
+    inset 0 -12px 18px rgba(36, 18, 9, .11);
+}
+
 .canvas-wrap::before {
-  background:radial-gradient(circle at 50% 24%,rgba(255,214,147,.08),transparent 36%);
+  background: radial-gradient(
+    circle at 50% 22%,
+    rgba(255, 222, 169, .08),
+    transparent 40%
+  );
 }
 
-/* The committed concept modules replace the old combined UI sheet. */
-.game-frame { background-image:url('/assets/concept/tank-frame.webp'); }
+.concept-toolbar {
+  left: 4%;
+  right: 4%;
+  bottom: 3.2%;
+  height: 9.2%;
+  min-height: 52px;
+  padding: 4px;
+  gap: 4px;
+  border: 2px solid #54331d;
+  border-radius: 13px;
+  background: url('/assets/concept/toolbar-frame.svg') center / 100% 100% no-repeat;
+  box-shadow:
+    inset 0 2px rgba(255, 255, 255, .16),
+    inset 0 -3px rgba(35, 19, 10, .18),
+    0 5px 12px rgba(36, 20, 11, .3);
+}
 
-/* Keep live HUD contents inside the concept skin on compact phones. */
-.hud-grid > * { min-height: 0; overflow: hidden; }
-.hud-meta-cell { overflow: hidden; }
-.status-cluster,
-.concept-top-actions,
-.next-board,
-.hold-board,
-.orders-board { max-height: 100%; min-height: 0; }
+.wood-button {
+  min-height: 44px;
+  border: 1px solid #5a351d;
+  border-radius: 8px;
+  color: #fff3d5;
+  background: url('/assets/concept/button-frame.svg') center / 100% 100% no-repeat;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .18),
+    inset 0 -2px rgba(52, 29, 15, .18);
+  text-shadow: 0 1px 2px rgba(44, 23, 10, .82);
+}
+
+.wood-button::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(255, 225, 177, .14);
+  border-radius: 5px;
+  pointer-events: none;
+}
+
+.wood-button > svg {
+  width: 22px;
+  height: 22px;
+}
+
+.wood-button > span {
+  font-size: 8px;
+}
+
 @media (max-width: 340px) {
-  .hud-grid { height: 10.5%; }
-  .hud-meta-cell { grid-template-rows: 40px minmax(0,1fr); gap: 2px; }
-  .concept-top-actions { grid-template-columns: minmax(0,1fr) 40px; gap: 2px; }
-  .coin-pill, .icon-button { height: 44px; min-height: 44px; }
-}
-
-@media (max-width: 340px) {
-  .orders-board {
-    align-self: start;
-    height: calc(100% - 9px);
-    max-height: calc(100% - 9px);
-    padding-top: 1px;
-    padding-bottom: 1px;
-    overflow: hidden;
+  .hud-score-cell,
+  .hud-hold-cell,
+  .hud-next-cell,
+  .hud-meta-cell {
+    border-radius: 10px;
   }
-  .orders-board .order-row { min-height: 0; line-height: 1; }
-}
 
-/* Orders is the only HUD child whose intrinsic content can exceed the concept frame.
-   Contain it at all portrait phone widths, not only 320px. */
-@media (max-width: 480px) {
-  .orders-board {
-    align-self: start;
-    height: calc(100% - 10px);
-    max-height: calc(100% - 10px);
-    padding-block: 1px;
-    overflow: hidden;
+  .hud-score-cell {
+    padding: 3px;
   }
-  .orders-board .order-row { min-height: 0; line-height: 1; }
+
+  .status-cluster {
+    padding-inline: 3px;
+  }
+
+  .score-plaque {
+    gap: 3px;
+  }
+
+  .score-plaque strong {
+    font-size: 13px;
+  }
+
+  .overdrive-panel {
+    gap: 2px;
+  }
+
+  .overdrive-panel > span {
+    font-size: 8px;
+  }
+
+  .coin-pill {
+    padding-inline: 2px;
+    gap: 2px;
+  }
+
+  .coin {
+    width: 20px;
+    height: 20px;
+  }
+
+  .coin-pill strong {
+    font-size: 12px;
+  }
+
+  .next-board > .monster-art {
+    width: 34px !important;
+    height: 34px !important;
+  }
 }
 
-/* Master-concept overrides must preserve the landscape centering contract. */
 @media (orientation: landscape) and (max-height: 640px) {
-  .concept-toolbar {
-    left: 50%;
-    right: auto;
-    width: 92%;
-    transform: translateX(-50%);
+  .game-shell {
+    overflow: visible;
   }
-}
 
-@media (orientation: landscape) and (max-height: 640px) {
+  .game-shell::before {
+    display: none;
+  }
+
   .hud-grid {
     left: 50%;
     right: auto;
-    width: 92%;
+    top: 0;
+    width: min(520px, calc(100vw - 24px));
+    height: 54px;
+    grid-template-columns: minmax(110px, 1.1fr) 52px 64px minmax(190px, 1.6fr);
+    gap: 4px;
     transform: translateX(-50%);
   }
-}
 
-@media (orientation: landscape) and (max-height: 640px) {
-  .concept-toolbar { bottom: 1.5%; }
-}
-
-@media (orientation: landscape) and (max-height: 640px) {
-  .concept-top-actions {
-    height: 44px;
-    min-height: 44px;
-    align-self: start;
-    overflow: hidden;
+  .hud-meta-cell {
+    grid-template-columns: minmax(105px, .95fr) minmax(90px, 1.05fr);
+    grid-template-rows: 1fr;
+    gap: 3px;
   }
-}
 
-@media (orientation: landscape) and (max-height: 640px) {
-  .hud-grid { top: 0; }
-  .concept-top-actions { transform: translateY(-2px); }
+  .concept-top-actions {
+    height: 100%;
+    min-height: 44px;
+    transform: none;
+  }
+
+  .orders-board {
+    height: 100%;
+    min-height: 0;
+    padding-top: 10px;
+  }
+
+  .game-frame {
+    top: 15.4%;
+    height: 69%;
+  }
+
+  .concept-toolbar {
+    left: 50%;
+    right: auto;
+    bottom: 1.5%;
+    width: max(92%, 198px);
+    height: 52px;
+    min-height: 52px;
+    transform: translateX(-50%);
+  }
 }
