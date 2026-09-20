@@ -1865,6 +1865,12 @@ function App() {
               className="physics-canvas"
               tabIndex={0}
               aria-label="Monster tank. Drag horizontally and release to drop. Keyboard: left and right arrows aim, Space or Enter drops, H holds."
+              aria-disabled={
+                !ui.canDrop ||
+                ui.gameOver ||
+                ui.experimentComplete ||
+                ui.experimentFailed
+              }
               onKeyDown={handleCanvasKeyDown}
               onPointerDown={(event) => {
                 event.currentTarget.setPointerCapture(event.pointerId);
@@ -1922,7 +1928,6 @@ function App() {
 
         <GameToolbar
           preset={preset}
-          canDrop={ui.canDrop}
           gameOver={ui.gameOver}
           experimentComplete={ui.experimentComplete}
           experimentFailed={ui.experimentFailed}
@@ -1931,7 +1936,6 @@ function App() {
           powerUsesRemaining={powerUsesRemaining}
           onShop={() => setShowShop(true)}
           onMonsters={() => setShowMonsters(true)}
-          onDrop={drop}
           onPower={nudge}
           onLab={() => setShowLab(true)}
         />
