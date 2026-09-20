@@ -242,13 +242,15 @@ This file is updated after each major production step.
 - Crowded-board performance profiling is now part of the dedicated Performance gate.
 - No P0 blocker found.
 
-### Pass 2 — IN PROGRESS
+### Pass 2 — DONE
 - PR #33 closed as superseded because it mixed stale pre-#34 changes with remaining P1 work.
-- Clean branch created from current main.
-- Remaining P1 scope:
+- Clean PR #35 implements the remaining P1 scope:
   - terminal Complete/Failed/Game Over focus trap + inert background;
   - layered Lab-over-terminal focus behavior;
   - two-line portrait Experiment objective hints;
   - automated post-deploy live production interaction smoke.
+- PR #35 implementation run #166: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Performance after changes: physics 0.162 ms/step; crowded 16.61 ms avg / 16.70 ms p95; idle 16.61 ms avg / 16.80 ms p95; total 355 KB; raw dist 560 KB.
+- No material performance regression.
 - No gameplay rules, physics constants, economy, persistence schema or telemetry schema changed.
-- Gate: full parallel CI → Aggregate Gate → merge → main Deploy → production interaction smoke.
+- Final documentation head must pass the same gate before merge.
