@@ -293,5 +293,5 @@ This file is updated after each major production step.
 - PR #37 run #176: Offline/PWA ✓ Performance ✓; Chromium geometry gate caught a small landscape overlap between the field and the rebuilt toolbar.
 - Fix: landscape toolbar moved lower.
 - PR #37 run #178: Offline/PWA ✓ Performance ✓ Audit ✓; Chromium caught sub-44px toolbar targets in short landscape when forcing exact field width.
-- Fix: portrait keeps exact field-width alignment; short landscape expands only to the minimum 192px centered width needed to preserve 44px touch targets.
+- Fix: portrait keeps exact field-width alignment; short landscape expands only to the minimum 198px centered width needed to preserve real 44px touch targets after padding, borders and grid gaps.
 - Gate: rerun full PR CI → Aggregate Gate → merge → main Deploy → production interaction smoke.
