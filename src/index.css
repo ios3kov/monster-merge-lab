@@ -32,7 +32,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   aspect-ratio: 941 / 1672;
   flex: none;
   overflow: hidden;
-  background-image: linear-gradient(rgba(24,14,8,.04),rgba(24,14,8,.10)), url('/assets/monster-workshop-background.png');
+  background-image: linear-gradient(rgba(24,14,8,.04),rgba(24,14,8,.10)), url('/assets/monster-workshop-background.webp');
   background-size: cover;
   background-position: center;
   box-shadow: 0 0 48px rgba(0,0,0,.45);
@@ -530,7 +530,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   padding: 4.4%;
   border: 0;
   border-radius: 15px;
-  background-image: url('/assets/monster-ui-assets.png');
+  background-image: url('/assets/monster-ui-assets.webp');
   background-size: 171% 181%;
   background-position: left 17%;
   background-repeat: no-repeat;
