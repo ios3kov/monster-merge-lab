@@ -1,4 +1,3 @@
-import { FlaskConical, Hammer, PawPrint, Store } from 'lucide-react';
 import type { RunPreset } from './modes';
 
 export function GameToolbar({
@@ -6,85 +5,51 @@ export function GameToolbar({
   gameOver,
   experimentComplete,
   experimentFailed,
-  runPowerUses,
-  powerCharges,
-  powerUsesRemaining,
   onShop,
-  onMonsters,
-  onPower,
+  onBook,
   onLab,
+  onRestart,
 }: {
   preset: RunPreset;
   gameOver: boolean;
   experimentComplete: boolean;
   experimentFailed: boolean;
-  runPowerUses: number;
-  powerCharges: number;
-  powerUsesRemaining: number;
   onShop: () => void;
-  onMonsters: () => void;
-  onPower: () => void;
+  onBook: () => void;
   onLab: () => void;
+  onRestart: () => void;
 }) {
+  const restartDisabled = gameOver || experimentComplete || experimentFailed;
+
   return (
-    <div className="reference-toolbar">
+    <nav className="reference-toolbar" aria-label="Game actions">
       <button
         type="button"
         onClick={onShop}
-        className="reference-toolbar-button shop-hit"
+        className="reference-toolbar-hit reference-toolbar-hit--shop"
         aria-label="Shop"
-      >
-        <Store size={23} />
-        <span>SHOP</span>
-      </button>
-      <button
-        type="button"
-        onClick={onMonsters}
-        className="reference-toolbar-button monsters-hit"
-        aria-label="Monsters"
-      >
-        <PawPrint size={23} />
-        <span>MONSTERS</span>
-      </button>
-      <button
-        type="button"
-        onClick={onPower}
-        className="reference-toolbar-button power-hit"
-        disabled={
-          !preset.allowPower ||
-          gameOver ||
-          experimentComplete ||
-          experimentFailed ||
-          (preset.limits?.powerUses !== undefined &&
-            runPowerUses >= preset.limits.powerUses)
-        }
-        aria-label={
-          preset.allowPower
-            ? preset.mode === 'experiments'
-              ? 'Power-up. ' +
-                String(powerUsesRemaining) +
-                ' run uses remaining'
-              : 'Power-up. ' + String(powerCharges) + ' available'
-            : 'Power-up unavailable in this mode'
-        }
-      >
-        <Hammer size={23} />
-        <span>POWER</span>
-        {powerUsesRemaining > 0 && (
-          <b className="power-charge" aria-hidden="true">
-            {powerUsesRemaining}
-          </b>
-        )}
-      </button>
+      />
       <button
         type="button"
         onClick={onLab}
-        className="reference-toolbar-button lab-hit"
+        className="reference-toolbar-hit reference-toolbar-hit--lab"
         aria-label="Lab and game modes"
-      >
-        <FlaskConical size={23} />
-        <span>LAB</span>
-      </button>
-    </div>
+      />
+      <button
+        type="button"
+        onClick={onBook}
+        className="reference-toolbar-hit reference-toolbar-hit--book"
+        aria-label="Monster book"
+      />
+      <button
+        type="button"
+        onClick={onRestart}
+        className="reference-toolbar-hit reference-toolbar-hit--restart"
+        aria-label={restartDisabled ? 'Restart run' : 'Restart current run'}
+      />
+      <span className="sr-only" aria-hidden="true">
+        {preset.title}
+      </span>
+    </nav>
   );
 }
