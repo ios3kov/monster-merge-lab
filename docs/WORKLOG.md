@@ -376,3 +376,16 @@ This file is updated after each major production step.
 - Verified production build deployed successfully.
 - Production interaction smoke ✓ after deploy.
 - Final UI is live with the approved second-concept presentation layer; no gameplay/physics/economy/persistence/telemetry behavior changed.
+
+
+## 2026-09-20 — Concept layer decomposition
+
+### Rebuild from master concept layers — IN PROGRESS
+- Root cause confirmed: the old `tank-frame.webp` contained a baked monster pile/top monster, and `monster-tiers.webp` contained rectangular pile crops rather than clean alpha sprites.
+- Prepared a clean 3×3 transparent monster sheet with one isolated monster per tier.
+- Added verified build-time materialization for the new monster sheet, exact HUD reference crop and exact bottom navigation crop; runtime paths remain same-origin.
+- Rebuilt top HUD structure to Score+Overdrive / Hold / Next / After / Coins+Sound+Orders, with After as an independent slot.
+- Rebuilt bottom navigation to Shop / Lab / Book / Restart with real handlers.
+- Field geometry now follows the approved reference; old tank art is visible only through a perimeter mask, so baked interior monsters cannot render.
+- Updated responsive/artwork E2E contracts for the decomposed layer model.
+- Full CI pending. Do not merge/deploy until Chromium, WebKit, Offline/PWA, Performance, Audit and Aggregate Gate are green.
