@@ -290,4 +290,6 @@ This file is updated after each major production step.
 - No physics, scoring, spawn queue, economy, persistence/session schema or telemetry schema changes.
 - PR #37 run #174: Audit ✓ Performance ✓; Offline/PWA correctly caught one stale assertion that still expected a DROP button.
 - Fix: offline smoke now validates the field as the drop surface and explicitly verifies there is no DROP button.
+- PR #37 run #176: Offline/PWA ✓ Performance ✓; Chromium geometry gate caught a small landscape overlap between the field and the rebuilt toolbar.
+- Fix: landscape toolbar moved lower without changing its field-aligned width.
 - Gate: rerun full PR CI → Aggregate Gate → merge → main Deploy → production interaction smoke.
