@@ -1,7 +1,13 @@
+let reducedMotionQuery: MediaQueryList | null = null;
+
 export function prefersReducedMotion() {
-  return (
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
+  if (
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function'
+  ) {
+    return false;
+  }
+
+  reducedMotionQuery ??= window.matchMedia('(prefers-reduced-motion: reduce)');
+  return reducedMotionQuery.matches;
 }
