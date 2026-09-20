@@ -11,7 +11,7 @@ import {
 } from './physics';
 
 const MONSTER_SPRITE_URL =
-  'https://gcdn.picsart.com/editing-temp/06fc8735-70c7-4f8a-8050-0f7305917806.webp';
+  '/assets/concept/monster-sprites.webp';
 
 const monsterSheet = new Image();
 monsterSheet.decoding = 'async';
