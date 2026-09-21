@@ -38,11 +38,17 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
 
   await expect(page.locator('.thumb-eye')).toHaveCount(0);
   await expect(page.locator('.thumb-mouth')).toHaveCount(0);
-  const monsterClip = await page
-    .locator('.monster-body')
-    .first()
-    .evaluate((element) => getComputedStyle(element).clipPath);
-  expect(monsterClip).toContain('circle');
+  const monsterSources = await page
+    .locator('img.monster-body')
+    .evaluateAll((images) =>
+      images.map((image) => (image as HTMLImageElement).getAttribute('src')),
+    );
+  expect(monsterSources.length).toBeGreaterThan(0);
+  for (const source of monsterSources) {
+    expect(source).toMatch(/^\/assets\/monsters\/tier-[0-8]\.svg$/);
+    expect(source).not.toContain('monster-tiers.webp');
+  }
+  await expect(page.locator('.monster-body:not(img)')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Drop monster' })).toHaveCount(0);
   await expect(dropSurface(page)).toHaveAttribute('aria-disabled', 'false');
   await expect(page.getByRole('button', { name: 'Lab and game modes' })).toBeVisible();
@@ -770,6 +776,7 @@ test('game screen keeps artwork clean and UI content live', async ({ page }, tes
     'hold-panel.webp',
     'next-panel.webp',
     'orders-panel.webp',
+    'monster-tiers.webp',
     'nav-frame.webp',
   ];
   for (const asset of deprecatedArtwork) {
