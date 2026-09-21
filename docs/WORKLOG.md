@@ -390,3 +390,20 @@ This file is updated after each major production step.
 - No fake relabeling: removed toolbar Power from this presentation because it does not exist in the approved concept; gameplay power logic remains untouched elsewhere.
 - E2E coverage updated for Book and real Restart behavior.
 - Next: decompose HUD/chrome proportions and replace the rejected monster atlas with clean transparent assets.
+
+
+### Phase 2 — monster rendering + concept HUD — IN VERIFICATION
+- Root cause of the square monster artifacts was confirmed in `src/rendering.tsx`: complete raster faces from `monster-tiers.webp` were rendered as rectangular atlas cells and then a second runtime face layer was painted on top.
+- Removed the duplicate thumbnail face DOM (`thumb-eye` / `thumb-mouth`) from `MonsterArt`.
+- Canvas rendering now clips each atlas cell to a circular monster silhouette before drawing, so the rectangular source cell cannot leak into the visible playfield.
+- Runtime face drawing is retained only for the procedural fallback when the raster atlas is unavailable.
+- Removed obsolete thumbnail-face CSS.
+- Reworked the approved-reference HUD palette from the previous light cream approximation to dark wood panels matching the concept; Orders remains the light card.
+- Bottom toolbar remains the exact concept order: Shop / Lab / Book / Restart.
+- The old visual Power button stays removed. Existing power gameplay code is retained; desktop fallback shortcut `P` keeps the action reachable without changing the approved visual layout.
+- E2E now locks:
+  - exact bottom-toolbar order;
+  - absence of old Monsters/Power buttons;
+  - absence of duplicate raster face overlays;
+  - circular clipping of raster monster art.
+- Full CI is required before merge; no production deploy until Chromium, WebKit, Offline/PWA, Performance, Audit and Aggregate Gate are green.
