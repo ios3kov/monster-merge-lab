@@ -51,10 +51,9 @@ function atlasPosition(index: number) {
 export function MonsterArt({ tier, size = 42 }: { tier: number; size?: number }) {
   const index = atlasIndex(tier);
   const { column, row } = atlasPosition(index);
-  const mode = faceMode(tier);
   return (
     <span
-      className={'monster-art face-' + mode}
+      className="monster-art"
       data-tier={tier}
       aria-hidden="true"
       style={{ width: size, height: size }}
@@ -68,9 +67,6 @@ export function MonsterArt({ tier, size = 42 }: { tier: number; size?: number })
             String((column / 3) * 100) + '% ' + String(row * 100) + '%',
         }}
       />
-      <span className="thumb-eye thumb-eye-left"><i /></span>
-      <span className="thumb-eye thumb-eye-right"><i /></span>
-      <span className="thumb-mouth" />
     </span>
   );
 }
@@ -378,6 +374,10 @@ export function drawMonster(
   if (hybridAtlas.complete && hybridAtlas.naturalWidth > 0) {
     const sw = hybridAtlas.naturalWidth / 4;
     const sh = hybridAtlas.naturalHeight / 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, size * 0.475, 0, Math.PI * 2);
+    ctx.clip();
     ctx.drawImage(
       hybridAtlas,
       column * sw,
@@ -389,13 +389,14 @@ export function drawMonster(
       size,
       size,
     );
+    ctx.restore();
   } else {
     ctx.fillStyle = TIER_DEFS[body.tier]!.base;
     ctx.beginPath();
     ctx.arc(0, 0, radius, 0, Math.PI * 2);
     ctx.fill();
+    drawRuntimeFace(ctx, body, radius, time, gazeX, gazeY, attention);
   }
 
-  drawRuntimeFace(ctx, body, radius, time, gazeX, gazeY, attention);
   ctx.restore();
 }
