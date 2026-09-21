@@ -36,10 +36,15 @@ Each file has a transparent document background. No atlas cropping, CSS clipping
 - Tier silhouette/color remains distinct and readable at small HUD size.
 
 ## Verification
-E2E must verify:
+Verified:
 - the live monster DOM uses `img.monster-body` paths under `/assets/monsters/`;
 - all nine sprite files return successfully;
 - every sprite is SVG with a transparent document background;
-- the legacy atlas name is rejected as deprecated artwork.
+- the legacy atlas name is rejected as deprecated artwork;
+- implementation CI #268 ✓;
+- final PR-head CI #269 ✓;
+- post-merge main CI #270 ✓;
+- production deploy ✓;
+- production interaction smoke ✓.
 
-Full CI and production interaction smoke remain required before this phase is complete.
+PR #48 was squash-merged as `edf6b6d402eb4fa3b0c25edc5ef6c5a453d4a6fb`.
