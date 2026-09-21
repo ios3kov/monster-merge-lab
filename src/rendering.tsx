@@ -10,8 +10,18 @@ import {
   type Body,
 } from './physics';
 
-const HYBRID_ATLAS_URL = '/assets/concept/monster-tiers.webp';
-const HYBRID_TIER_MAP = [0, 1, 2, 3, 4, 5, 6, 7, 7];
+const MONSTER_SPRITE_URLS = Array.from(
+  { length: MAX_TIER + 1 },
+  (_, tier) => '/assets/monsters/tier-' + String(tier) + '.svg',
+);
+
+const monsterSprites = MONSTER_SPRITE_URLS.map((src) => {
+  const image = new Image();
+  image.decoding = 'async';
+  image.src = src;
+  return image;
+});
+
 const HYBRID_IRIS = [
   '#245ee8',
   '#13a757',
@@ -24,9 +34,9 @@ const HYBRID_IRIS = [
   '#7f4b25',
 ];
 
-const hybridAtlas = new Image();
-hybridAtlas.decoding = 'async';
-hybridAtlas.src = HYBRID_ATLAS_URL;
+function spriteUrl(tier: number) {
+  return MONSTER_SPRITE_URLS[Math.min(MAX_TIER, Math.max(0, tier))]!;
+}
 
 type FaceMode = 'normal' | 'cyclops' | 'closed' | 'wink';
 
@@ -37,20 +47,7 @@ function faceMode(tier: number): FaceMode {
   return 'normal';
 }
 
-function atlasIndex(tier: number) {
-  return HYBRID_TIER_MAP[Math.min(MAX_TIER, tier)] ?? 7;
-}
-
-function atlasPosition(index: number) {
-  return {
-    column: index % 4,
-    row: Math.floor(index / 4),
-  };
-}
-
 export function MonsterArt({ tier, size = 42 }: { tier: number; size?: number }) {
-  const index = atlasIndex(tier);
-  const { column, row } = atlasPosition(index);
   return (
     <span
       className="monster-art"
@@ -58,14 +55,11 @@ export function MonsterArt({ tier, size = 42 }: { tier: number; size?: number })
       aria-hidden="true"
       style={{ width: size, height: size }}
     >
-      <span
+      <img
         className="monster-body"
-        style={{
-          backgroundImage: 'url(' + HYBRID_ATLAS_URL + ')',
-          backgroundSize: '400% 200%',
-          backgroundPosition:
-            String((column / 3) * 100) + '% ' + String(row * 100) + '%',
-        }}
+        src={spriteUrl(tier)}
+        alt=""
+        draggable={false}
       />
     </span>
   );
@@ -345,8 +339,6 @@ export function drawMonster(
   attention = 0,
 ) {
   const reducedMotion = prefersReducedMotion();
-  const index = atlasIndex(body.tier);
-  const { column, row } = atlasPosition(index);
   const speed = Math.hypot(body.vx ?? 0, body.vy ?? 0);
   const idle =
     !reducedMotion && speed < 70
@@ -371,25 +363,15 @@ export function drawMonster(
   ctx.rotate(body.angle + nervous);
   ctx.scale(1 + squash - breathe * 0.18, 1 - squash + breathe);
 
-  if (hybridAtlas.complete && hybridAtlas.naturalWidth > 0) {
-    const sw = hybridAtlas.naturalWidth / 4;
-    const sh = hybridAtlas.naturalHeight / 2;
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(0, 0, size * 0.475, 0, Math.PI * 2);
-    ctx.clip();
+  const sprite = monsterSprites[Math.min(MAX_TIER, Math.max(0, body.tier))]!;
+  if (sprite.complete && sprite.naturalWidth > 0) {
     ctx.drawImage(
-      hybridAtlas,
-      column * sw,
-      row * sh,
-      sw,
-      sh,
+      sprite,
       -size / 2,
       -size / 2,
       size,
       size,
     );
-    ctx.restore();
   } else {
     ctx.fillStyle = TIER_DEFS[body.tier]!.base;
     ctx.beginPath();

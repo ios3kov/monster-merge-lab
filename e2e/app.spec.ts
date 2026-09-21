@@ -38,11 +38,17 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
 
   await expect(page.locator('.thumb-eye')).toHaveCount(0);
   await expect(page.locator('.thumb-mouth')).toHaveCount(0);
-  const monsterClip = await page
-    .locator('.monster-body')
-    .first()
-    .evaluate((element) => getComputedStyle(element).clipPath);
-  expect(monsterClip).toContain('circle');
+  const monsterSources = await page
+    .locator('img.monster-body')
+    .evaluateAll((images) =>
+      images.map((image) => (image as HTMLImageElement).getAttribute('src')),
+    );
+  expect(monsterSources.length).toBeGreaterThan(0);
+  for (const source of monsterSources) {
+    expect(source).toMatch(/^\/assets\/monsters\/tier-[0-8]\.svg$/);
+    expect(source).not.toContain('monster-tiers.webp');
+  }
+  await expect(page.locator('.monster-body:not(img)')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Drop monster' })).toHaveCount(0);
   await expect(dropSurface(page)).toHaveAttribute('aria-disabled', 'false');
   await expect(page.getByRole('button', { name: 'Lab and game modes' })).toBeVisible();
@@ -770,12 +776,45 @@ test('game screen keeps artwork clean and UI content live', async ({ page }, tes
     'hold-panel.webp',
     'next-panel.webp',
     'orders-panel.webp',
+    'monster-tiers.webp',
     'nav-frame.webp',
   ];
   for (const asset of deprecatedArtwork) {
     for (const layer of Object.values(layers)) {
       expect(layer, asset + ' must not be used').not.toContain(asset);
     }
+  }
+});
+
+
+test('all transparent monster tier assets are available', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+
+  const assets = await page.evaluate(async () => {
+    const results = [];
+    for (let tier = 0; tier <= 8; tier += 1) {
+      const path = '/assets/monsters/tier-' + String(tier) + '.svg';
+      const response = await fetch(path);
+      const text = await response.text();
+      results.push({
+        path,
+        ok: response.ok,
+        contentType: response.headers.get('content-type') ?? '',
+        hasSvg: text.includes('<svg'),
+        hasOpaqueCanvas: /<rect[^>]+(?:fill=["'](?:#fff|#ffffff|white)|width=["']256["'][^>]+height=["']256["'])/i.test(text),
+      });
+    }
+    return results;
+  });
+
+  expect(assets).toHaveLength(9);
+  for (const asset of assets) {
+    expect(asset.ok, asset.path).toBe(true);
+    expect(asset.contentType, asset.path).toContain('image/svg+xml');
+    expect(asset.hasSvg, asset.path).toBe(true);
+    expect(asset.hasOpaqueCanvas, asset.path).toBe(false);
   }
 });
 

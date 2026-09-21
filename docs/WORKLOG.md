@@ -418,3 +418,24 @@ This file is updated after each major production step.
 - Production interaction smoke ✓ after deploy.
 - Current production removes the visible rectangular monster artifacts by clipping atlas cells and removes duplicate face overlays.
 - This is **not yet the final asset-decomposition stop criterion**: gameplay monsters still originate from `monster-tiers.webp`; the next phase must replace that atlas dependency with individual transparent RGBA sprite files before the full user task is considered complete.
+
+
+## 2026-09-21 — Transparent monster sprites
+
+### Phase 3 — remove atlas dependency — VERIFIED
+- Added nine independent transparent vector sprite assets under `public/assets/monsters/tier-0.svg` … `tier-8.svg`.
+- Sprite styling follows the approved second concept: warm glossy round bodies, tier-distinct colors, leaves/horns/spikes, expressive faces and transparent outer canvas.
+- `MonsterArt` now renders a direct `img` for the matching tier asset instead of selecting a rectangular cell from an atlas.
+- Canvas gameplay preloads the same nine tier assets and draws each sprite directly.
+- Removed runtime atlas indexing/cropping and removed the temporary circular clip workaround.
+- Deleted superseded `public/assets/concept/monster-tiers.webp`.
+- Procedural face/body drawing remains only as a loading fallback; it is no longer painted over completed sprite artwork.
+- E2E now requires:
+  - direct `/assets/monsters/tier-N.svg` paths;
+  - no non-image `.monster-body` presentation;
+  - all nine sprite files available with SVG MIME type and transparent document background;
+  - legacy `monster-tiers.webp` rejected as deprecated artwork.
+- Detailed asset contract: `docs/steps/2026-09-21-transparent-monster-sprites.md`.
+- Implementation head CI #268: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- All nine transparent tier assets are served successfully and the live renderer no longer references the removed atlas.
+- Final documentation-only head must pass the same gate before merge and production deploy.

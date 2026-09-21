@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="body" cx="36%" cy="26%" r="75%"><stop offset="0" stop-color="#ffd66e"/><stop offset=".68" stop-color="#f4b83f"/><stop offset="1" stop-color="#d58a27"/></radialGradient>
+    <filter id="ds" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#2b170f" flood-opacity=".28"/></filter>
+  </defs>
+  <g filter="url(#ds)"><ellipse cx="128" cy="137" rx="92" ry="91" fill="url(#body)"/>
+  <ellipse cx="92" cy="82" rx="27" ry="13" fill="#fff" opacity=".18" transform="rotate(-24 92 82)"/>
+  <circle cx="67" cy="164" r="10" fill="#ffd66e" opacity=".72"/><circle cx="191" cy="169" r="8" fill="#ffd66e" opacity=".6"/>
+  <path d="M126 48q-13-42 20-44q15 31-20 44z" fill="#5cae3c"/><path d="M132 48q30-35 48-10q-20 28-48 10z" fill="#77c84a"/><path d="M127 49q-27-27-43-5q17 25 43 5z" fill="#6dbb42"/><ellipse cx="92" cy="112" rx="18" ry="22" fill="#fffdf6"/><ellipse cx="164" cy="112" rx="18" ry="22" fill="#fffdf6"/><circle cx="95" cy="116" r="10" fill="#26304d"/><circle cx="167" cy="116" r="10" fill="#26304d"/><circle cx="90" cy="110" r="4" fill="#fff"/><circle cx="162" cy="110" r="4" fill="#fff"/><ellipse cx="69" cy="145" rx="15" ry="8" fill="#ff93a3" opacity=".55"/><ellipse cx="187" cy="145" rx="15" ry="8" fill="#ff93a3" opacity=".55"/><path d="M105 151q23 28 46 0q-5 34-23 35q-18-1-23-35z" fill="#642438"/></g>
+</svg>
