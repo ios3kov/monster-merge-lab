@@ -439,3 +439,13 @@ This file is updated after each major production step.
 - Implementation head CI #268: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
 - All nine transparent tier assets are served successfully and the live renderer no longer references the removed atlas.
 - Final documentation-only head must pass the same gate before merge and production deploy.
+
+
+### Transparent monster sprites production verification — DONE
+- PR #48 squash-merged to `main` as `edf6b6d402eb4fa3b0c25edc5ef6c5a453d4a6fb`.
+- Post-merge main CI #270: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Production deploy ✓.
+- Production interaction smoke ✓.
+- `monster-tiers.webp` is removed from production source/assets.
+- Live HUD and canvas now use nine independent transparent tier sprites from `/assets/monsters/`.
+- The concept-decomposition stop criterion is satisfied: clean background/chrome, concept bottom navigation, dark concept HUD treatment, and no rectangular monster atlas path remain in the live renderer.
