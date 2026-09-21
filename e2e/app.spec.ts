@@ -756,8 +756,10 @@ test('game screen keeps artwork clean and UI content live', async ({ page }, tes
   expect(layers.shell).toContain('monster-workshop-background.webp');
   expect(layers.frame).toContain('tank-frame.webp');
   expect(layers.hud).toContain('toolbar-frame.svg');
-  expect(layers.holdButton).toContain('button-frame.svg');
-  expect(layers.soundButton).toContain('button-frame.svg');
+  expect(layers.holdButton).toContain('linear-gradient');
+  expect(layers.holdButton).not.toContain('button-frame.svg');
+  expect(layers.soundButton).toContain('linear-gradient');
+  expect(layers.soundButton).not.toContain('button-frame.svg');
   expect(layers.toolbar).toContain('toolbar-frame.svg');
   expect(layers.button).toContain('button-frame.svg');
 
