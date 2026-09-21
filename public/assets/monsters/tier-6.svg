@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="body" cx="36%" cy="26%" r="75%"><stop offset="0" stop-color="#c6ee72"/><stop offset=".68" stop-color="#9dca47"/><stop offset="1" stop-color="#689b2e"/></radialGradient>
+    <filter id="ds" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#2b170f" flood-opacity=".28"/></filter>
+  </defs>
+  <g filter="url(#ds)"><ellipse cx="128" cy="137" rx="92" ry="91" fill="url(#body)"/>
+  <ellipse cx="92" cy="82" rx="27" ry="13" fill="#fff" opacity=".18" transform="rotate(-24 92 82)"/>
+  <circle cx="67" cy="164" r="10" fill="#c6ee72" opacity=".72"/><circle cx="191" cy="169" r="8" fill="#c6ee72" opacity=".6"/>
+  <path d="M126 48q-13-42 20-44q15 31-20 44z" fill="#5cae3c"/><path d="M132 48q30-35 48-10q-20 28-48 10z" fill="#77c84a"/><path d="M127 49q-27-27-43-5q17 25 43 5z" fill="#6dbb42"/><path d="M76 116q18-18 36 0M144 116q18-18 36 0" fill="none" stroke="#4c2434" stroke-width="9" stroke-linecap="round"/><path d="M95 150q33 36 66 0q-4 48-33 50q-29-2-33-50z" fill="#6c2438"/><path d="M109 179q19 17 38 0" fill="#ff7c93"/></g>
+</svg>
