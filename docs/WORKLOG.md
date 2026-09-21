@@ -409,3 +409,12 @@ This file is updated after each major production step.
 - Implementation head CI #265: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
 - Chromium initially caught a stale artwork expectation from the previous light Hold/Sound treatment; the test contract was updated to explicitly require the new dark-gradient concept treatment and reject the old button-frame asset there.
 - Final documentation-only head must pass the same gate before merge and production deploy.
+
+
+### Concept decomposition production verification — DEPLOYED, ASSET PHASE CONTINUES
+- PR #47 squash-merged to `main` as `f52005125a38304b58b9400950992ec89b494fed`.
+- Post-merge main CI #267: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Verified production build deployed successfully.
+- Production interaction smoke ✓ after deploy.
+- Current production removes the visible rectangular monster artifacts by clipping atlas cells and removes duplicate face overlays.
+- This is **not yet the final asset-decomposition stop criterion**: gameplay monsters still originate from `monster-tiers.webp`; the next phase must replace that atlas dependency with individual transparent RGBA sprite files before the full user task is considered complete.
