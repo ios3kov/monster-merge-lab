@@ -786,6 +786,38 @@ test('game screen keeps artwork clean and UI content live', async ({ page }, tes
   }
 });
 
+
+test('all transparent monster tier assets are available', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.includes('desktop'));
+
+  await page.goto('/');
+
+  const assets = await page.evaluate(async () => {
+    const results = [];
+    for (let tier = 0; tier <= 8; tier += 1) {
+      const path = '/assets/monsters/tier-' + String(tier) + '.svg';
+      const response = await fetch(path);
+      const text = await response.text();
+      results.push({
+        path,
+        ok: response.ok,
+        contentType: response.headers.get('content-type') ?? '',
+        hasSvg: text.includes('<svg'),
+        hasOpaqueCanvas: /<rect[^>]+(?:fill=["'](?:#fff|#ffffff|white)|width=["']256["'][^>]+height=["']256["'])/i.test(text),
+      });
+    }
+    return results;
+  });
+
+  expect(assets).toHaveLength(9);
+  for (const asset of assets) {
+    expect(asset.ok, asset.path).toBe(true);
+    expect(asset.contentType, asset.path).toContain('image/svg+xml');
+    expect(asset.hasSvg, asset.path).toBe(true);
+    expect(asset.hasOpaqueCanvas, asset.path).toBe(false);
+  }
+});
+
 test('Experiment objective hints wrap in portrait and stay compact in landscape', async ({
   page,
 }, testInfo) => {
