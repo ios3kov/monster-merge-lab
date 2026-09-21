@@ -422,7 +422,7 @@ This file is updated after each major production step.
 
 ## 2026-09-21 — Transparent monster sprites
 
-### Phase 3 — remove atlas dependency — IN VERIFICATION
+### Phase 3 — remove atlas dependency — VERIFIED
 - Added nine independent transparent vector sprite assets under `public/assets/monsters/tier-0.svg` … `tier-8.svg`.
 - Sprite styling follows the approved second concept: warm glossy round bodies, tier-distinct colors, leaves/horns/spikes, expressive faces and transparent outer canvas.
 - `MonsterArt` now renders a direct `img` for the matching tier asset instead of selecting a rectangular cell from an atlas.
@@ -436,4 +436,6 @@ This file is updated after each major production step.
   - all nine sprite files available with SVG MIME type and transparent document background;
   - legacy `monster-tiers.webp` rejected as deprecated artwork.
 - Detailed asset contract: `docs/steps/2026-09-21-transparent-monster-sprites.md`.
-- Full Chromium/WebKit/Offline/PWA/Performance/Audit/Aggregate CI must pass before merge and production deploy.
+- Implementation head CI #268: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- All nine transparent tier assets are served successfully and the live renderer no longer references the removed atlas.
+- Final documentation-only head must pass the same gate before merge and production deploy.
