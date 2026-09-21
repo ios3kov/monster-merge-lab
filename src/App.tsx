@@ -1563,6 +1563,10 @@ function App() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 'p') {
+        nudge();
+        return;
+      }
       if (event.key !== 'Escape') return;
       setShowMonsters(false);
       setShowShop(false);
@@ -1570,7 +1574,7 @@ function App() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [nudge]);
 
   useEffect(() => {
     const dialogOpen =
@@ -1723,12 +1727,6 @@ function App() {
     preset.goal,
     getRunGoalContext(ui, isPileBelowDanger()),
   );
-  const powerUsesRemaining = !preset.allowPower
-    ? 0
-    : preset.mode === 'experiments' && preset.limits?.powerUses !== undefined
-      ? Math.max(0, preset.limits.powerUses - ui.runPowerUses)
-      : ui.powerCharges;
-
   return (
     <main className="app-shell">
       <section className={'game-shell reference-game-shell' + (ui.overdriveActive ? ' is-overdrive' : '')}>
