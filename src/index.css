@@ -447,78 +447,13 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   display: block;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  clip-path: circle(47.5% at 50% 50%);
   background-repeat: no-repeat;
+  background-color: transparent;
   filter: drop-shadow(0 2px 3px rgba(45,24,12,.18));
 }
-.thumb-eye {
-  position: absolute;
-  z-index: 2;
-  top: 39%;
-  width: 21%;
-  height: 25%;
-  border-radius: 50%;
-  background: #fffdf6;
-  border: 1px solid rgba(72,40,45,.18);
-}
-.thumb-eye-left { left: 25%; }
-.thumb-eye-right { right: 25%; }
-.thumb-eye i {
-  position: absolute;
-  left: 39%;
-  top: 37%;
-  width: 38%;
-  height: 38%;
-  border-radius: 50%;
-  background: #1d2b50;
-  box-shadow: inset 0 0 0 2px rgba(69,115,245,.65);
-}
-.thumb-eye i::after {
-  content: "";
-  position: absolute;
-  left: 12%;
-  top: 9%;
-  width: 28%;
-  height: 28%;
-  border-radius: 50%;
-  background: #fff;
-}
-.thumb-mouth {
-  position: absolute;
-  z-index: 2;
-  left: 50%;
-  top: 62%;
-  width: 25%;
-  height: 18%;
-  transform: translateX(-50%);
-  border-radius: 0 0 60% 60%;
-  background: #5c2031;
-}
-.face-cyclops .thumb-eye-left { display: none; }
-.face-cyclops .thumb-eye-right {
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-  width: 33%;
-  height: 34%;
-  top: 37%;
-}
-.face-closed .thumb-eye {
-  height: 7%;
-  top: 45%;
-  background: transparent;
-  border: 0;
-  border-top: 3px solid #4e2638;
-}
-.face-closed .thumb-eye i { display: none; }
-.face-wink .thumb-eye-right {
-  height: 7%;
-  top: 45%;
-  background: transparent;
-  border: 0;
-  border-top: 3px solid #4e2638;
-}
-.face-wink .thumb-eye-right i { display: none; }
-
 .game-frame {
   position: absolute;
   z-index: 12;
@@ -1239,7 +1174,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 
 .overdrive-panel > span,
 .mode-status {
-  color: #5a341d;
+  color: #f6dfbd;
   text-shadow: none;
 }
 
@@ -1267,7 +1202,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 
 .hold-board > span,
 .next-board strong {
-  color: #4f2f1c;
+  color: #f8e0bc;
   font-size: 8px;
 }
 
@@ -1684,10 +1619,10 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   border: 1px solid rgba(90,51,28,.68);
   border-radius: 9px;
   background:
-    linear-gradient(180deg, rgba(255,246,214,.96), rgba(220,174,111,.96));
+    linear-gradient(180deg, rgba(79,43,24,.98), rgba(48,27,17,.98));
   box-shadow:
-    inset 0 1px rgba(255,255,255,.66),
-    inset 0 -2px rgba(100,56,28,.12);
+    inset 0 1px rgba(255,221,166,.14),
+    inset 0 -2px rgba(20,10,6,.28);
 }
 
 .reference-hud__score {
@@ -1715,9 +1650,9 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   align-content: center;
   gap: 3px;
   padding: 4px 5px;
-  color: #4b2b18;
+  color: #fff2d5;
   border-radius: 6px;
-  background: rgba(255,250,229,.26);
+  background: rgba(44,24,14,.22);
 }
 
 .reference-score {
@@ -1731,7 +1666,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .reference-score span,
 .reference-score small {
   flex: none;
-  color: #5a341d;
+  color: #f3d7aa;
   font-size: 8px;
   line-height: 1;
   font-weight: 950;
@@ -1742,7 +1677,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 .reference-score strong {
   min-width: 0;
   overflow: hidden;
-  color: #3e2415;
+  color: #fff6df;
   font-size: 16px;
   line-height: 1;
   font-weight: 1000;
@@ -1765,7 +1700,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 
 .reference-overdrive > span,
 .reference-mode-status {
-  color: #5a341d;
+  color: #f3d7aa;
   font-size: 8px;
   line-height: 1.15;
   font-weight: 950;
@@ -1780,8 +1715,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   height: 5px;
   overflow: hidden;
   border-radius: 99px;
-  background: rgba(68,40,23,.25);
-  border: 1px solid rgba(84,51,28,.2);
+  background: rgba(16,9,5,.65);
+  border: 1px solid rgba(255,213,151,.2);
 }
 
 .reference-overdrive > i > b {
@@ -1818,7 +1753,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   border: 0;
   border-radius: 7px;
   color: #fff2d0;
-  background: url('/assets/concept/button-frame.svg') center / 100% 100% no-repeat;
+  background: linear-gradient(180deg, rgba(112,63,34,.98), rgba(62,34,20,.98));
   cursor: pointer;
   text-shadow: 0 1px 2px rgba(44,23,10,.82);
 }
@@ -1878,7 +1813,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   padding: 16px 2px 2px;
   overflow: hidden;
   border-radius: 6px;
-  background: rgba(255,249,228,.28);
+  background: rgba(45,24,14,.34);
 }
 
 .reference-next > strong {
@@ -1886,7 +1821,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   top: 4px;
   left: 0;
   right: 0;
-  color: #4f2f1c;
+  color: #f8e0bc;
   font-size: 8px;
   line-height: 1;
   font-weight: 1000;
@@ -1905,9 +1840,9 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   height: 25px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(112,67,31,.55);
-  border-radius: 50%;
-  background: rgba(255,249,224,.8);
+  border: 1px solid rgba(219,159,91,.45);
+  border-radius: 7px;
+  background: rgba(33,18,12,.76);
   box-shadow: 0 2px 5px rgba(63,34,16,.16);
 }
 
@@ -1948,8 +1883,8 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   padding: 0 5px;
   border: 1px solid rgba(112,67,31,.42);
   border-radius: 7px;
-  color: #4f2f1c;
-  background: rgba(255,248,219,.7);
+  color: #fff5dc;
+  background: rgba(45,24,14,.82);
 }
 
 .reference-coin {
@@ -1979,10 +1914,10 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   height: 44px;
   display: grid;
   place-items: center;
-  border: 1px solid #5a351d;
+  border: 1px solid #7a4a29;
   border-radius: 7px;
   color: #fff3d5;
-  background: url('/assets/concept/button-frame.svg') center / 100% 100% no-repeat;
+  background: linear-gradient(180deg, #70472d, #3e291d);
   cursor: pointer;
   text-shadow: 0 1px 2px rgba(44,23,10,.82);
 }
@@ -1995,7 +1930,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   overflow: hidden;
   padding: 7px 2px 2px;
   border-radius: 6px;
-  background: rgba(255,248,219,.36);
+  background: linear-gradient(180deg, #f8e5bd, #e7c48d);
 }
 
 .reference-orders h2 {

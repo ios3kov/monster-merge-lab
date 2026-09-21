@@ -19,7 +19,30 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await page.goto('/');
   await expect(page.getByLabel(/Monster tank/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Shop' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Monsters' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Monster book' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Restart run' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Monsters' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Power-up/ })).toHaveCount(0);
+
+  const toolbarLabels = await page
+    .locator('.reference-toolbar > button')
+    .evaluateAll((buttons) =>
+      buttons.map((button) => button.getAttribute('aria-label')),
+    );
+  expect(toolbarLabels).toEqual([
+    'Shop',
+    'Lab and game modes',
+    'Monster book',
+    'Restart run',
+  ]);
+
+  await expect(page.locator('.thumb-eye')).toHaveCount(0);
+  await expect(page.locator('.thumb-mouth')).toHaveCount(0);
+  const monsterClip = await page
+    .locator('.monster-body')
+    .first()
+    .evaluate((element) => getComputedStyle(element).clipPath);
+  expect(monsterClip).toContain('circle');
   await expect(page.getByRole('button', { name: 'Drop monster' })).toHaveCount(0);
   await expect(dropSurface(page)).toHaveAttribute('aria-disabled', 'false');
   await expect(page.getByRole('button', { name: 'Lab and game modes' })).toBeVisible();
@@ -39,11 +62,14 @@ test('core UI is usable and responsive', async ({ page }, testInfo) => {
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'SHOP' })).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Monsters' }).click();
+  await page.getByRole('button', { name: 'Monster book' }).click();
   await expect(
     page.getByRole('dialog', { name: 'MONSTER EVOLUTION' }),
   ).toBeVisible();
   await page.keyboard.press('Escape');
+
+  await page.getByRole('button', { name: 'Restart run' }).click();
+  await expect(dropSurface(page)).toHaveAttribute('aria-disabled', 'false');
 
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await expect(page.getByRole('dialog', { name: 'LAB' })).toBeVisible();
@@ -214,9 +240,7 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await expect(
     page.getByRole('button', { name: 'Hold unavailable in this mode' }),
   ).toBeDisabled();
-  await expect(
-    page.getByRole('button', { name: 'Power-up unavailable in this mode' }),
-  ).toBeDisabled();
+  await expect(page.getByRole('button', { name: /^Power-up/ })).toHaveCount(0);
   await expect(page.getByLabel('Experiment 1 objective')).toContainText(
     'Create a Peep',
   );
@@ -271,9 +295,7 @@ test('mode hub starts functional Experiment and Daily runs', async ({
   await page.getByRole('button', { name: 'Lab and game modes' }).click();
   await page.getByRole('button', { name: /Daily Experiment/ }).click();
 
-  await expect(
-    page.getByRole('button', { name: 'Power-up unavailable in this mode' }),
-  ).toBeDisabled();
+  await expect(page.getByRole('button', { name: /^Power-up/ })).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: /Hold current monster/ }),
   ).toBeEnabled();
@@ -734,8 +756,10 @@ test('game screen keeps artwork clean and UI content live', async ({ page }, tes
   expect(layers.shell).toContain('monster-workshop-background.webp');
   expect(layers.frame).toContain('tank-frame.webp');
   expect(layers.hud).toContain('toolbar-frame.svg');
-  expect(layers.holdButton).toContain('button-frame.svg');
-  expect(layers.soundButton).toContain('button-frame.svg');
+  expect(layers.holdButton).toContain('linear-gradient');
+  expect(layers.holdButton).not.toContain('button-frame.svg');
+  expect(layers.soundButton).toContain('linear-gradient');
+  expect(layers.soundButton).not.toContain('button-frame.svg');
   expect(layers.toolbar).toContain('toolbar-frame.svg');
   expect(layers.button).toContain('button-frame.svg');
 

@@ -376,3 +376,36 @@ This file is updated after each major production step.
 - Verified production build deployed successfully.
 - Production interaction smoke ✓ after deploy.
 - Final UI is live with the approved second-concept presentation layer; no gameplay/physics/economy/persistence/telemetry behavior changed.
+
+
+## 2026-09-20 — Concept decomposition rebuild
+
+### Phase 1 — live navigation contract
+- Approved second reference is the sole visual source of truth.
+- The concept is being decomposed into production layers/assets rather than approximated with another independent UI design.
+- Verified that the current workshop background asset is already clean: no gameplay monsters are baked into the scene.
+- Current combined monster atlas remains rejected because rectangular crop content can leak into gameplay/HUD; replacement is tracked as a separate asset phase.
+- Bottom navigation changed at source level from `Shop / Monsters / Power / Lab` to the exact concept order `Shop / Lab / Book / Restart`.
+- `Book` opens the existing Monster Evolution/collection UI; `Restart` calls the real run reset handler.
+- No fake relabeling: removed toolbar Power from this presentation because it does not exist in the approved concept; gameplay power logic remains untouched elsewhere.
+- E2E coverage updated for Book and real Restart behavior.
+- Next: decompose HUD/chrome proportions and replace the rejected monster atlas with clean transparent assets.
+
+
+### Phase 2 — monster rendering + concept HUD — VERIFIED
+- Root cause of the square monster artifacts was confirmed in `src/rendering.tsx`: complete raster faces from `monster-tiers.webp` were rendered as rectangular atlas cells and then a second runtime face layer was painted on top.
+- Removed the duplicate thumbnail face DOM (`thumb-eye` / `thumb-mouth`) from `MonsterArt`.
+- Canvas rendering now clips each atlas cell to a circular monster silhouette before drawing, so the rectangular source cell cannot leak into the visible playfield.
+- Runtime face drawing is retained only for the procedural fallback when the raster atlas is unavailable.
+- Removed obsolete thumbnail-face CSS.
+- Reworked the approved-reference HUD palette from the previous light cream approximation to dark wood panels matching the concept; Orders remains the light card.
+- Bottom toolbar remains the exact concept order: Shop / Lab / Book / Restart.
+- The old visual Power button stays removed. Existing power gameplay code is retained; desktop fallback shortcut `P` keeps the action reachable without changing the approved visual layout.
+- E2E now locks:
+  - exact bottom-toolbar order;
+  - absence of old Monsters/Power buttons;
+  - absence of duplicate raster face overlays;
+  - circular clipping of raster monster art.
+- Implementation head CI #265: Chromium ✓ WebKit ✓ Offline/PWA ✓ Performance ✓ Audit ✓ Aggregate Gate ✓.
+- Chromium initially caught a stale artwork expectation from the previous light Hold/Sound treatment; the test contract was updated to explicitly require the new dark-gradient concept treatment and reject the old button-frame asset there.
+- Final documentation-only head must pass the same gate before merge and production deploy.
