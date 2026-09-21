@@ -1700,7 +1700,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
 
 .reference-overdrive > span,
 .reference-mode-status {
-  color: #5a341d;
+  color: #f3d7aa;
   font-size: 8px;
   line-height: 1.15;
   font-weight: 950;
@@ -1821,7 +1821,7 @@ button:focus-visible { outline: 3px solid #fff3a8; outline-offset: 2px; }
   top: 4px;
   left: 0;
   right: 0;
-  color: #4f2f1c;
+  color: #f8e0bc;
   font-size: 8px;
   line-height: 1;
   font-weight: 1000;
